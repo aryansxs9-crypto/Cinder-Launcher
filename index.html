@@ -321,8 +321,8 @@
     <div style="padding:22px 22px 24px; display:flex; flex-direction:column; gap:14px;">
       <div class="sub" style="font-size:13px; line-height:1.5;">Pick an offline name to play with. You can change it later in Settings.</div>
       <input id="nameInput" type="text" maxlength="16" placeholder="Offline name"
-        style="width:100%; padding:12px 14px; border-radius:10px; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--ink); font-size:14.5px; font-family:inherit;">
-      <div class="sub" id="nameError" style="font-size:12px; color:#ff8b8b; min-height:14px;"></div>
+        style="width:100%; padding:12px 14px; border-radius:10px; background:r
+         <div class="sub" id="nameError" style="font-size:12px; color:#ff8b8b; min-height:14px;"></div>
       <button class="play-btn" id="nameConfirmBtn" style="margin-top:0;">Continue</button>
     </div>
   </div>
@@ -331,7 +331,7 @@
 <div class="app" id="appRoot">
 
   <div class="titlebar">
-    <div class="tb-left"><span class="tb-dot"></span> Ember Launcher · <span id="tbVersion">26.2</span></div>
+    <div class="tb-left"><span class="tb-dot"></span> Ember Launcher · <span id="tbVersion">1.20.4</span></div>
     <div class="tb-icons">
       <span id="tbMin" title="Minimize">—</span>
       <span id="tbMax" title="Maximize">▢</span>
@@ -348,10 +348,10 @@
       <button class="nav-tab" data-page="skins">Skins</button>
       <button class="nav-tab" data-page="settings">Settings</button>
     </div>
-    <div class="account-chip"><span class="status-dot"></span> <span id="accountChipName">Aryan99gg</span></div>
+    <div class="account-chip"><span class="status-dot"></span> <span id="accountChipName">Player</span></div>
   </div>
 
-  <!-- ===================== HOME ===================== -->
+  <!-- HOME -->
   <div class="page active" id="page-home">
     <div class="home-grid">
 
@@ -361,7 +361,7 @@
           <div class="player-top">
             <div>
               <div class="player-name">
-                <h1 id="playerNameH1">Aryan99gg</h1>
+                <h1 id="playerNameH1">Player</h1>
                 <span class="badge offline" id="statusBadge">Offline</span>
               </div>
               <div class="sub" id="statusSub">Offline session</div>
@@ -377,7 +377,7 @@
           </div>
 
           <div class="controls-row">
-            <div class="pill-select" id="versionPill"><span class="pill-label">26.2</span> ▾</div>
+            <div class="pill-select" id="versionPill"><span class="pill-label">1.20.4</span> ▾</div>
             <div class="pill-select" id="loaderPill"><span class="pill-label">Vanilla</span> ▾</div>
             <div class="pill-select static" id="javaPill">Java 17+</div>
             <div class="pill-select static" id="ramPill">4.0 GB RAM</div>
@@ -387,28 +387,21 @@
         </div>
 
         <div class="glass glow-card feed-card">
-          <h3>Mods &amp; updates</h3>
-          <div class="sub">What changed since you last played</div>
+          <h3>Performance &amp; Updates</h3>
+          <div class="sub">Latest launcher features active</div>
 
           <div class="feed-item">
             <span class="feed-dot update"></span>
             <div>
-              <div class="ft">Launcher updated to v3.4.1</div>
-              <div class="fd">Faster instance boot times and a fix for the RAM slider resetting on restart.</div>
+              <div class="ft">G1GC Low Latency Garbage Collector</div>
+              <div class="fd">FPS boost mode is now available to smooth out chunk loading and stutter.</div>
             </div>
           </div>
           <div class="feed-item">
             <span class="feed-dot mod"></span>
             <div>
-              <div class="ft">Sodium 0.6.2 available</div>
-              <div class="fd">An update is ready for one of your installed mods on 1.21.1.</div>
-            </div>
-          </div>
-          <div class="feed-item">
-            <span class="feed-dot mod"></span>
-            <div>
-              <div class="ft">Iris Shaders compatible with 26.2</div>
-              <div class="fd">Newly compatible with your current version — added to your recommended list.</div>
+              <div class="ft">Auto Mojang File Downloader</div>
+              <div class="fd">Ready to automatically fetch assets and libraries for any version selected.</div>
             </div>
           </div>
         </div>
@@ -421,7 +414,7 @@
           <div class="sponsor-inner">
             <span class="sponsor-tag">★ Sponsored server</span>
             <h3>Nova SMP</h3>
-            <p>A survival multiplayer world with towns, economy, and weekly events. Fresh map every season.</p>
+            <p>A survival multiplayer world with towns, economy, and weekly events. Offline accounts supported.</p>
             <div class="sponsor-meta"><span>🟢 1,204 online</span><span>⭐ 4.8</span></div>
             <button class="join-btn" id="joinBtn">Join server →</button>
           </div>
@@ -432,8 +425,11 @@
           <div class="stat-row"><span class="k">Memory allocated</span><span class="v ramValue">4096 MB</span></div>
           <input type="range" min="1" max="16" value="4" step="0.5" id="ramSlider">
           <div class="toggle-row">
-            <span class="k">Show snapshots</span>
-            <div class="switch" onclick="this.classList.toggle('on')"><div class="knob"></div></div>
+            <div>
+              <div class="k">FPS Booster</div>
+              <div class="d" style="font-size:11px; color:var(--ink-dimmer);">Optimized JVM Flags</div>
+            </div>
+            <div class="switch on" id="fpsBoostSwitch" onclick="this.classList.toggle('on')"><div class="knob"></div></div>
           </div>
         </div>
 
@@ -441,7 +437,7 @@
     </div>
   </div>
 
-  <!-- ===================== SKINS ===================== -->
+  <!-- SKINS -->
   <div class="page" id="page-skins">
     <div class="skins-layout">
 
@@ -463,7 +459,7 @@
     </div>
   </div>
 
-  <!-- ===================== SETTINGS ===================== -->
+  <!-- SETTINGS -->
   <div class="page" id="page-settings">
     <div class="settings-grid">
 
@@ -487,36 +483,22 @@
         <div class="field-row">
           <div><div class="k">Game folder</div></div>
           <div class="field-val" style="width:60%;">
-            <span class="path-box">C:\Users\ARYAN\AppData\Roaming\.ember</span>
+            <span class="path-box">%AppData%\.ember</span>
             <button class="ghost-btn" id="folderBtnSettings" style="padding:7px 12px;">Open</button>
           </div>
         </div>
       </div>
 
-      <div class="glass glow-card settings-card">
-        <h3>Interface</h3>
-        <div class="sub">How the launcher looks and behaves</div>
-        <div class="field-row"><div><div class="k">Show snapshots</div><div class="d">Include pre-release versions in the picker</div></div><div class="switch" onclick="this.classList.toggle('on')"><div class="knob"></div></div></div>
-        <div class="field-row"><div><div class="k">Hover glow effects</div><div class="d">Cursor-tracking glow on cards and buttons</div></div><div class="switch on" onclick="this.classList.toggle('on')"><div class="knob"></div></div></div>
-        <div class="field-row"><div><div class="k">Launch straight to console</div></div><div class="switch" onclick="this.classList.toggle('on')"><div class="knob"></div></div></div>
-      </div>
-
-      <div class="glass glow-card settings-card full-w">
-        <h3>Recent versions</h3>
-        <div class="sub" id="recentVersions">Versions you've launched will show up here</div>
-      </div>
-
     </div>
   </div>
 
-  </div><!-- /appBody -->
+  </div>
 </div>
 
 <input type="file" id="skinFileInput" accept="image/png,image/*" style="display:none;">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-  // ===================== small utils =====================
   function toast(msg){
     const c = document.getElementById('toastContainer');
     const el = document.createElement('div');
@@ -525,6 +507,7 @@
     c.appendChild(el);
     setTimeout(()=>el.remove(), 2600);
   }
+
   function shade(hex, pct){
     const n = parseInt(hex.slice(1),16);
     let r=(n>>16)+Math.round(2.55*pct), g=((n>>8)&0xff)+Math.round(2.55*pct), b=(n&0xff)+Math.round(2.55*pct);
@@ -532,7 +515,6 @@
     return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
   }
 
-  // ===================== tab switching =====================
   function switchToTab(name){
     document.querySelectorAll('.nav-tab').forEach(t=>t.classList.toggle('active', t.dataset.page===name));
     document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active', p.id === 'page-'+name));
@@ -542,15 +524,6 @@
     tab.addEventListener('click', ()=>switchToTab(tab.dataset.page));
   });
 
-  function highlightSettings(id){
-    switchToTab('settings');
-    setTimeout(()=>{
-      const el = document.getElementById(id);
-      if(el){ el.scrollIntoView({behavior:'smooth', block:'center'}); el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'), 1450); }
-    }, 300);
-  }
-
-  // ===================== corner glow =====================
   document.querySelectorAll('.glow-card').forEach(card=>{
     card.addEventListener('mousemove', e=>{
       const r = card.getBoundingClientRect();
@@ -559,18 +532,20 @@
     });
   });
 
-  // ===================== titlebar =====================
+  // Titlebar controls
   document.getElementById('tbMin').addEventListener('click', ()=>{
-    document.getElementById('appBody').classList.toggle('collapsed');
+    if(window.launcherAPI) window.launcherAPI.minimize();
+    else document.getElementById('appBody').classList.toggle('collapsed');
   });
   document.getElementById('tbMax').addEventListener('click', ()=>{
-    document.getElementById('appRoot').classList.toggle('wide');
+    if(window.launcherAPI) window.launcherAPI.maximize();
+    else document.getElementById('appRoot').classList.toggle('wide');
   });
   document.getElementById('tbClose').addEventListener('click', ()=>{
-    toast("This is a preview window — closing is disabled");
+    if(window.launcherAPI) window.launcherAPI.close();
+    else toast("Preview window — closing disabled");
   });
 
-  // ===================== generic dropdown =====================
   let openDropdown = null;
   function closeDropdown(){ if(openDropdown){ openDropdown.remove(); openDropdown = null; } }
   document.addEventListener('click', ()=>closeDropdown());
@@ -578,9 +553,6 @@
   function setupDropdown(pillEl, items, onSelect){
     pillEl.addEventListener('click', e=>{
       e.stopPropagation();
-      if(openDropdown && pillEl.contains(openDropdown.parentElement) === false && openDropdown.parentElement === pillEl){
-        closeDropdown(); return;
-      }
       const wasOpenHere = openDropdown && openDropdown.parentElement === pillEl;
       closeDropdown();
       if(wasOpenHere) return;
@@ -603,117 +575,101 @@
     });
   }
 
+  let selectedVersion = '1.20.4';
+  let memoryMb = 4096;
+
   setupDropdown(document.getElementById('versionPill'),
-    ['26.2','26.1.2','26.1.1','26.1','1.21.4','1.21.1','1.20.6','1.19.4'],
-    v=>{ document.getElementById('tbVersion').textContent = v; toast('Version set to '+v); });
+    ['1.21.1','1.20.6','1.20.4','1.20.1','1.19.4','1.18.2','1.16.5','1.12.2','1.8.9'],
+    v=>{ selectedVersion = v; document.getElementById('tbVersion').textContent = v; toast('Version set to '+v); });
 
   setupDropdown(document.getElementById('loaderPill'),
-    ['Vanilla','Fabric','Forge','Quilt','NeoForge'],
-    v=>{ toast('Mod loader set to '+v); });
+    ['Vanilla','Fabric','Forge'],
+    v=>{ toast('Loader set to '+v); });
 
-  document.getElementById('javaPill').addEventListener('click', ()=>highlightSettings('fieldJava'));
-  document.getElementById('ramPill').addEventListener('click', ()=>highlightSettings('fieldMemory'));
-
-  // ===================== RAM slider sync =====================
   const ramSlider = document.getElementById('ramSlider');
   function setRam(gb){
+    memoryMb = Math.round(gb * 1024);
     const pct = ((gb-1)/(16-1))*100;
     ramSlider.value = gb;
     ramSlider.style.background = `linear-gradient(90deg, var(--ember-1), var(--ember-2)) 0/${pct}% 100% no-repeat, rgba(255,255,255,0.1)`;
-    document.querySelectorAll('.ramValue').forEach(el=>el.textContent = Math.round(gb*1024)+' MB');
+    document.querySelectorAll('.ramValue').forEach(el=>el.textContent = memoryMb+' MB');
     document.getElementById('ramPill').textContent = gb.toFixed(1)+' GB RAM';
   }
   ramSlider.addEventListener('input', e=>setRam(parseFloat(e.target.value)));
   setRam(4);
 
-  // ===================== Play / Console / Folder / Join =====================
   const playBtn = document.getElementById('playBtn');
   const statusBadge = document.getElementById('statusBadge');
   const statusSub = document.getElementById('statusSub');
-  let playing = false, launching = false;
+
   playBtn.addEventListener('click', ()=>{
-    if(launching) return;
-    if(!playing){
-      launching = true; playBtn.disabled = true; playBtn.innerHTML = '◌ Launching…';
-      setTimeout(()=>{
-        playing = true; launching = false; playBtn.disabled = false;
-        playBtn.innerHTML = '■ Stop'; playBtn.classList.add('stop');
-        statusBadge.textContent = 'Online'; statusBadge.classList.remove('offline'); statusBadge.classList.add('online');
-        statusSub.textContent = 'Playing ' + document.getElementById('tbVersion').textContent;
-        const rv = document.getElementById('recentVersions');
-        rv.textContent = 'Last launched: ' + document.getElementById('tbVersion').textContent + ' · just now';
-        toast('Game launched');
-      }, 1400);
-    } else {
-      playing = false; playBtn.innerHTML = '▶ Play'; playBtn.classList.remove('stop');
-      statusBadge.textContent = 'Offline'; statusBadge.classList.add('offline'); statusBadge.classList.remove('online');
-      statusSub.textContent = 'Offline session';
-      toast('Session stopped');
+    if(!window.launcherAPI){
+      toast('Running in preview mode');
+      return;
     }
+    const isFpsBoost = document.getElementById('fpsBoostSwitch').classList.contains('on');
+    playBtn.disabled = true;
+    playBtn.innerHTML = '◌ Launching…';
+
+    window.launcherAPI.launchGame({
+      username: currentPlayerName,
+      version: selectedVersion,
+      memoryMax: memoryMb,
+      fpsBoost: isFpsBoost
+    });
   });
 
-  function openFolder(){ toast('Opening C:\\Users\\ARYAN\\AppData\\Roaming\\.ember'); }
-  document.getElementById('folderBtn').addEventListener('click', openFolder);
-  document.getElementById('folderBtnSettings').addEventListener('click', openFolder);
+  if(window.launcherAPI){
+    const openF = () => window.launcherAPI.openFolder();
+    document.getElementById('folderBtn').addEventListener('click', openF);
+    document.getElementById('folderBtnSettings').addEventListener('click', openF);
 
-  const joinBtn = document.getElementById('joinBtn');
-  joinBtn.addEventListener('click', ()=>{
-    joinBtn.disabled = true; joinBtn.textContent = 'Connecting…';
-    toast('Connecting to Nova SMP…');
-    setTimeout(()=>{ joinBtn.disabled = false; joinBtn.textContent = 'Join server →'; toast('Connected to Nova SMP'); }, 1300);
-  });
+    window.launcherAPI.onStatus((status)=>{
+      if(status === 'started'){
+        playBtn.disabled = false;
+        playBtn.innerHTML = '■ Playing';
+        playBtn.classList.add('stop');
+        statusBadge.textContent = 'Online';
+        statusBadge.classList.replace('offline', 'online');
+        statusSub.textContent = 'Playing ' + selectedVersion;
+        toast('Minecraft Started!');
+      } else if(status === 'closed'){
+        playBtn.disabled = false;
+        playBtn.innerHTML = '▶ Play';
+        playBtn.classList.remove('stop');
+        statusBadge.textContent = 'Offline';
+        statusBadge.classList.replace('online', 'offline');
+        statusSub.textContent = 'Offline session';
+        toast('Minecraft Closed');
+      }
+    });
 
-  // console modal
+    window.launcherAPI.onLog((data)=>{
+      const row = document.createElement('div');
+      row.className = 'console-line';
+      const t = new Date().toLocaleTimeString();
+      row.innerHTML = `<span class="t">[${t}]</span> <span class="tag-info">[MC]</span> ${data.text}`;
+      consoleBody.appendChild(row);
+      consoleBody.scrollTop = consoleBody.scrollHeight;
+    });
+  }
+
   const consoleOverlay = document.getElementById('consoleOverlay');
   const consoleBody = document.getElementById('consoleBody');
-  let consoleTimer = null;
-  const sampleLines = [
-    ['INFO','tag-info','Loaded 42 mods, 0 conflicts detected'],
-    ['INFO','tag-info','Preparing level "New World"'],
-    ['OK','tag-ok','Backend library loader is registered'],
-    ['WARN','tag-warn','Ambient occlusion disabled, low VRAM mode'],
-    ['INFO','tag-info','Preparing spawn area: 78%'],
-    ['OK','tag-ok','Sound engine started'],
-    ['INFO','tag-info','Joining region files']
-  ];
-  let lineIdx = 0;
-  function pushConsoleLine(){
-    const l = sampleLines[lineIdx % sampleLines.length]; lineIdx++;
-    const row = document.createElement('div');
-    row.className = 'console-line';
-    const t = new Date().toLocaleTimeString();
-    row.innerHTML = `<span class="t">[${t}] </span><span class="${l[1]}">[${l[0]}]</span> ${l[2]}`;
-    consoleBody.appendChild(row);
-    consoleBody.scrollTop = consoleBody.scrollHeight;
-  }
-  document.getElementById('consoleBtn').addEventListener('click', ()=>{
-    consoleOverlay.classList.add('open');
-    consoleBody.innerHTML = '';
-    pushConsoleLine();
-    consoleTimer = setInterval(pushConsoleLine, 750);
-  });
-  function closeConsole(){ consoleOverlay.classList.remove('open'); clearInterval(consoleTimer); }
-  document.getElementById('consoleClose').addEventListener('click', closeConsole);
-  consoleOverlay.addEventListener('click', e=>{ if(e.target === consoleOverlay) closeConsole(); });
+  document.getElementById('consoleBtn').addEventListener('click', ()=>consoleOverlay.classList.add('open'));
+  document.getElementById('consoleClose').addEventListener('click', ()=>consoleOverlay.classList.remove('open'));
+  consoleOverlay.addEventListener('click', e=>{ if(e.target === consoleOverlay) consoleOverlay.classList.remove('open'); });
 
-  // ================= OFFLINE NAME (new player prompt) =================
   const NAME_KEY = 'ember_offline_name';
   let currentPlayerName = 'Player';
 
-  function isValidOfflineName(v){
-    return /^[A-Za-z0-9_]{3,16}$/.test(v);
-  }
-
+  function isValidOfflineName(v){ return /^[A-Za-z0-9_]{3,16}$/.test(v); }
   function applyPlayerName(name){
     currentPlayerName = name;
-    const chip = document.getElementById('accountChipName');
-    const h1 = document.getElementById('playerNameH1');
-    const consoleTitle = document.getElementById('consoleTitleName');
-    const settingsName = document.getElementById('settingsOfflineName');
-    if(chip) chip.textContent = name;
-    if(h1) h1.textContent = name;
-    if(consoleTitle) consoleTitle.textContent = name;
-    if(settingsName) settingsName.textContent = name;
+    document.getElementById('accountChipName').textContent = name;
+    document.getElementById('playerNameH1').textContent = name;
+    document.getElementById('consoleTitleName').textContent = name;
+    document.getElementById('settingsOfflineName').textContent = name;
   }
 
   function promptOfflineName(onDone){
@@ -753,16 +709,11 @@
       promptOfflineName(()=>{ if(onReady) onReady(); });
     }
   }
-
   document.getElementById('changeNameBtn').addEventListener('click', ()=>promptOfflineName());
 
-  // ================= DEFAULT SKIN (embedded, applies to every new player) =================
   const DEFAULT_SKIN_B64 = 'iVBORw0KGgoAAAANSUhEUgAAAEAAAAAgCAYAAACinX6EAAAE6ElEQVRogeWX30/bVhTH/UjtxCVVp0Z2MKVJjQNBDoU9JFEXKOVHp6rViJhaPJUKJkhDEVIEm9QKBVYEpJO6PUUKSjOpUqUIberD2u2hYo97yv/03cPNNdfGjilFDaOWvnLie3zj7+fec3zCcR5HT4cfPR1+RIJtYD9Hgm3obBewOq43ldf8p/6ghvXO89A7z1sARIJtWB3XkRuKYyszaJ63MoNnCwA1r0q8K4BwOGxRbih+NgDQ1benAb125gGwZlWJhyrxlnT4LAA4mfcCMKmpZwcANR4N+aBKPDrbhUMAnHRmAFDjrOjO+N+/BjWZhyYTU92ygGjIh2vhdvRdJtIv+9GrkDqghQREgm1QJR69CgFA466F2xEN+dAtC1AlMqcm8/DqI1rt3wJAlXjEFBHRkA+9ih8DkQB6Fb+pgUgAN3ouIN3zBWKKCC0kmDHRkA8xRTTnYQE06yNa7Z+LKSLUIFk1YlyEJguIBHkTxF/Fx9h/kce/pXXs/5zH/osV/P7DNAavXkA05EMkyEOTBfQ24KkSDzUoIKaI8OojWu2f7ADJj74OkayqTFIhpojQrwSwtzaPt5tL2Fubxx/rS6jkv8P7Yh6VR7dReXQb+pUAYoqIblmAJpMd1NchQpP80GQeXn1Eq/2bKUDSwIfwpXPYvpdEZW4USe0i3m4uAQAmrxfx7ukC3hfzmLxeBADsrc0jqV1EZW4U2/eSCF86B1XygZ3Tq49otf8DAJK/sW0D2JzsR2lmGDvTCVTmxvDn01n8/VPefL39s/MYr3LjWM8MYmc6gdLMMDYn+xFTAlCDgrn6bBF06yNa7Z+j276vQ8TsiI6XubvYnbtp/qH59cEISjND+PHGlxb98uArbGQSWB3XsZUZxO7cTbzM3cXsiE5SoJEOXn1Eq/1z9N8bNV1ZmEBpZhjP76ewMqFjeTSGpZEebGQS2Mgk8OTOAJ5NpfBsKoUndwawMqHj+f0UfsveQmVhArvff03OjfkoSHsfQcG12v+h49tbdbDSNM0izwnqdfemqF4H9/Bhc3kdtRqZp14HV6shNxTHN/1XzfOpAODWGp8IAGq+oc8bQK1mMZ8bip8OAJ8yBT4aQFzLI67loXYZiGt5jCVfW8SO2ceT/UVwhcKBDANcuQyuWsVGJoFXuXGzeHLVKhEbXyiQa7Xagd68IaLf3eJpjH2c3k91FABql3EsAGPJ1+RHs1miQuHgwRsQTPP0gdj4bNZqmhWdh42lBuk9FKh9/DgA3Ax6AnB6QPqQ1SrZEaxJNj6bdTbPzuEEmI1pOQDDOHgAw7D+OAXAXnOLp3G1mvWz3SC7mz7VDmBjkv1Fi0wjVOWy1TT9TK+zsRSA3TRzf2lm2NT2VAp7a/MWbU+lLDH28WMBoObYHeAKgDWTzVoBOBljgdEUcLqnsdWdAJSWDdMgvX6iAD64BtgBsKvPVmwWAFsDbKZZIKw5O4DSsuEIoLRsmDFHAsDqo98CXgDsbwGnWBcA9hW2A3BKkRMB0Gy8aRGyvwHsAJyKlk2sOTcAzWqEJ4B0Oo10Ou0JgMYtLi5aZBqijQhdPfvquwFg4x3qAWvOKcdZAGwK0PORAbgZ9BpnU0TtMg4BNDtGBoC98TILKk2Tctkswm4AqEmnHdIyAE47yAKhXPZurctlyzX7ClsK4LLhWCM+BMB/aG3tAxSVGg8AAAAASUVORK5CYII=';
 
-  const defaultSkinEntry = {
-    name: 'Default', isCustom: true, legacy: true, selected: true,
-    faceThumb: null, texture: null
-  };
+  const defaultSkinEntry = { name: 'Default', isCustom: true, legacy: true, selected: true, faceThumb: null, texture: null };
 
   function loadDefaultSkin(cb){
     const img = new Image();
@@ -776,52 +727,36 @@
           texture.needsUpdate = true;
           defaultSkinEntry.texture = texture;
         }
-      } catch(err){ console.error('Ember: default skin build failed', err); }
-      cb();
-    };
-    img.onerror = ()=>{
-      console.error('Ember: default skin failed to decode');
-      defaultSkinEntry.isCustom = false; defaultSkinEntry.selected = false;
-      if(skins[1]) skins[1].selected = true;
+      } catch(err){}
       cb();
     };
     img.src = 'data:image/png;base64,' + DEFAULT_SKIN_B64;
   }
 
-  // ================= SKIN THEMES =================
   const skins = [
     defaultSkinEntry,
     {name:'Ember Classic', skinTone:'#e8a06b', shirt:'#1fae7a', pants:'#2b2b3a'},
-    {name:'Void Walker',   skinTone:'#b9a9ff', shirt:'#6a53e6', pants:'#171522'},
-    {name:'Frost',         skinTone:'#eaf7ff', shirt:'#5fb6e6', pants:'#1b2733'},
-    {name:'Verdant',       skinTone:'#d9c79a', shirt:'#4caf50', pants:'#182818'},
-    {name:'Blossom',       skinTone:'#ffe0d6', shirt:'#ff6fa8', pants:'#2a1a22'},
-    {name:'Obsidian',      skinTone:'#8a8a8f', shirt:'#2b2b2b', pants:'#0e0e10'},
-    {name:'Solaris',       skinTone:'#f0c894', shirt:'#ffb020', pants:'#2b220f'},
+    {name:'Void Walker', skinTone:'#b9a9ff', shirt:'#6a53e6', pants:'#171522'},
+    {name:'Frost', skinTone:'#eaf7ff', shirt:'#5fb6e6', pants:'#1b2733'},
+    {name:'Verdant', skinTone:'#d9c79a', shirt:'#4caf50', pants:'#182818'}
   ];
 
   function makeFaceTexture(skinTone){
     const c = document.createElement('canvas'); c.width=32; c.height=32;
     const ctx = c.getContext('2d');
     ctx.fillStyle = skinTone; ctx.fillRect(0,0,32,32);
-    ctx.fillStyle = '#20202a';
-    ctx.fillRect(7,12,6,6);
-    ctx.fillRect(19,12,6,6);
-    ctx.fillStyle = shade(skinTone,-20);
-    ctx.fillRect(11,23,10,2.5);
+    ctx.fillStyle = '#20202a'; ctx.fillRect(7,12,6,6); ctx.fillRect(19,12,6,6);
+    ctx.fillStyle = shade(skinTone,-20); ctx.fillRect(11,23,10,2.5);
     const tex = new THREE.CanvasTexture(c);
     tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.NearestFilter;
     return tex;
   }
 
-  // ================= real Minecraft-skin UV atlas (64x64 layout) =================
   const RECTS = {
-    head: {right:[0,8,8,8],  left:[16,8,8,8],  top:[8,0,8,8],   bottom:[16,0,8,8],  front:[8,8,8,8],   back:[24,8,8,8]},
+    head: {right:[0,8,8,8], left:[16,8,8,8], top:[8,0,8,8], bottom:[16,0,8,8], front:[8,8,8,8], back:[24,8,8,8]},
     body: {right:[16,20,4,12], left:[28,20,4,12], top:[20,16,8,4], bottom:[28,16,8,4], front:[20,20,8,12], back:[32,20,8,12]},
     armR: {right:[40,20,4,12], left:[48,20,4,12], top:[44,16,4,4], bottom:[48,16,4,4], front:[44,20,4,12], back:[52,20,4,12]},
-    armL64:{right:[32,52,4,12],left:[40,52,4,12], top:[36,48,4,4], bottom:[40,48,4,4], front:[36,52,4,12], back:[44,52,4,12]},
-    legR: {right:[0,20,4,12],  left:[8,20,4,12],  top:[4,16,4,4],  bottom:[8,16,4,4],  front:[4,20,4,12],  back:[12,20,4,12]},
-    legL64:{right:[16,52,4,12],left:[24,52,4,12], top:[20,48,4,4], bottom:[24,48,4,4], front:[20,52,4,12], back:[28,52,4,12]}
+    legR: {right:[0,20,4,12], left:[8,20,4,12], top:[4,16,4,4], bottom:[8,16,4,4], front:[4,20,4,12], back:[12,20,4,12]}
   };
 
   function applyAtlasUV(geometry, part, texW, texH, mirrorU){
@@ -849,7 +784,6 @@
     return c.toDataURL();
   }
 
-  // ================= 3D VIEWER FACTORY =================
   function createSkinViewer(container){
     let width = container.clientWidth, height = container.clientHeight;
     const scene = new THREE.Scene();
@@ -873,71 +807,53 @@
         const old = group.children[0];
         group.remove(old);
         if(old.geometry) old.geometry.dispose();
-        if(old.material){
-          (Array.isArray(old.material) ? old.material : [old.material]).forEach(m=>m && m.dispose && m.dispose());
-        }
       }
 
       if(skin.isCustom){
-        const tex = skin.texture;
-        const texH = skin.legacy ? 32 : 64, texW = 64;
-        const mat = new THREE.MeshStandardMaterial({map:tex, roughness:0.85});
-
+        const mat = new THREE.MeshStandardMaterial({map:skin.texture, roughness:0.85});
         const headGeo = new THREE.BoxGeometry(0.5,0.5,0.5);
-        applyAtlasUV(headGeo, RECTS.head, texW, texH);
+        applyAtlasUV(headGeo, RECTS.head, 64, 32);
         const head = new THREE.Mesh(headGeo, mat); head.position.set(0,1.75,0); group.add(head);
 
         const bodyGeo = new THREE.BoxGeometry(0.5,0.75,0.25);
-        applyAtlasUV(bodyGeo, RECTS.body, texW, texH);
+        applyAtlasUV(bodyGeo, RECTS.body, 64, 32);
         const body = new THREE.Mesh(bodyGeo, mat); body.position.set(0,1.125,0); group.add(body);
 
         const armRGeo = new THREE.BoxGeometry(0.25,0.75,0.25);
-        applyAtlasUV(armRGeo, RECTS.armR, texW, texH);
+        applyAtlasUV(armRGeo, RECTS.armR, 64, 32);
         const armR = new THREE.Mesh(armRGeo, mat); armR.position.set(0.375,1.125,0); group.add(armR);
 
         const armLGeo = new THREE.BoxGeometry(0.25,0.75,0.25);
-        if(skin.legacy) applyAtlasUV(armLGeo, RECTS.armR, texW, texH, true);
-        else applyAtlasUV(armLGeo, RECTS.armL64, texW, texH);
+        applyAtlasUV(armLGeo, RECTS.armR, 64, 32, true);
         const armL = new THREE.Mesh(armLGeo, mat); armL.position.set(-0.375,1.125,0); group.add(armL);
 
         const legRGeo = new THREE.BoxGeometry(0.25,0.75,0.25);
-        applyAtlasUV(legRGeo, RECTS.legR, texW, texH);
+        applyAtlasUV(legRGeo, RECTS.legR, 64, 32);
         const legR = new THREE.Mesh(legRGeo, mat); legR.position.set(0.125,0.375,0); group.add(legR);
 
         const legLGeo = new THREE.BoxGeometry(0.25,0.75,0.25);
-        if(skin.legacy) applyAtlasUV(legLGeo, RECTS.legR, texW, texH, true);
-        else applyAtlasUV(legLGeo, RECTS.legL64, texW, texH);
+        applyAtlasUV(legLGeo, RECTS.legR, 64, 32, true);
         const legL = new THREE.Mesh(legLGeo, mat); legL.position.set(-0.125,0.375,0); group.add(legL);
-
         return;
       }
 
       const faceTex = makeFaceTexture(skin.skinTone);
-      const skinMat  = new THREE.MeshStandardMaterial({color:skin.skinTone, roughness:0.75});
-      const faceMat  = new THREE.MeshStandardMaterial({map:faceTex, roughness:0.75});
+      const skinMat = new THREE.MeshStandardMaterial({color:skin.skinTone, roughness:0.75});
+      const faceMat = new THREE.MeshStandardMaterial({map:faceTex, roughness:0.75});
       const shirtMat = new THREE.MeshStandardMaterial({color:skin.shirt, roughness:0.55});
-      const shirtDk  = new THREE.MeshStandardMaterial({color:shade(skin.shirt,-14), roughness:0.55});
       const pantsMat = new THREE.MeshStandardMaterial({color:skin.pants, roughness:0.7});
-      const shoeMat  = new THREE.MeshStandardMaterial({color:shade(skin.pants,-22), roughness:0.6});
 
-      const head = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.5,0.5),
-        [skinMat, skinMat, skinMat, skinMat, faceMat, skinMat]);
+      const head = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.5,0.5), [skinMat, skinMat, skinMat, skinMat, faceMat, skinMat]);
       head.position.set(0,1.75,0); group.add(head);
-
-      const body = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.75,0.25),
-        [shirtDk, shirtDk, shirtMat, shirtMat, shirtMat, shirtMat]);
+      const body = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.75,0.25), shirtMat);
       body.position.set(0,1.125,0); group.add(body);
-
-      const armMats = [shirtMat, shirtDk, shirtMat, skinMat, shirtMat, shirtMat];
-      const armR = new THREE.Mesh(new THREE.BoxGeometry(0.25,0.75,0.25), armMats);
+      const armR = new THREE.Mesh(new THREE.BoxGeometry(0.25,0.75,0.25), shirtMat);
       armR.position.set(0.375,1.125,0); group.add(armR);
-      const armL = new THREE.Mesh(new THREE.BoxGeometry(0.25,0.75,0.25), armMats.slice());
+      const armL = new THREE.Mesh(new THREE.BoxGeometry(0.25,0.75,0.25), shirtMat);
       armL.position.set(-0.375,1.125,0); group.add(armL);
-
-      const legMats = [pantsMat, pantsMat, pantsMat, shoeMat, pantsMat, pantsMat];
-      const legR = new THREE.Mesh(new THREE.BoxGeometry(0.25,0.75,0.25), legMats);
+      const legR = new THREE.Mesh(new THREE.BoxGeometry(0.25,0.75,0.25), pantsMat);
       legR.position.set(0.125,0.375,0); group.add(legR);
-      const legL = new THREE.Mesh(new THREE.BoxGeometry(0.25,0.75,0.25), legMats.slice());
+      const legL = new THREE.Mesh(new THREE.BoxGeometry(0.25,0.75,0.25), pantsMat);
       legL.position.set(-0.125,0.375,0); group.add(legL);
     }
 
@@ -965,39 +881,18 @@
     return {build, resize};
   }
 
-  // 3D viewers are created defensively: if WebGL/Three.js fails for any reason
-  // (blocked context, no GPU, CDN hiccup) the rest of the launcher — grid,
-  // upload, apply, play, etc. — must keep working. Nothing below this point
-  // is allowed to depend on the viewers existing.
   let homeViewer = null, skinsViewer = null, threeOK = true;
-  function showStageFallback(container){
-    if(!container || container.querySelector('.stage-fallback')) return;
-    const msg = document.createElement('div');
-    msg.className = 'stage-fallback';
-    msg.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;font-size:12px;color:var(--ink-dimmer);';
-    msg.textContent = '3D preview unavailable in this browser — skin selection still works.';
-    container.appendChild(msg);
-  }
   try{
     homeViewer = createSkinViewer(document.getElementById('homeStage'));
     skinsViewer = createSkinViewer(document.getElementById('skinsStage'));
-  } catch(err){
-    threeOK = false;
-    console.error('Ember: 3D viewer init failed', err);
-    showStageFallback(document.getElementById('homeStage'));
-    showStageFallback(document.getElementById('skinsStage'));
-  }
+  } catch(e){ threeOK = false; }
 
   function onResizeViewers(){
     if(!threeOK) return;
-    try{ homeViewer.resize(); skinsViewer.resize(); }
-    catch(err){ console.error('Ember: viewer resize failed', err); }
+    homeViewer.resize(); skinsViewer.resize();
   }
   window.addEventListener('resize', onResizeViewers);
 
-  // ================= SKIN GRID + upload =================
-  // Everything in this section is wired unconditionally — it must never be
-  // skipped just because the 3D viewers above failed to initialize.
   const grid = document.getElementById('skinGrid');
   const previewName = document.getElementById('previewName');
   const applyBtn = document.getElementById('applyBtn');
@@ -1026,92 +921,24 @@
       });
       grid.appendChild(tile);
     });
-    const addTile = document.createElement('div');
-    addTile.className = 'skin-tile add-tile';
-    addTile.innerHTML = `<div class="add-plus">+</div><div class="name">Add new</div>`;
-    addTile.addEventListener('click', ()=>document.getElementById('skinFileInput').click());
-    grid.appendChild(addTile);
   }
-
   function previewSkin(s){
     previewName.textContent = s.name + (s.isCustom ? ' · uploaded' : '');
     if(!threeOK) return;
-    try{ skinsViewer.build(s); }
-    catch(err){ console.error('Ember: preview build failed', err); toast('Could not render that skin'); }
+    skinsViewer.build(s);
   }
 
   applyBtn.addEventListener('click', ()=>{
     const s = skins.find(sk=>sk.selected) || skins[0];
-    if(threeOK){
-      try{ homeViewer.build(s); }
-      catch(err){ console.error('Ember: apply build failed', err); }
-    }
+    if(threeOK) homeViewer.build(s);
     toast('Skin applied to ' + currentPlayerName);
-  });
-
-  document.getElementById('uploadBtnTop').addEventListener('click', ()=>document.getElementById('skinFileInput').click());
-
-  document.getElementById('skinFileInput').addEventListener('change', e=>{
-    const file = e.target.files[0];
-    e.target.value = ''; // always reset so re-selecting the same file re-fires change
-    if(!file) return;
-
-    if(!/\.(png)$/i.test(file.name) && file.type !== 'image/png'){
-      toast('Please choose a PNG skin file');
-      return;
-    }
-    const MAX_BYTES = 2 * 1024 * 1024;
-    if(file.size > MAX_BYTES){
-      toast('That file is too large for a Minecraft skin (max 2MB)');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onerror = ()=>toast('Could not read that file — please try again');
-    reader.onload = ev=>{
-      const img = new Image();
-      img.onerror = ()=>toast('Could not read that image file');
-      img.onload = ()=>{
-        if(img.width !== 64 || (img.height !== 64 && img.height !== 32)){
-          toast('Use a standard 64×64 (or 64×32) Minecraft skin PNG');
-          return;
-        }
-        const newSkin = {
-          name: file.name.replace(/\.[a-zA-Z0-9]+$/,'').slice(0,16) || 'Custom skin',
-          isCustom: true, legacy: img.height===32,
-          faceThumb: extractFaceThumb(img)
-        };
-        if(threeOK){
-          try{
-            const texture = new THREE.Texture(img);
-            texture.flipY = false;
-            texture.magFilter = THREE.NearestFilter; texture.minFilter = THREE.NearestFilter;
-            texture.needsUpdate = true;
-            newSkin.texture = texture;
-          } catch(err){
-            console.error('Ember: texture creation failed', err);
-          }
-        }
-        skins.forEach(sk=>sk.selected=false);
-        newSkin.selected = true;
-        skins.push(newSkin);
-        renderGrid();
-        previewSkin(newSkin);
-        toast('Skin uploaded — click Apply skin to use it');
-      };
-      img.src = ev.target.result;
-    };
-    reader.readAsDataURL(file);
   });
 
   loadDefaultSkin(()=>{
     initOfflineName(()=>{
       renderGrid();
       previewSkin(skins[0]);
-      if(threeOK){
-        try{ homeViewer.build(skins[0]); }
-        catch(err){ console.error('Ember: initial build failed', err); }
-      }
+      if(threeOK) homeViewer.build(skins[0]);
       setTimeout(onResizeViewers, 50);
     });
   });
