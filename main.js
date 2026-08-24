@@ -25,15 +25,39 @@ function createWindow() {
 
 app.whenReady().then(createWindow);
 
+// Titlebar window actions
 ipcMain.on('window-minimize', () => win.minimize());
 ipcMain.on('window-maximize', () => win.isMaximized() ? win.unmaximize() : win.maximize());
 ipcMain.on('window-close', () => win.close());
 
+// Open .ember folder
 const gameRoot = path.join(app.getPath('appData'), '.ember');
 ipcMain.on('open-game-folder', () => shell.openPath(gameRoot));
 
-ipcMain.on('launch-game', (event, { username, version, memoryMax }) => {
+// Game launch handler
+ipcMain.on('launch-game', (event, { username, version, memoryMax, fpsBoost }) => {
   const auth = Authenticator.getAuth(username || 'Player');
+
+  // G1GC low-latency memory optimization flags
+  const performanceFlags = fpsBoost ? [
+    '-XX:+UseG1GC',
+    '-XX:+ParallelRefProcEnabled',
+    '-XX:MaxGCPauseMillis=200',
+    '-XX:+UnlockExperimentalVMOptions',
+    '-XX:+DisableExplicitGC',
+    '-XX:+AlwaysPreTouch',
+    '-XX:G1NewSizePercent=30',
+    '-XX:G1MaxNewSizePercent=40',
+    '-XX:G1ReservePercent=20',
+    '-XX:G1HeapWastePercent=5',
+    '-XX:G1MixedGCCountTarget=4',
+    '-XX:InitiatingHeapOccupancyPercent=15',
+    '-XX:G1MixedGCLiveThresholdPercent=90',
+    '-XX:G1RSetUpdatingPauseTimePercent=5',
+    '-XX:SurvivorRatio=32',
+    '-XX:+PerfDisableSharedMem',
+    '-XX:MaxTenuringThreshold=1'
+  ] : [];
 
   const opts = {
     clientPackage: null,
@@ -46,7 +70,8 @@ ipcMain.on('launch-game', (event, { username, version, memoryMax }) => {
     memory: {
       max: `${memoryMax}M`,
       min: '1024M'
-    }
+    },
+    customArgs: performanceFlags
   };
 
   win.webContents.send('game-status', 'downloading');
@@ -65,3 +90,4 @@ ipcMain.on('launch-game', (event, { username, version, memoryMax }) => {
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
+    
