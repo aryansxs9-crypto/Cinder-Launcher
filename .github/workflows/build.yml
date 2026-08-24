@@ -1,5 +1,11 @@
-name: Build Windows App
-on: [push, workflow_dispatch]
+name: Build and Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
@@ -10,7 +16,17 @@ jobs:
           node-version: 20
       - run: npm install
       - run: npm run dist
-      - uses: actions/upload-artifact@v4
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: EmberLauncher-Windows
-          path: dist/*.exe
+          tag_name: v1.0.0
+          name: Ember Launcher v1.0.0
+          body: |
+            # 🔥 Ember Launcher v1.0.0
+            Clean, modern, and lightweight offline Minecraft launcher.
+            
+            ### 📥 How to run
+            1. Download `Ember Launcher Setup 1.0.0.exe` below.
+            2. Run the installer on Windows.
+            3. Make sure you have Java 17+ installed.
+          files: dist/*.exe
