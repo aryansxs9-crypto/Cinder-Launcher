@@ -38,466 +38,233 @@
     background:
       radial-gradient(700px 500px at 8% 8%, rgba(52,224,161,0.16), transparent 60%),
       radial-gradient(800px 600px at 96% 90%, rgba(14,169,104,0.14), transparent 60%),
-      radial-gradient(1200px 800px at 50% 120%, rgba(20,180,150,0.06), transparent 60%),
       linear-gradient(180deg, #08080d 0%, #0a0a10 100%);
   }
-  .noise{
-    position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.035; mix-blend-mode:overlay;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
 
-  .app{position:relative; z-index:1; display:flex; flex-direction:column; min-height:100vh; max-width:1360px; margin:0 auto; padding:22px 28px 40px; transition:max-width .3s ease;}
-  .app.wide{max-width:100%;}
+  .app{position:relative; z-index:1; display:flex; flex-direction:column; min-height:100vh; max-width:1360px; margin:0 auto; padding:22px 28px 40px;}
 
   .titlebar{display:flex; align-items:center; justify-content:space-between; padding:2px 4px 18px; color:var(--ink-dimmer); font-size:12.5px;}
   .titlebar .tb-left{display:flex; align-items:center; gap:8px;}
   .tb-dot{width:7px;height:7px;border-radius:50%;background:var(--ember-1);}
   .tb-icons{display:flex; gap:16px; font-size:14px;}
-  .tb-icons span{cursor:pointer; opacity:.6; transition:.2s opacity; padding:2px 4px;}
+  .tb-icons span{cursor:pointer; opacity:.6; transition:.2s opacity;}
   .tb-icons span:hover{opacity:1;}
-
-  #appBody.collapsed{display:none;}
 
   .topbar{
     display:flex; align-items:center; justify-content:space-between;
     padding:14px 20px; border-radius: var(--radius-lg);
     background: var(--glass); border:1px solid var(--border);
     backdrop-filter: blur(24px) saturate(140%);
-    -webkit-backdrop-filter: blur(24px) saturate(140%);
-    box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 20px 40px -20px rgba(0,0,0,0.6);
   }
-  .brand{display:flex; align-items:center; gap:12px; font-weight:800; font-size:19px; letter-spacing:.5px;}
+  .brand{display:flex; align-items:center; gap:12px; font-weight:800; font-size:19px;}
   .brand .mark{
     width:34px; height:34px; border-radius:10px;
     background:linear-gradient(145deg, var(--ember-1), var(--ember-2));
-    box-shadow:0 6px 18px -4px rgba(16,180,120,0.55), inset 0 1px 0 rgba(255,255,255,0.35);
   }
   .nav-tabs{display:flex; gap:4px; background:rgba(0,0,0,0.25); padding:4px; border-radius:12px; border:1px solid var(--border);}
   .nav-tab{
     padding:9px 18px; border-radius:9px; font-size:14px; font-weight:600; color:var(--ink-dim);
-    cursor:pointer; border:none; background:transparent;
-    transition:.25s color, .25s background, .25s box-shadow;
+    cursor:pointer; border:none; background:transparent; transition:.25s;
   }
-  .nav-tab.active{color:#fff; background:linear-gradient(135deg, rgba(52,224,161,.22), rgba(14,169,104,.22)); box-shadow:inset 0 0 0 1px rgba(52,224,161,0.35), 0 0 20px -6px rgba(20,200,140,0.5);}
-  .nav-tab:not(.active):hover{color:var(--ink);}
-  .account-chip{
-    display:flex; align-items:center; gap:10px; padding:6px 14px 6px 8px; border-radius:999px;
-    background:var(--glass); border:1px solid var(--border); font-size:13.5px; font-weight:600;
-    cursor:pointer; transition:.2s border-color;
+  .nav-tab.active{color:#fff; background:linear-gradient(135deg, rgba(52,224,161,.22), rgba(14,169,104,.22)); box-shadow:inset 0 0 0 1px rgba(52,224,161,0.35);}
+  
+  /* Quick config flyout */
+  .quick-config-wrapper{position:relative;}
+  .quick-btn{
+    display:flex; align-items:center; gap:8px; padding:8px 16px; border-radius:12px;
+    background:rgba(52,224,161,0.12); border:1px solid rgba(52,224,161,0.3);
+    color:var(--ember-1); font-weight:700; font-size:13.5px; cursor:pointer; transition:.2s;
   }
-  .account-chip:hover{border-color:var(--border-hi);}
-  .status-dot{width:8px;height:8px;border-radius:50%;background:var(--ok); box-shadow:0 0 8px var(--ok);}
+  .quick-btn:hover{background:rgba(52,224,161,0.22);}
+  .quick-flyout{
+    position:absolute; top:calc(100% + 10px); right:0; width:320px; z-index:100;
+    background:rgba(18,16,24,0.96); border:1px solid var(--border-hi); border-radius:16px;
+    padding:18px; backdrop-filter:blur(24px); box-shadow:0 30px 60px -20px rgba(0,0,0,0.8);
+    display:none; flex-direction:column; gap:14px; animation:fadeUp .2s ease;
+  }
+  .quick-flyout.open{display:flex;}
+  .quick-row{display:flex; flex-direction:column; gap:6px;}
+  .quick-label{font-size:12px; font-weight:700; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.5px;}
+  .quick-input{
+    width:100%; padding:9px 12px; border-radius:9px; background:rgba(255,255,255,0.05);
+    border:1px solid var(--border); color:var(--ink); font-size:13.5px; font-family:inherit;
+  }
+  .quick-select-row{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
 
   .page{display:none; margin-top:22px; animation:fadeUp .35s ease;}
   .page.active{display:block;}
   @keyframes fadeUp{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
 
   .glass{
-    position:relative;
-    background:var(--glass);
-    border:1px solid var(--border);
-    border-radius: var(--radius-lg);
-    backdrop-filter: blur(22px) saturate(150%);
-    -webkit-backdrop-filter: blur(22px) saturate(150%);
-    box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 30px 60px -30px rgba(0,0,0,0.7);
-    overflow:visible;
-    transition: border-color .3s ease, box-shadow .3s ease, transform .3s ease;
+    background:var(--glass); border:1px solid var(--border); border-radius: var(--radius-lg);
+    backdrop-filter: blur(22px);
   }
-  .glow-card::before{
-    content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:0;
-    background: radial-gradient(240px circle at var(--mx,50%) var(--my,0%), rgba(52,224,161,0.16), transparent 65%);
-    opacity:0; transition:opacity .35s ease;
-  }
-  .glow-card:hover::before{opacity:1;}
-  .glow-card:hover{border-color:var(--border-hi); transform:translateY(-2px);}
-  .glass > *{position:relative; z-index:1;}
-  .sponsor-card, .player-card{overflow:hidden;}
 
   .home-grid{display:grid; grid-template-columns: 1fr 328px; gap:20px; margin-top:20px;}
-  .main-col{display:flex; flex-direction:column; gap:20px;}
-  .side-col{display:flex; flex-direction:column; gap:20px;}
-
   .player-card{padding:26px 30px 28px;}
   .player-top{display:flex; align-items:flex-start; justify-content:space-between;}
   .player-name{display:flex; align-items:center; gap:12px;}
-  .player-name h1{margin:0; font-size:26px; font-weight:700; letter-spacing:.2px;}
-  .badge{font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:999px; letter-spacing:.4px; transition:.2s;}
+  .player-name h1{margin:0; font-size:26px; font-weight:700;}
+  .badge{font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:999px;}
   .badge.offline{background:rgba(255,255,255,0.08); color:var(--ink-dim); border:1px solid var(--border);}
   .badge.online{background:rgba(61,220,132,0.14); color:var(--ok); border:1px solid rgba(61,220,132,0.3);}
   .sub{color:var(--ink-dimmer); font-size:13px; margin-top:3px;}
   .top-actions{display:flex; gap:10px;}
   .ghost-btn{
-    display:flex; align-items:center; gap:7px;
-    padding:9px 16px; border-radius:10px; font-size:13.5px; font-weight:600; color:var(--ink);
-    background:rgba(255,255,255,0.045); border:1px solid var(--border); cursor:pointer;
-    transition:.25s all;
+    display:flex; align-items:center; gap:7px; padding:9px 16px; border-radius:10px;
+    font-size:13.5px; font-weight:600; color:var(--ink); background:rgba(255,255,255,0.045);
+    border:1px solid var(--border); cursor:pointer; transition:.25s;
   }
-  .ghost-btn:hover{border-color:var(--border-hi); background:rgba(255,255,255,0.08); box-shadow:0 0 24px -8px rgba(52,224,161,0.45);}
-  .ghost-btn:disabled{opacity:.55; cursor:default; box-shadow:none;}
-
   .avatar-stage{
-    height:230px; position:relative; margin:8px 0 4px; border-radius:16px; overflow:hidden;
+    height:220px; position:relative; margin:8px 0 4px; border-radius:16px; overflow:hidden;
     background:radial-gradient(160px 60px at 50% 92%, rgba(20,200,140,.35), transparent 70%);
-    cursor:grab;
   }
-  .avatar-stage:active{cursor:grabbing;}
-  .avatar-stage canvas{display:block; width:100%; height:100%;}
-  .drag-hint{position:absolute; bottom:8px; left:0; right:0; text-align:center; font-size:10.5px; color:var(--ink-dimmer); letter-spacing:.3px; pointer-events:none;}
 
   .controls-row{display:flex; align-items:center; gap:10px; margin-top:18px; flex-wrap:wrap;}
   .pill-select{
-    position:relative; display:flex; align-items:center; gap:8px;
-    padding:11px 16px; border-radius:12px; background:rgba(255,255,255,0.05); border:1px solid var(--border);
-    font-size:13.5px; font-weight:600; cursor:pointer; transition:.2s; user-select:none;
+    padding:10px 15px; border-radius:12px; background:rgba(255,255,255,0.05); border:1px solid var(--border);
+    font-size:13.5px; font-weight:600; user-select:none;
   }
-  .pill-select:hover{border-color:var(--border-hi);}
-  .pill-select.static{cursor:pointer;}
-
-  .dropdown-menu{
-    position:absolute; top:calc(100% + 8px); left:0; min-width:150px; z-index:60;
-    background:rgba(18,16,24,0.96); border:1px solid var(--border-hi); border-radius:12px; padding:6px;
-    backdrop-filter:blur(20px); box-shadow:0 24px 50px -14px rgba(0,0,0,0.7);
-    max-height:220px; overflow-y:auto;
-  }
-  .dropdown-item{padding:8px 10px; border-radius:8px; font-size:13px; font-weight:600; color:var(--ink-dim); cursor:pointer; transition:.15s;}
-  .dropdown-item:hover{background:rgba(52,224,161,0.14); color:var(--ink);}
-  .dropdown-item.sel{color:var(--ember-1);}
 
   .play-btn{
     margin-top:18px; width:100%; padding:18px; border:none; border-radius:16px; cursor:pointer;
-    font-family:'Sora',sans-serif; font-weight:700; font-size:16.5px; color:#04140d; letter-spacing:.3px;
+    font-family:'Sora',sans-serif; font-weight:700; font-size:16.5px; color:#04140d;
     background:linear-gradient(120deg, var(--ember-1), var(--ember-2));
-    display:flex; align-items:center; justify-content:center; gap:10px;
-    position:relative; overflow:hidden; isolation:isolate;
-    box-shadow:0 14px 30px -10px rgba(16,180,120,0.55), inset 0 1px 0 rgba(255,255,255,0.4);
-    transition:transform .2s ease, box-shadow .3s ease, opacity .2s;
+    display:flex; align-items:center; justify-content:center; gap:10px; transition:.2s;
   }
-  .play-btn::after{
-    content:""; position:absolute; inset:-2px; z-index:-1; border-radius:inherit;
-    background:linear-gradient(120deg, var(--ember-1), var(--ember-2)); filter:blur(18px); opacity:0; transition:opacity .3s ease;
-  }
-  .play-btn:hover{transform:translateY(-2px); box-shadow:0 20px 42px -10px rgba(16,180,120,0.7), inset 0 1px 0 rgba(255,255,255,0.45);}
-  .play-btn:hover::after{opacity:.65;}
-  .play-btn:active{transform:translateY(0);}
-  .play-btn:disabled{opacity:.75; cursor:default; transform:none;}
-  .play-btn.stop{background:linear-gradient(120deg,#3a3a44,#232228); color:#f3f1f6; box-shadow:0 14px 30px -10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);}
-  .play-btn.stop::after{background:linear-gradient(120deg,#3a3a44,#232228);}
-
-  .sponsor-card{padding:0;}
-  .sponsor-inner{padding:20px 22px; background:linear-gradient(120deg, rgba(52,224,161,0.14), rgba(14,169,104,0.10));}
-  .sponsor-tag{display:inline-flex; align-items:center; gap:6px; font-size:10.5px; font-weight:700; letter-spacing:.8px; color:var(--ember-1); text-transform:uppercase; background:rgba(52,224,161,0.12); border:1px solid rgba(52,224,161,0.3); padding:4px 9px; border-radius:999px;}
-  .sponsor-card h3{margin:12px 0 4px; font-size:18px;}
-  .sponsor-card p{margin:0 0 16px; color:var(--ink-dim); font-size:13.5px; line-height:1.5;}
-  .sponsor-meta{display:flex; align-items:center; gap:14px; font-size:12.5px; color:var(--ink-dimmer); margin-bottom:16px;}
-  .join-btn{padding:10px 20px; border-radius:10px; border:1px solid rgba(52,224,161,0.4); background:rgba(52,224,161,0.12); color:var(--ember-1); font-weight:700; font-size:13px; cursor:pointer; transition:.2s;}
-  .join-btn:hover{background:rgba(52,224,161,0.22); box-shadow:0 0 22px -6px rgba(20,200,140,0.6);}
-  .join-btn:disabled{opacity:.6; cursor:default; box-shadow:none;}
-
-  .feed-card{padding:20px 22px 8px;}
-  .feed-card h3{margin:0 0 2px; font-size:15px;}
-  .feed-card .sub{margin-bottom:14px;}
-  .feed-item{display:flex; gap:12px; padding:12px 0; border-top:1px solid var(--border);}
-  .feed-item:first-of-type{border-top:none;}
-  .feed-dot{width:8px; height:8px; border-radius:50%; margin-top:6px; flex-shrink:0;}
-  .feed-dot.mod{background:#7c9bff; box-shadow:0 0 8px #7c9bff;}
-  .feed-dot.update{background:var(--ember-2); box-shadow:0 0 8px var(--ember-2);}
-  .feed-item .ft{font-size:13.5px; font-weight:600;}
-  .feed-item .fd{font-size:12px; color:var(--ink-dimmer); margin-top:2px; line-height:1.4;}
+  .play-btn.stop{background:linear-gradient(120deg,#3a3a44,#232228); color:#f3f1f6;}
 
   .session-card{padding:20px 22px;}
-  .session-card h3{margin:0 0 16px; font-size:14px; letter-spacing:.4px; text-transform:uppercase; color:var(--ink-dim); font-family:'Inter';}
   .stat-row{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;}
-  .stat-row .k{font-size:12.5px; color:var(--ink-dimmer);}
-  .stat-row .v{font-size:14px; font-weight:700;}
   input[type=range]{-webkit-appearance:none; width:100%; height:5px; border-radius:6px; background:linear-gradient(90deg, var(--ember-1), var(--ember-2)) 0/70% 100% no-repeat, rgba(255,255,255,0.1); margin:8px 0 4px;}
-  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:#fff; box-shadow:0 0 0 4px rgba(52,224,161,0.3), 0 2px 6px rgba(0,0,0,.4); cursor:pointer;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:#fff; cursor:pointer;}
   .toggle-row{display:flex; align-items:center; justify-content:space-between; padding-top:14px; margin-top:14px; border-top:1px solid var(--border);}
-  .toggle-row .k{font-size:13px; font-weight:600;}
   .switch{width:38px; height:22px; border-radius:99px; background:rgba(255,255,255,0.12); position:relative; cursor:pointer; border:1px solid var(--border); transition:.25s;}
   .switch.on{background:linear-gradient(120deg, var(--ember-1), var(--ember-2)); border-color:transparent;}
-  .switch .knob{position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%; background:#fff; transition:.25s; box-shadow:0 1px 3px rgba(0,0,0,.4);}
+  .switch .knob{position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%; background:#fff; transition:.25s;}
   .switch.on .knob{left:18px;}
 
-  .skins-layout{display:grid; grid-template-columns: 1fr 320px; gap:20px;}
-  .skin-grid-card{padding:22px 24px;}
-  .skin-grid-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;}
-  .skin-grid-head h2{margin:0; font-size:17px;}
-  .upload-btn{display:flex; align-items:center; gap:8px; padding:9px 15px; font-size:13px;}
-  .skin-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:14px;}
-  .skin-tile{
-    padding:14px 10px 12px; border-radius:14px; background:rgba(255,255,255,0.03); border:1px solid var(--border);
-    display:flex; flex-direction:column; align-items:center; gap:10px; cursor:pointer; transition:.25s;
-  }
-  .skin-tile:hover{border-color:var(--border-hi); background:rgba(255,255,255,0.06); transform:translateY(-3px); box-shadow:0 14px 26px -14px rgba(20,200,140,0.5);}
-  .skin-tile.selected{border-color:var(--ember-1); box-shadow:0 0 0 1px var(--ember-1), 0 0 26px -8px rgba(52,224,161,0.65);}
-  .swatch-stack{width:40px; height:56px; border-radius:8px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 2px 8px rgba(0,0,0,.4);}
-  .swatch-stack div:nth-child(1){height:34%;}
-  .swatch-stack div:nth-child(2){height:40%;}
-  .swatch-stack div:nth-child(3){height:26%;}
-  .custom-thumb{width:40px;height:56px;border-radius:8px;background-size:cover;background-position:center; image-rendering:pixelated; box-shadow:0 2px 8px rgba(0,0,0,.4); border:1px solid var(--border);}
-  .skin-tile .name{font-size:12px; font-weight:600; color:var(--ink-dim); max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .skin-tile.add-tile{align-items:center; justify-content:center; min-height:110px;}
-  .add-plus{width:40px; height:40px; border-radius:10px; border:1.5px dashed var(--border-hi); display:flex; align-items:center; justify-content:center; font-size:20px; color:var(--ink-dimmer);}
-
-  .skin-preview-card{padding:26px 22px; display:flex; flex-direction:column; align-items:center;}
-  .skin-preview-card h3{margin:0 0 2px; font-size:15px;}
-  .skin-preview-card .sub{margin-bottom:6px;}
-  .preview-stage{
-    width:100%; height:300px; border-radius:16px; margin:14px 0; position:relative; overflow:hidden;
-    background:radial-gradient(160px 70px at 50% 92%, rgba(20,200,140,.35), transparent 70%);
-    cursor:grab;
-  }
-  .preview-stage:active{cursor:grabbing;}
-  .preview-stage canvas{display:block; width:100%; height:100%;}
-  .apply-btn{width:100%; padding:13px; margin-top:6px; border:none; border-radius:12px; font-family:'Sora',sans-serif; font-weight:700; font-size:14px; color:#04140d; background:linear-gradient(120deg, var(--ember-1), var(--ember-2)); cursor:pointer; transition:.25s; box-shadow:0 12px 26px -10px rgba(16,180,120,0.55);}
-  .apply-btn:hover{box-shadow:0 16px 34px -8px rgba(16,180,120,0.7); transform:translateY(-1px);}
-  .apply-btn:disabled{opacity:.6; cursor:default; box-shadow:none; transform:none;}
-
-  .settings-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
-  .settings-card{padding:22px 24px;}
-  .settings-card h3{margin:0 0 4px; font-size:15px;}
-  .settings-card .sub{margin-bottom:16px;}
-  .field-row{display:flex; align-items:center; justify-content:space-between; padding:13px 0; border-top:1px solid var(--border); border-radius:8px; transition:box-shadow .3s ease;}
-  .field-row:first-of-type{border-top:none;}
-  .field-row .k{font-size:13.5px; font-weight:600;}
-  .field-row .d{font-size:12px; color:var(--ink-dimmer); margin-top:2px;}
-  .field-val{font-size:13px; color:var(--ink-dim); display:flex; align-items:center; gap:10px;}
-  .path-box{font-size:12px; color:var(--ink-dim); background:rgba(255,255,255,0.04); padding:8px 12px; border-radius:9px; border:1px solid var(--border); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .full-w{grid-column:1 / -1;}
-  .field-row.flash{animation:flashGlow 1.4s ease;}
-  @keyframes flashGlow{0%{box-shadow:0 0 0 0 rgba(52,224,161,0);}20%{box-shadow:0 0 0 4px rgba(52,224,161,.35);}100%{box-shadow:0 0 0 0 rgba(52,224,161,0);}}
-
-  /* toasts */
-  .toast-container{position:fixed; bottom:22px; right:22px; z-index:300; display:flex; flex-direction:column; gap:10px; align-items:flex-end;}
-  .toast{
-    background:rgba(18,16,24,0.92); border:1px solid var(--border-hi); backdrop-filter:blur(20px);
-    padding:12px 16px; border-radius:12px; font-size:13px; font-weight:600; max-width:300px;
-    box-shadow:0 20px 40px -12px rgba(0,0,0,.6);
-    animation: toastIn .25s ease, toastOut .3s ease 2.3s forwards;
-  }
-  @keyframes toastIn{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);}}
-  @keyframes toastOut{to{opacity:0; transform:translateY(-6px);}}
-
-  /* console modal */
+  .toast-container{position:fixed; bottom:22px; right:22px; z-index:300; display:flex; flex-direction:column; gap:10px;}
+  .toast{background:rgba(18,16,24,0.92); border:1px solid var(--border-hi); padding:12px 16px; border-radius:12px; font-size:13px; font-weight:600;}
   .modal-overlay{position:fixed; inset:0; background:rgba(4,4,7,0.6); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; z-index:200;}
   .modal-overlay.open{display:flex;}
   .modal{width:min(640px,90vw); max-height:70vh; display:flex; flex-direction:column; padding:0;}
   .modal-head{display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border);}
-  .modal-head h3{margin:0; font-size:15px;}
-  .modal-close{background:rgba(255,255,255,.06); border:1px solid var(--border); color:var(--ink); width:30px; height:30px; border-radius:9px; cursor:pointer; font-size:14px;}
-  .modal-close:hover{border-color:var(--border-hi); background:rgba(255,255,255,.12);}
-  .console-body{padding:14px 20px 20px; overflow-y:auto; font-family:'Consolas','Menlo',monospace; font-size:12.3px; line-height:1.7;}
-  .console-line{white-space:pre-wrap; word-break:break-word;}
-  .console-line .t{color:var(--ink-dimmer);}
-  .console-line .tag-info{color:#7fd3ff;}
-  .console-line .tag-warn{color:#ffcf6b;}
-  .console-line .tag-ok{color:#7fe3a3;}
-
-  ::-webkit-scrollbar{width:8px;}
-  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15); border-radius:8px;}
-
-  @media (max-width: 880px){
-    .home-grid, .skins-layout, .settings-grid{grid-template-columns:1fr;}
-    .skin-grid{grid-template-columns:repeat(3,1fr);}
-  }
+  .console-body{padding:14px 20px 20px; overflow-y:auto; font-family:monospace; font-size:12.3px;}
+  .console-line{white-space:pre-wrap;}
 </style>
 </head>
 <body>
 
 <div class="bg-glow"></div>
-<div class="noise"></div>
 <div class="toast-container" id="toastContainer"></div>
 
 <div class="modal-overlay" id="consoleOverlay">
   <div class="modal glass">
-    <div class="modal-head"><h3>Console — <span id="consoleTitleName">Aryan99gg</span></h3><button class="modal-close" id="consoleClose">✕</button></div>
+    <div class="modal-head"><h3>Console</h3><button class="ghost-btn" id="consoleClose">✕</button></div>
     <div class="console-body" id="consoleBody"></div>
   </div>
 </div>
 
-<div class="modal-overlay" id="nameOverlay">
-  <div class="modal glass" style="width:min(420px,90vw); max-height:none;">
-    <div class="modal-head"><h3>Welcome to Ember</h3></div>
-    <div style="padding:22px 22px 24px; display:flex; flex-direction:column; gap:14px;">
-      <div class="sub" style="font-size:13px; line-height:1.5;">Pick an offline name to play with. You can change it later in Settings.</div>
-      <input id="nameInput" type="text" maxlength="16" placeholder="Offline name"
-        style="width:100%; padding:12px 14px; border-radius:10px; background:r
-         <div class="sub" id="nameError" style="font-size:12px; color:#ff8b8b; min-height:14px;"></div>
-      <button class="play-btn" id="nameConfirmBtn" style="margin-top:0;">Continue</button>
-    </div>
-  </div>
-</div>
-
-<div class="app" id="appRoot">
+<div class="app">
 
   <div class="titlebar">
-    <div class="tb-left"><span class="tb-dot"></span> Ember Launcher · <span id="tbVersion">1.20.4</span></div>
+    <div class="tb-left"><span class="tb-dot"></span> Ember Launcher · <span id="tbVersion">1.20.4 (Vanilla)</span></div>
     <div class="tb-icons">
-      <span id="tbMin" title="Minimize">—</span>
-      <span id="tbMax" title="Maximize">▢</span>
-      <span id="tbClose" title="Close">✕</span>
+      <span id="tbMin">—</span>
+      <span id="tbMax">▢</span>
+      <span id="tbClose">✕</span>
     </div>
   </div>
-
-  <div id="appBody">
 
   <div class="topbar">
     <div class="brand"><span class="mark"></span>EMBER</div>
     <div class="nav-tabs">
       <button class="nav-tab active" data-page="home">Home</button>
-      <button class="nav-tab" data-page="skins">Skins</button>
       <button class="nav-tab" data-page="settings">Settings</button>
     </div>
-    <div class="account-chip"><span class="status-dot"></span> <span id="accountChipName">Player</span></div>
-  </div>
 
-  <!-- HOME -->
+    <!-- Quick Options Dropdown -->
+    <div class="quick-config-wrapper">
+      <button class="quick-btn" id="quickToggleBtn">⚡ Options ▾</button>
+      <div class="quick-flyout" id="quickFlyout">
+        <div class="quick-row">
+          <span class="quick-label">Player Name</span>
+          <input class="quick-input" type="text" id="quickPlayerName" value="Player" maxlength="16">
+        </div>
+        <div class="quick-select-row">
+          <div class="quick-row">
+            <span class="quick-label">Loader</span>
+            <select class="quick-input" id="quickLoaderSelect">
+              <option value="Vanilla">Vanilla</option>
+              <option value="Fabric">Fabric</option>
+              <option value="Forge">Forge</option>
+              <option value="NeoForge">NeoForge</option>
+            </select>
+          </div>
+          <div class="quick-row">
+            <span class="quick-label">Version</span>
+            <select class="quick-input" id="quickVersionSelect">
+              <option value="1.21.1">1.21.1</option>
+              <option value="1.20.6">1.20.6</option>
+              <option value="1.20.4" selected>1.20.4</option>
+              <option value="1.20.1">1.20.1</option>
+              <option value="1.19.4">1.19.4</option>
+              <option value="1.16.5">1.16.5</option>
+              <option value="1.12.2">1.12.2</option>
+              <option value="1.8.9">1.8.9</option>
+            </select>
+          </div>
+        </div>
+        <div class="quick-row">
+          <span class="quick-label">FPS Booster (G1GC)</span>
+          <div class="switch on" id="quickFpsSwitch" onclick="this.classList.toggle('on')"><div class="knob"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- HOME PAGE -->
   <div class="page active" id="page-home">
     <div class="home-grid">
-
-      <div class="main-col">
-
-        <div class="glass glow-card player-card">
-          <div class="player-top">
-            <div>
-              <div class="player-name">
-                <h1 id="playerNameH1">Player</h1>
-                <span class="badge offline" id="statusBadge">Offline</span>
-              </div>
-              <div class="sub" id="statusSub">Offline session</div>
-            </div>
-            <div class="top-actions">
-              <button class="ghost-btn" id="consoleBtn">⌘ Console</button>
-              <button class="ghost-btn" id="folderBtn">📁 Folder</button>
-            </div>
+      <div class="glass player-card">
+        <div class="player-top">
+          <div class="player-name">
+            <h1 id="playerNameH1">Player</h1>
+            <span class="badge offline" id="statusBadge">Offline</span>
           </div>
-
-          <div class="avatar-stage" id="homeStage">
-            <div class="drag-hint">drag to rotate</div>
-          </div>
-
-          <div class="controls-row">
-            <div class="pill-select" id="versionPill"><span class="pill-label">1.20.4</span> ▾</div>
-            <div class="pill-select" id="loaderPill"><span class="pill-label">Vanilla</span> ▾</div>
-            <div class="pill-select static" id="javaPill">Java 17+</div>
-            <div class="pill-select static" id="ramPill">4.0 GB RAM</div>
-          </div>
-
-          <button class="play-btn" id="playBtn">▶ Play</button>
-        </div>
-
-        <div class="glass glow-card feed-card">
-          <h3>Performance &amp; Updates</h3>
-          <div class="sub">Latest launcher features active</div>
-
-          <div class="feed-item">
-            <span class="feed-dot update"></span>
-            <div>
-              <div class="ft">G1GC Low Latency Garbage Collector</div>
-              <div class="fd">FPS boost mode is now available to smooth out chunk loading and stutter.</div>
-            </div>
-          </div>
-          <div class="feed-item">
-            <span class="feed-dot mod"></span>
-            <div>
-              <div class="ft">Auto Mojang File Downloader</div>
-              <div class="fd">Ready to automatically fetch assets and libraries for any version selected.</div>
-            </div>
+          <div class="top-actions">
+            <button class="ghost-btn" id="consoleBtn">⌘ Console</button>
+            <button class="ghost-btn" id="folderBtn">📁 Folder</button>
           </div>
         </div>
 
+        <div class="controls-row">
+          <div class="pill-select" id="pillVersion">Version: 1.20.4</div>
+          <div class="pill-select" id="pillLoader">Loader: Vanilla</div>
+          <div class="pill-select" id="ramPill">4.0 GB RAM</div>
+        </div>
+
+        <button class="play-btn" id="playBtn">▶ Play</button>
       </div>
 
-      <div class="side-col">
-
-        <div class="glass glow-card sponsor-card">
-          <div class="sponsor-inner">
-            <span class="sponsor-tag">★ Sponsored server</span>
-            <h3>Nova SMP</h3>
-            <p>A survival multiplayer world with towns, economy, and weekly events. Offline accounts supported.</p>
-            <div class="sponsor-meta"><span>🟢 1,204 online</span><span>⭐ 4.8</span></div>
-            <button class="join-btn" id="joinBtn">Join server →</button>
-          </div>
-        </div>
-
-        <div class="glass glow-card session-card">
-          <h3>Session</h3>
-          <div class="stat-row"><span class="k">Memory allocated</span><span class="v ramValue">4096 MB</span></div>
-          <input type="range" min="1" max="16" value="4" step="0.5" id="ramSlider">
-          <div class="toggle-row">
-            <div>
-              <div class="k">FPS Booster</div>
-              <div class="d" style="font-size:11px; color:var(--ink-dimmer);">Optimized JVM Flags</div>
-            </div>
-            <div class="switch on" id="fpsBoostSwitch" onclick="this.classList.toggle('on')"><div class="knob"></div></div>
-          </div>
-        </div>
-
+      <div class="glass session-card">
+        <h3>Memory Allocation</h3>
+        <div class="stat-row"><span>RAM</span><span class="ramValue">4096 MB</span></div>
+        <input type="range" min="1" max="16" value="4" step="0.5" id="ramSlider">
       </div>
     </div>
   </div>
 
-  <!-- SKINS -->
-  <div class="page" id="page-skins">
-    <div class="skins-layout">
-
-      <div class="glass glow-card skin-grid-card">
-        <div class="skin-grid-head">
-          <h2>Your skins</h2>
-          <button class="ghost-btn upload-btn" id="uploadBtnTop">⇧ Upload skin</button>
-        </div>
-        <div class="skin-grid" id="skinGrid"></div>
-      </div>
-
-      <div class="glass glow-card skin-preview-card">
-        <h3>Preview</h3>
-        <div class="sub" id="previewName">Ember Classic</div>
-        <div class="preview-stage" id="skinsStage"></div>
-        <button class="apply-btn" id="applyBtn">Apply skin</button>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- SETTINGS -->
+  <!-- SETTINGS PAGE -->
   <div class="page" id="page-settings">
-    <div class="settings-grid">
-
-      <div class="glass glow-card settings-card">
-        <h3>Account</h3>
-        <div class="sub">Offline profile used to launch the game</div>
-        <div class="field-row">
-          <div><div class="k">Offline name</div><div class="d">Shown in-game and in the launcher</div></div>
-          <div class="field-val" style="display:flex; align-items:center; gap:10px;">
-            <span id="settingsOfflineName">Player</span>
-            <button class="ghost-btn" id="changeNameBtn" style="padding:7px 12px;">Change</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="glass glow-card settings-card">
-        <h3>Game</h3>
-        <div class="sub">Defaults used when launching a new instance</div>
-        <div class="field-row" id="fieldMemory"><div><div class="k">Memory allocated</div><div class="d">Applies to new sessions</div></div><div class="field-val ramValue">4096 MB</div></div>
-        <div class="field-row" id="fieldJava"><div><div class="k">Java version</div><div class="d">Auto-detected for the selected version</div></div><div class="field-val">Java 17+</div></div>
-        <div class="field-row">
-          <div><div class="k">Game folder</div></div>
-          <div class="field-val" style="width:60%;">
-            <span class="path-box">%AppData%\.ember</span>
-            <button class="ghost-btn" id="folderBtnSettings" style="padding:7px 12px;">Open</button>
-          </div>
-        </div>
-      </div>
-
+    <div class="glass" style="padding:22px;">
+      <h3>Launcher Settings</h3>
+      <div class="sub">Game Root: %AppData%\.ember</div>
     </div>
   </div>
 
-  </div>
 </div>
 
-<input type="file" id="skinFileInput" accept="image/png,image/*" style="display:none;">
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
   function toast(msg){
     const c = document.getElementById('toastContainer');
@@ -508,440 +275,98 @@
     setTimeout(()=>el.remove(), 2600);
   }
 
-  function shade(hex, pct){
-    const n = parseInt(hex.slice(1),16);
-    let r=(n>>16)+Math.round(2.55*pct), g=((n>>8)&0xff)+Math.round(2.55*pct), b=(n&0xff)+Math.round(2.55*pct);
-    r=Math.max(0,Math.min(255,r)); g=Math.max(0,Math.min(255,g)); b=Math.max(0,Math.min(255,b));
-    return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
-  }
+  // Window Controls
+  document.getElementById('tbMin').addEventListener('click', ()=>window.launcherAPI && window.launcherAPI.minimize());
+  document.getElementById('tbMax').addEventListener('click', ()=>window.launcherAPI && window.launcherAPI.maximize());
+  document.getElementById('tbClose').addEventListener('click', ()=>window.launcherAPI && window.launcherAPI.close());
 
-  function switchToTab(name){
-    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.toggle('active', t.dataset.page===name));
-    document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active', p.id === 'page-'+name));
-    onResizeViewers();
-  }
-  document.querySelectorAll('.nav-tab').forEach(tab=>{
-    tab.addEventListener('click', ()=>switchToTab(tab.dataset.page));
-  });
-
-  document.querySelectorAll('.glow-card').forEach(card=>{
-    card.addEventListener('mousemove', e=>{
-      const r = card.getBoundingClientRect();
-      card.style.setProperty('--mx', ((e.clientX-r.left)/r.width*100)+'%');
-      card.style.setProperty('--my', ((e.clientY-r.top)/r.height*100)+'%');
+  // Tabs
+  document.querySelectorAll('.nav-tab').forEach(t=>{
+    t.addEventListener('click', ()=>{
+      document.querySelectorAll('.nav-tab').forEach(tb=>tb.classList.remove('active'));
+      document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+      t.classList.add('active');
+      document.getElementById('page-'+t.dataset.page).classList.add('active');
     });
   });
 
-  // Titlebar controls
-  document.getElementById('tbMin').addEventListener('click', ()=>{
-    if(window.launcherAPI) window.launcherAPI.minimize();
-    else document.getElementById('appBody').classList.toggle('collapsed');
+  // Quick Dropdown Toggle
+  const quickBtn = document.getElementById('quickToggleBtn');
+  const quickFlyout = document.getElementById('quickFlyout');
+  quickBtn.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    quickFlyout.classList.toggle('open');
   });
-  document.getElementById('tbMax').addEventListener('click', ()=>{
-    if(window.launcherAPI) window.launcherAPI.maximize();
-    else document.getElementById('appRoot').classList.toggle('wide');
-  });
-  document.getElementById('tbClose').addEventListener('click', ()=>{
-    if(window.launcherAPI) window.launcherAPI.close();
-    else toast("Preview window — closing disabled");
+  document.addEventListener('click', (e)=>{
+    if(!quickFlyout.contains(e.target) && e.target !== quickBtn) quickFlyout.classList.remove('open');
   });
 
-  let openDropdown = null;
-  function closeDropdown(){ if(openDropdown){ openDropdown.remove(); openDropdown = null; } }
-  document.addEventListener('click', ()=>closeDropdown());
-
-  function setupDropdown(pillEl, items, onSelect){
-    pillEl.addEventListener('click', e=>{
-      e.stopPropagation();
-      const wasOpenHere = openDropdown && openDropdown.parentElement === pillEl;
-      closeDropdown();
-      if(wasOpenHere) return;
-      const menu = document.createElement('div');
-      menu.className = 'dropdown-menu';
-      items.forEach(it=>{
-        const opt = document.createElement('div');
-        opt.className = 'dropdown-item';
-        opt.textContent = it;
-        opt.addEventListener('click', ev=>{
-          ev.stopPropagation();
-          pillEl.querySelector('.pill-label').textContent = it;
-          closeDropdown();
-          onSelect(it);
-        });
-        menu.appendChild(opt);
-      });
-      pillEl.appendChild(menu);
-      openDropdown = menu;
-    });
-  }
-
-  let selectedVersion = '1.20.4';
+  // State Sync
+  const nameInput = document.getElementById('quickPlayerName');
+  const versionSelect = document.getElementById('quickVersionSelect');
+  const loaderSelect = document.getElementById('quickLoaderSelect');
+  const fpsSwitch = document.getElementById('quickFpsSwitch');
+  const ramSlider = document.getElementById('ramSlider');
   let memoryMb = 4096;
 
-  setupDropdown(document.getElementById('versionPill'),
-    ['1.21.1','1.20.6','1.20.4','1.20.1','1.19.4','1.18.2','1.16.5','1.12.2','1.8.9'],
-    v=>{ selectedVersion = v; document.getElementById('tbVersion').textContent = v; toast('Version set to '+v); });
+  function syncUI(){
+    const name = nameInput.value || 'Player';
+    const v = versionSelect.value;
+    const l = loaderSelect.value;
+    document.getElementById('playerNameH1').textContent = name;
+    document.getElementById('pillVersion').textContent = 'Version: ' + v;
+    document.getElementById('pillLoader').textContent = 'Loader: ' + l;
+    document.getElementById('tbVersion').textContent = `${v} (${l})`;
+  }
 
-  setupDropdown(document.getElementById('loaderPill'),
-    ['Vanilla','Fabric','Forge'],
-    v=>{ toast('Loader set to '+v); });
+  nameInput.addEventListener('input', syncUI);
+  versionSelect.addEventListener('change', syncUI);
+  loaderSelect.addEventListener('change', syncUI);
 
-  const ramSlider = document.getElementById('ramSlider');
   function setRam(gb){
     memoryMb = Math.round(gb * 1024);
-    const pct = ((gb-1)/(16-1))*100;
-    ramSlider.value = gb;
-    ramSlider.style.background = `linear-gradient(90deg, var(--ember-1), var(--ember-2)) 0/${pct}% 100% no-repeat, rgba(255,255,255,0.1)`;
     document.querySelectorAll('.ramValue').forEach(el=>el.textContent = memoryMb+' MB');
     document.getElementById('ramPill').textContent = gb.toFixed(1)+' GB RAM';
   }
   ramSlider.addEventListener('input', e=>setRam(parseFloat(e.target.value)));
   setRam(4);
 
+  // Play Execution
   const playBtn = document.getElementById('playBtn');
   const statusBadge = document.getElementById('statusBadge');
-  const statusSub = document.getElementById('statusSub');
-
   playBtn.addEventListener('click', ()=>{
-    if(!window.launcherAPI){
-      toast('Running in preview mode');
-      return;
-    }
-    const isFpsBoost = document.getElementById('fpsBoostSwitch').classList.contains('on');
+    if(!window.launcherAPI) { toast('Preview mode'); return; }
     playBtn.disabled = true;
     playBtn.innerHTML = '◌ Launching…';
 
     window.launcherAPI.launchGame({
-      username: currentPlayerName,
-      version: selectedVersion,
+      username: nameInput.value.trim() || 'Player',
+      version: versionSelect.value,
+      loaderType: loaderSelect.value,
       memoryMax: memoryMb,
-      fpsBoost: isFpsBoost
+      fpsBoost: fpsSwitch.classList.contains('on')
     });
   });
 
   if(window.launcherAPI){
-    const openF = () => window.launcherAPI.openFolder();
-    document.getElementById('folderBtn').addEventListener('click', openF);
-    document.getElementById('folderBtnSettings').addEventListener('click', openF);
-
+    document.getElementById('folderBtn').addEventListener('click', ()=>window.launcherAPI.openFolder());
     window.launcherAPI.onStatus((status)=>{
       if(status === 'started'){
         playBtn.disabled = false;
         playBtn.innerHTML = '■ Playing';
-        playBtn.classList.add('stop');
         statusBadge.textContent = 'Online';
         statusBadge.classList.replace('offline', 'online');
-        statusSub.textContent = 'Playing ' + selectedVersion;
-        toast('Minecraft Started!');
       } else if(status === 'closed'){
         playBtn.disabled = false;
         playBtn.innerHTML = '▶ Play';
-        playBtn.classList.remove('stop');
         statusBadge.textContent = 'Offline';
         statusBadge.classList.replace('online', 'offline');
-        statusSub.textContent = 'Offline session';
-        toast('Minecraft Closed');
       }
     });
-
-    window.launcherAPI.onLog((data)=>{
-      const row = document.createElement('div');
-      row.className = 'console-line';
-      const t = new Date().toLocaleTimeString();
-      row.innerHTML = `<span class="t">[${t}]</span> <span class="tag-info">[MC]</span> ${data.text}`;
-      consoleBody.appendChild(row);
-      consoleBody.scrollTop = consoleBody.scrollHeight;
-    });
-  }
-
-  const consoleOverlay = document.getElementById('consoleOverlay');
-  const consoleBody = document.getElementById('consoleBody');
-  document.getElementById('consoleBtn').addEventListener('click', ()=>consoleOverlay.classList.add('open'));
-  document.getElementById('consoleClose').addEventListener('click', ()=>consoleOverlay.classList.remove('open'));
-  consoleOverlay.addEventListener('click', e=>{ if(e.target === consoleOverlay) consoleOverlay.classList.remove('open'); });
-
-  const NAME_KEY = 'ember_offline_name';
-  let currentPlayerName = 'Player';
-
-  function isValidOfflineName(v){ return /^[A-Za-z0-9_]{3,16}$/.test(v); }
-  function applyPlayerName(name){
-    currentPlayerName = name;
-    document.getElementById('accountChipName').textContent = name;
-    document.getElementById('playerNameH1').textContent = name;
-    document.getElementById('consoleTitleName').textContent = name;
-    document.getElementById('settingsOfflineName').textContent = name;
-  }
-
-  function promptOfflineName(onDone){
-    const overlay = document.getElementById('nameOverlay');
-    const input = document.getElementById('nameInput');
-    const err = document.getElementById('nameError');
-    const btn = document.getElementById('nameConfirmBtn');
-    err.textContent = '';
-    input.value = currentPlayerName === 'Player' ? '' : currentPlayerName;
-    overlay.classList.add('open');
-    setTimeout(()=>input.focus(), 50);
-
-    function submit(){
-      const v = input.value.trim();
-      if(!isValidOfflineName(v)){
-        err.textContent = '3-16 characters: letters, numbers, underscore only.';
-        return;
-      }
-      localStorage.setItem(NAME_KEY, v);
-      applyPlayerName(v);
-      overlay.classList.remove('open');
-      btn.removeEventListener('click', submit);
-      input.removeEventListener('keydown', onKey);
-      if(onDone) onDone(v);
-    }
-    function onKey(e){ if(e.key === 'Enter') submit(); }
-    btn.addEventListener('click', submit);
-    input.addEventListener('keydown', onKey);
-  }
-
-  function initOfflineName(onReady){
-    const saved = localStorage.getItem(NAME_KEY);
-    if(saved && isValidOfflineName(saved)){
-      applyPlayerName(saved);
-      if(onReady) onReady();
-    } else {
-      promptOfflineName(()=>{ if(onReady) onReady(); });
-    }
-  }
-  document.getElementById('changeNameBtn').addEventListener('click', ()=>promptOfflineName());
-
-  const DEFAULT_SKIN_B64 = 'iVBORw0KGgoAAAANSUhEUgAAAEAAAAAgCAYAAACinX6EAAAE6ElEQVRogeWX30/bVhTH/UjtxCVVp0Z2MKVJjQNBDoU9JFEXKOVHp6rViJhaPJUKJkhDEVIEm9QKBVYEpJO6PUUKSjOpUqUIberD2u2hYo97yv/03cPNNdfGjilFDaOWvnLie3zj7+fec3zCcR5HT4cfPR1+RIJtYD9Hgm3obBewOq43ldf8p/6ghvXO89A7z1sARIJtWB3XkRuKYyszaJ63MoNnCwA1r0q8K4BwOGxRbih+NgDQ1benAb125gGwZlWJhyrxlnT4LAA4mfcCMKmpZwcANR4N+aBKPDrbhUMAnHRmAFDjrOjO+N+/BjWZhyYTU92ygGjIh2vhdvRdJtIv+9GrkDqghQREgm1QJR69CgFA466F2xEN+dAtC1AlMqcm8/DqI1rt3wJAlXjEFBHRkA+9ih8DkQB6Fb+pgUgAN3ouIN3zBWKKCC0kmDHRkA8xRTTnYQE06yNa7Z+LKSLUIFk1YlyEJguIBHkTxF/Fx9h/kce/pXXs/5zH/osV/P7DNAavXkA05EMkyEOTBfQ24KkSDzUoIKaI8OojWu2f7ADJj74OkayqTFIhpojQrwSwtzaPt5tL2Fubxx/rS6jkv8P7Yh6VR7dReXQb+pUAYoqIblmAJpMd1NchQpP80GQeXn1Eq/2bKUDSwIfwpXPYvpdEZW4USe0i3m4uAQAmrxfx7ukC3hfzmLxeBADsrc0jqV1EZW4U2/eSCF86B1XygZ3Tq49otf8DAJK/sW0D2JzsR2lmGDvTCVTmxvDn01n8/VPefL39s/MYr3LjWM8MYmc6gdLMMDYn+xFTAlCDgrn6bBF06yNa7Z+j276vQ8TsiI6XubvYnbtp/qH59cEISjND+PHGlxb98uArbGQSWB3XsZUZxO7cTbzM3cXsiE5SoJEOXn1Eq/1z9N8bNV1ZmEBpZhjP76ewMqFjeTSGpZEebGQS2Mgk8OTOAJ5NpfBsKoUndwawMqHj+f0UfsveQmVhArvff03OjfkoSHsfQcG12v+h49tbdbDSNM0izwnqdfemqF4H9/Bhc3kdtRqZp14HV6shNxTHN/1XzfOpAODWGp8IAGq+oc8bQK1mMZ8bip8OAJ8yBT4aQFzLI67loXYZiGt5jCVfW8SO2ceT/UVwhcKBDANcuQyuWsVGJoFXuXGzeHLVKhEbXyiQa7Xagd68IaLf3eJpjH2c3k91FABql3EsAGPJ1+RHs1miQuHgwRsQTPP0gdj4bNZqmhWdh42lBuk9FKh9/DgA3Ax6AnB6QPqQ1SrZEaxJNj6bdTbPzuEEmI1pOQDDOHgAw7D+OAXAXnOLp3G1mvWz3SC7mz7VDmBjkv1Fi0wjVOWy1TT9TK+zsRSA3TRzf2lm2NT2VAp7a/MWbU+lLDH28WMBoObYHeAKgDWTzVoBOBljgdEUcLqnsdWdAJSWDdMgvX6iAD64BtgBsKvPVmwWAFsDbKZZIKw5O4DSsuEIoLRsmDFHAsDqo98CXgDsbwGnWBcA9hW2A3BKkRMB0Gy8aRGyvwHsAJyKlk2sOTcAzWqEJ4B0Oo10Ou0JgMYtLi5aZBqijQhdPfvquwFg4x3qAWvOKcdZAGwK0PORAbgZ9BpnU0TtMg4BNDtGBoC98TILKk2Tctkswm4AqEmnHdIyAE47yAKhXPZurctlyzX7ClsK4LLhWCM+BMB/aG3tAxSVGg8AAAAASUVORK5CYII=';
-
-  const defaultSkinEntry = { name: 'Default', isCustom: true, legacy: true, selected: true, faceThumb: null, texture: null };
-
-  function loadDefaultSkin(cb){
-    const img = new Image();
-    img.onload = ()=>{
-      try{
-        defaultSkinEntry.faceThumb = extractFaceThumb(img);
-        if(threeOK){
-          const texture = new THREE.Texture(img);
-          texture.flipY = false;
-          texture.magFilter = THREE.NearestFilter; texture.minFilter = THREE.NearestFilter;
-          texture.needsUpdate = true;
-          defaultSkinEntry.texture = texture;
-        }
-      } catch(err){}
-      cb();
-    };
-    img.src = 'data:image/png;base64,' + DEFAULT_SKIN_B64;
-  }
-
-  const skins = [
-    defaultSkinEntry,
-    {name:'Ember Classic', skinTone:'#e8a06b', shirt:'#1fae7a', pants:'#2b2b3a'},
-    {name:'Void Walker', skinTone:'#b9a9ff', shirt:'#6a53e6', pants:'#171522'},
-    {name:'Frost', skinTone:'#eaf7ff', shirt:'#5fb6e6', pants:'#1b2733'},
-    {name:'Verdant', skinTone:'#d9c79a', shirt:'#4caf50', pants:'#182818'}
-  ];
-
-  function makeFaceTexture(skinTone){
-    const c = document.createElement('canvas'); c.width=32; c.height=32;
-    const ctx = c.getContext('2d');
-    ctx.fillStyle = skinTone; ctx.fillRect(0,0,32,32);
-    ctx.fillStyle = '#20202a'; ctx.fillRect(7,12,6,6); ctx.fillRect(19,12,6,6);
-    ctx.fillStyle = shade(skinTone,-20); ctx.fillRect(11,23,10,2.5);
-    const tex = new THREE.CanvasTexture(c);
-    tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.NearestFilter;
-    return tex;
-  }
-
-  const RECTS = {
-    head: {right:[0,8,8,8], left:[16,8,8,8], top:[8,0,8,8], bottom:[16,0,8,8], front:[8,8,8,8], back:[24,8,8,8]},
-    body: {right:[16,20,4,12], left:[28,20,4,12], top:[20,16,8,4], bottom:[28,16,8,4], front:[20,20,8,12], back:[32,20,8,12]},
-    armR: {right:[40,20,4,12], left:[48,20,4,12], top:[44,16,4,4], bottom:[48,16,4,4], front:[44,20,4,12], back:[52,20,4,12]},
-    legR: {right:[0,20,4,12], left:[8,20,4,12], top:[4,16,4,4], bottom:[8,16,4,4], front:[4,20,4,12], back:[12,20,4,12]}
-  };
-
-  function applyAtlasUV(geometry, part, texW, texH, mirrorU){
-    const order = [part.right, part.left, part.top, part.bottom, part.front, part.back];
-    const idxArr = geometry.index.array;
-    const uv = geometry.attributes.uv;
-    geometry.groups.forEach((group, gi)=>{
-      const r = order[gi]; if(!r) return;
-      for(let k=group.start; k<group.start+group.count; k++){
-        const vi = idxArr[k];
-        let u = uv.getX(vi), v = uv.getY(vi);
-        if(mirrorU) u = 1-u;
-        const nu = (r[0] + u*r[2]) / texW;
-        const nv = (r[1] + (1-v)*r[3]) / texH;
-        uv.setXY(vi, nu, nv);
-      }
-    });
-    uv.needsUpdate = true;
-  }
-
-  function extractFaceThumb(img){
-    const c = document.createElement('canvas'); c.width=64; c.height=64;
-    const ctx = c.getContext('2d'); ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(img, 8,8,8,8, 0,0,64,64);
-    return c.toDataURL();
-  }
-
-  function createSkinViewer(container){
-    let width = container.clientWidth, height = container.clientHeight;
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(32, width/height, 0.1, 100);
-    camera.position.set(0, 0.15, 3.0);
-    const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
-    container.appendChild(renderer.domElement);
-
-    scene.add(new THREE.AmbientLight(0x40405a, 1.0));
-    const key = new THREE.DirectionalLight(0xfff2e0, 1.2); key.position.set(2,3,3); scene.add(key);
-    const rim = new THREE.DirectionalLight(0x22ddaa, 0.6); rim.position.set(-3,1.5,-2.5); scene.add(rim);
-
-    const group = new THREE.Group();
-    group.position.y = -1.0;
-    scene.add(group);
-
-    function build(skin){
-      while(group.children.length){
-        const old = group.children[0];
-        group.remove(old);
-        if(old.geometry) old.geometry.dispose();
-      }
-
-      if(skin.isCustom){
-        const mat = new THREE.MeshStandardMaterial({map:skin.texture, roughness:0.85});
-        const headGeo = new THREE.BoxGeometry(0.5,0.5,0.5);
-        applyAtlasUV(headGeo, RECTS.head, 64, 32);
-        const head = new THREE.Mesh(headGeo, mat); head.position.set(0,1.75,0); group.add(head);
-
-        const bodyGeo = new THREE.BoxGeometry(0.5,0.75,0.25);
-        applyAtlasUV(bodyGeo, RECTS.body, 64, 32);
-        const body = new THREE.Mesh(bodyGeo, mat); body.position.set(0,1.125,0); group.add(body);
-
-        const armRGeo = new THREE.BoxGeometry(0.25,0.75,0.25);
-        applyAtlasUV(armRGeo, RECTS.armR, 64, 32);
-        const armR = new THREE.Mesh(armRGeo, mat); armR.position.set(0.375,1.125,0); group.add(armR);
-
-        const armLGeo = new THREE.BoxGeometry(0.25,0.75,0.25);
-        applyAtlasUV(armLGeo, RECTS.armR, 64, 32, true);
-        const armL = new THREE.Mesh(armLGeo, mat); armL.position.set(-0.375,1.125,0); group.add(armL);
-
-        const legRGeo = new THREE.BoxGeometry(0.25,0.75,0.25);
-        applyAtlasUV(legRGeo, RECTS.legR, 64, 32);
-        const legR = new THREE.Mesh(legRGeo, mat); legR.position.set(0.125,0.375,0); group.add(legR);
-
-        const legLGeo = new THREE.BoxGeometry(0.25,0.75,0.25);
-        applyAtlasUV(legLGeo, RECTS.legR, 64, 32, true);
-        const legL = new THREE.Mesh(legLGeo, mat); legL.position.set(-0.125,0.375,0); group.add(legL);
-        return;
-      }
-
-      const faceTex = makeFaceTexture(skin.skinTone);
-      const skinMat = new THREE.MeshStandardMaterial({color:skin.skinTone, roughness:0.75});
-      const faceMat = new THREE.MeshStandardMaterial({map:faceTex, roughness:0.75});
-      const shirtMat = new THREE.MeshStandardMaterial({color:skin.shirt, roughness:0.55});
-      const pantsMat = new THREE.MeshStandardMaterial({color:skin.pants, roughness:0.7});
-
-      const head = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.5,0.5), [skinMat, skinMat, skinMat, skinMat, faceMat, skinMat]);
-      head.position.set(0,1.75,0); group.add(head);
-      const body = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.75,0.25), shirtMat);
-      body.position.set(0,1.125,0); group.add(body);
-      const armR = new THREE.Mesh(new THREE.BoxGeometry(0.25,0.75,0.25), shirtMat);
-      armR.position.set(0.375,1.125,0); group.add(armR);
-      const armL = new THREE.Mesh(new THREE.BoxGeometry(0.25,0.75,0.25), shirtMat);
-      armL.position.set(-0.375,1.125,0); group.add(armL);
-      const legR = new THREE.Mesh(new THREE.BoxGeometry(0.25,0.75,0.25), pantsMat);
-      legR.position.set(0.125,0.375,0); group.add(legR);
-      const legL = new THREE.Mesh(new THREE.BoxGeometry(0.25,0.75,0.25), pantsMat);
-      legL.position.set(-0.125,0.375,0); group.add(legL);
     }
 
-    let dragging=false, lastX=0, rotY=0.5;
-    const dom = renderer.domElement;
-    dom.addEventListener('pointerdown', e=>{dragging=true; lastX=e.clientX; dom.setPointerCapture(e.pointerId);});
-    dom.addEventListener('pointermove', e=>{ if(!dragging) return; rotY += (e.clientX-lastX)*0.008; lastX = e.clientX; });
-    dom.addEventListener('pointerup', ()=>dragging=false);
-    dom.addEventListener('pointerleave', ()=>dragging=false);
-
-    function animate(){
-      requestAnimationFrame(animate);
-      if(!dragging) rotY += 0.0045;
-      group.rotation.y = rotY;
-      renderer.render(scene, camera);
-    }
-    animate();
-
-    function resize(){
-      width = container.clientWidth; height = container.clientHeight;
-      if(!width || !height) return;
-      camera.aspect = width/height; camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
-    }
-    return {build, resize};
-  }
-
-  let homeViewer = null, skinsViewer = null, threeOK = true;
-  try{
-    homeViewer = createSkinViewer(document.getElementById('homeStage'));
-    skinsViewer = createSkinViewer(document.getElementById('skinsStage'));
-  } catch(e){ threeOK = false; }
-
-  function onResizeViewers(){
-    if(!threeOK) return;
-    homeViewer.resize(); skinsViewer.resize();
-  }
-  window.addEventListener('resize', onResizeViewers);
-
-  const grid = document.getElementById('skinGrid');
-  const previewName = document.getElementById('previewName');
-  const applyBtn = document.getElementById('applyBtn');
-
-  function renderGrid(){
-    grid.innerHTML = '';
-    skins.forEach(s=>{
-      const tile = document.createElement('div');
-      tile.className = 'skin-tile' + (s.selected ? ' selected' : '');
-      if(s.isCustom){
-        tile.innerHTML = `<div class="custom-thumb" style="background-image:url(${s.faceThumb})"></div><div class="name">${s.name}</div>`;
-      } else {
-        tile.innerHTML = `
-          <div class="swatch-stack">
-            <div style="background:${s.skinTone}"></div>
-            <div style="background:${s.shirt}"></div>
-            <div style="background:${s.pants}"></div>
-          </div>
-          <div class="name">${s.name}</div>`;
-      }
-      tile.addEventListener('click', ()=>{
-        skins.forEach(sk=>sk.selected=false);
-        s.selected = true;
-        renderGrid();
-        previewSkin(s);
-      });
-      grid.appendChild(tile);
-    });
-  }
-  function previewSkin(s){
-    previewName.textContent = s.name + (s.isCustom ? ' · uploaded' : '');
-    if(!threeOK) return;
-    skinsViewer.build(s);
-  }
-
-  applyBtn.addEventListener('click', ()=>{
-    const s = skins.find(sk=>sk.selected) || skins[0];
-    if(threeOK) homeViewer.build(s);
-    toast('Skin applied to ' + currentPlayerName);
-  });
-
-  loadDefaultSkin(()=>{
-    initOfflineName(()=>{
-      renderGrid();
-      previewSkin(skins[0]);
-      if(threeOK) homeViewer.build(skins[0]);
-      setTimeout(onResizeViewers, 50);
-    });
-  });
+  document.getElementById('consoleBtn').addEventListener('click', ()=>document.getElementById('consoleOverlay').classList.add('open'));
+  document.getElementById('consoleClose').addEventListener('click', ()=>document.getElementById('consoleOverlay').classList.remove('open'));
 </script>
 
 </body>
