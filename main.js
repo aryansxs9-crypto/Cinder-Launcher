@@ -1,5 +1,7 @@
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
+const fs = require('fs');
+const axios = require('axios');
 const { Client, Authenticator } = require('minecraft-launcher-core');
 
 let win;
@@ -25,20 +27,29 @@ function createWindow() {
 
 app.whenReady().then(createWindow);
 
-// Titlebar window actions
 ipcMain.on('window-minimize', () => win.minimize());
 ipcMain.on('window-maximize', () => win.isMaximized() ? win.unmaximize() : win.maximize());
 ipcMain.on('window-close', () => win.close());
 
-// Open .ember folder
 const gameRoot = path.join(app.getPath('appData'), '.ember');
 ipcMain.on('open-game-folder', () => shell.openPath(gameRoot));
 
-// Game launch handler
-ipcMain.on('launch-game', (event, { username, version, memoryMax, fpsBoost }) => {
+// Fabric loader profile resolver
+async function setupFabric(gameVersion) {
+  try {
+    const metaUrl = `https://meta.fabricmc.net/v2/versions/loader/${gameVersion}`;
+    const { data } = await axios.get(metaUrl);
+    if (!data || data.length === 0) return null;
+    const loaderVersion = data[0].loader.version;
+    return `fabric-loader-${loaderVersion}-${gameVersion}`;
+  } catch (err) {
+    return null;
+  }
+}
+
+ipcMain.on('launch-game', async (event, { username, version, loaderType, memoryMax, fpsBoost }) => {
   const auth = Authenticator.getAuth(username || 'Player');
 
-  // G1GC low-latency memory optimization flags
   const performanceFlags = fpsBoost ? [
     '-XX:+UseG1GC',
     '-XX:+ParallelRefProcEnabled',
@@ -59,14 +70,24 @@ ipcMain.on('launch-game', (event, { username, version, memoryMax, fpsBoost }) =>
     '-XX:MaxTenuringThreshold=1'
   ] : [];
 
+  let versionPayload = {
+    number: version || '1.20.4',
+    type: 'release'
+  };
+
+  if (loaderType === 'Fabric') {
+    win.webContents.send('game-log', { text: `Resolving Fabric metadata for Minecraft ${version}...` });
+    const customVersion = await setupFabric(version);
+    if (customVersion) {
+      versionPayload.custom = customVersion;
+    }
+  }
+
   const opts = {
     clientPackage: null,
     authorization: auth,
     root: gameRoot,
-    version: {
-      number: version || '1.20.4',
-      type: 'release'
-    },
+    version: versionPayload,
     memory: {
       max: `${memoryMax}M`,
       min: '1024M'
@@ -90,4 +111,3 @@ ipcMain.on('launch-game', (event, { username, version, memoryMax, fpsBoost }) =>
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
-    
