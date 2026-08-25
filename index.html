@@ -852,15 +852,15 @@
             </div>
             <div class="patch-item">
               <div class="patch-dot"></div>
+              <span><strong>Instant Search Filter:</strong> Type-ahead search bar for fast version lookups.</span>
+            </div>
+            <div class="patch-item">
+              <div class="patch-dot"></div>
               <span><strong>Dynamic Loader Core:</strong> Automatic metadata resolving for Vanilla, Fabric, Forge, and Quilt.</span>
             </div>
             <div class="patch-item">
               <div class="patch-dot"></div>
               <span><strong>FPS Booster:</strong> Low-latency G1GC garbage collection memory flags to prevent lag spikes.</span>
-            </div>
-            <div class="patch-item">
-              <div class="patch-dot"></div>
-              <span><strong>Direct Connect:</strong> 1-Click join trigger for featured community multiplayer servers.</span>
             </div>
           </div>
         </div>
@@ -952,13 +952,16 @@
             </div>
           </div>
 
-          <!-- ALL Minecraft Versions Dropdown -->
-          <div class="config-card">
-            <div class="config-label">
-              <span class="config-label-title">Minecraft Version</span>
-              <span class="config-label-sub">All releases fetched live from Mojang</span>
+          <!-- ALL Minecraft Versions with Search Bar -->
+          <div class="config-card" style="align-items: flex-start; flex-direction: column; gap: 10px;">
+            <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+              <div class="config-label">
+                <span class="config-label-title">Minecraft Version</span>
+                <span class="config-label-sub">Search and choose any official release</span>
+              </div>
+              <input type="text" class="config-input" id="cfgVersionSearch" placeholder="🔍 Search (e.g. 1.8.9)..." style="width: 170px; font-size: 12px; padding: 5px 10px;">
             </div>
-            <select class="config-select" id="cfgVersionSelect">
+            <select class="config-select" id="cfgVersionSelect" style="width: 100%;">
               <option value="1.20.4">Loading versions...</option>
             </select>
           </div>
@@ -1029,6 +1032,7 @@
   // State Storage
   const STORAGE_KEY = 'ember_client_config';
   const isFirstLaunch = localStorage.getItem(STORAGE_KEY) === null;
+  let allReleases = [];
 
   let clientConfig = {
     username: '',
@@ -1052,35 +1056,51 @@
     loadActiveSkin();
   }
 
+  // Populate Dropdown with Filter Support
+  function renderVersionDropdown(filterText = '') {
+    const versionSelect = document.getElementById('cfgVersionSelect');
+    versionSelect.innerHTML = '';
+
+    const query = filterText.toLowerCase().trim();
+    const filtered = allReleases.filter(v => v.id.toLowerCase().includes(query));
+
+    if (filtered.length === 0) {
+      const opt = document.createElement('option');
+      opt.disabled = true;
+      opt.textContent = 'No matching versions found';
+      versionSelect.appendChild(opt);
+      return;
+    }
+
+    filtered.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v.id;
+      opt.textContent = `Minecraft ${v.id}`;
+      if (v.id === clientConfig.version) opt.selected = true;
+      versionSelect.appendChild(opt);
+    });
+  }
+
   // Fetch ALL official Minecraft versions from Mojang Version Manifest
   async function loadAllMinecraftVersions() {
-    const versionSelect = document.getElementById('cfgVersionSelect');
     try {
       const res = await fetch('https://piston-meta.mojang.com/mc/game/version_manifest_v2.json');
       const data = await res.json();
-      const releases = data.versions.filter(v => v.type === 'release');
-      
-      versionSelect.innerHTML = '';
-      releases.forEach(v => {
-        const opt = document.createElement('option');
-        opt.value = v.id;
-        opt.textContent = `Minecraft ${v.id}`;
-        if (v.id === clientConfig.version) opt.selected = true;
-        versionSelect.appendChild(opt);
-      });
+      allReleases = data.versions.filter(v => v.type === 'release');
     } catch (e) {
-      // Offline fallback versions
-      const fallbackList = ['1.21.1', '1.20.4', '1.20.1', '1.19.4', '1.18.2', '1.16.5', '1.12.2', '1.8.9', '1.7.10'];
-      versionSelect.innerHTML = '';
-      fallbackList.forEach(v => {
-        const opt = document.createElement('option');
-        opt.value = v;
-        opt.textContent = `Minecraft ${v}`;
-        if (v === clientConfig.version) opt.selected = true;
-        versionSelect.appendChild(opt);
-      });
+      allReleases = [
+        { id: '1.21.1' }, { id: '1.20.4' }, { id: '1.20.1' }, 
+        { id: '1.19.4' }, { id: '1.18.2' }, { id: '1.16.5' }, 
+        { id: '1.12.2' }, { id: '1.8.9' }, { id: '1.7.10' }
+      ];
     }
+    renderVersionDropdown();
   }
+
+  // Live Search Bar Listener
+  document.getElementById('cfgVersionSearch').addEventListener('input', function(e) {
+    renderVersionDropdown(e.target.value);
+  });
 
   // Navigation Switcher
   function switchView(viewId) {
