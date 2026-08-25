@@ -8,7 +8,6 @@ const { Client, Authenticator } = require('minecraft-launcher-core');
 let win;
 const launcher = new Client();
 
-// Configure auto updater
 autoUpdater.autoDownload = true;
 autoUpdater.autoInstallOnAppQuit = true;
 
@@ -29,7 +28,6 @@ function createWindow() {
 
   win.loadFile('index.html');
 
-  // Trigger silent update check via GitHub Releases
   win.once('ready-to-show', () => {
     if (app.isPackaged) {
       autoUpdater.checkForUpdatesAndNotify();
@@ -37,7 +35,7 @@ function createWindow() {
   });
 }
 
-// Auto-updater event broadcasts
+// Auto-updater logging
 autoUpdater.on('checking-for-update', () => {
   win && win.webContents.send('updater-log', 'Checking for new launcher updates...');
 });
@@ -72,7 +70,7 @@ ipcMain.on('window-minimize', () => win.minimize());
 ipcMain.on('window-maximize', () => win.isMaximized() ? win.unmaximize() : win.maximize());
 ipcMain.on('window-close', () => win.close());
 
-// Root folder handling with automatic folder creation
+// Root folder auto-creation
 const gameRoot = path.join(app.getPath('appData'), '.ember');
 
 ipcMain.on('open-game-folder', () => {
@@ -82,7 +80,7 @@ ipcMain.on('open-game-folder', () => {
   shell.openPath(gameRoot);
 });
 
-// Fabric loader resolver
+// Fabric resolver
 async function setupFabric(gameVersion) {
   try {
     const metaUrl = `https://meta.fabricmc.net/v2/versions/loader/${gameVersion}`;
