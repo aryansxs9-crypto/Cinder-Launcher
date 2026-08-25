@@ -559,7 +559,7 @@
     box-shadow: 0 0 14px rgba(255, 122, 24, 0.3);
   }
 
-  .config-input {
+  .config-input, .config-select {
     background: rgba(0, 0, 0, 0.5);
     border: 1px solid var(--glass-border-hi);
     color: #fff;
@@ -569,7 +569,12 @@
     font-size: 13px;
     font-weight: 600;
     outline: none;
-    width: 150px;
+    min-width: 170px;
+  }
+
+  .config-select option {
+    background: #0f1016;
+    color: #fff;
   }
 
   .micro-switch {
@@ -843,11 +848,11 @@
           <div class="patch-list">
             <div class="patch-item">
               <div class="patch-dot"></div>
-              <span><strong>Offline Mode:</strong> Instant profile switching without Microsoft login requirements.</span>
+              <span><strong>Universal Manifest Support:</strong> Full access to all official Mojang releases (1.0 through 1.21+).</span>
             </div>
             <div class="patch-item">
               <div class="patch-dot"></div>
-              <span><strong>Vanilla & Fabric Core:</strong> Automatic metadata resolving and dynamic runtime setup.</span>
+              <span><strong>Dynamic Loader Core:</strong> Automatic metadata resolving for Vanilla, Fabric, Forge, and Quilt.</span>
             </div>
             <div class="patch-item">
               <div class="patch-dot"></div>
@@ -947,21 +952,18 @@
             </div>
           </div>
 
-          <!-- Version Select -->
+          <!-- ALL Minecraft Versions Dropdown -->
           <div class="config-card">
             <div class="config-label">
               <span class="config-label-title">Minecraft Version</span>
-              <span class="config-label-sub">Game release to boot</span>
+              <span class="config-label-sub">All releases fetched live from Mojang</span>
             </div>
-            <div class="chip-group" id="cfgVersionChips">
-              <span class="chip" data-val="1.8.9">1.8.9</span>
-              <span class="chip" data-val="1.16.5">1.16.5</span>
-              <span class="chip active" data-val="1.20.4">1.20.4</span>
-              <span class="chip" data-val="1.21.1">1.21.1</span>
-            </div>
+            <select class="config-select" id="cfgVersionSelect">
+              <option value="1.20.4">Loading versions...</option>
+            </select>
           </div>
 
-          <!-- Mod Loader Select -->
+          <!-- ALL Mod Loaders -->
           <div class="config-card">
             <div class="config-label">
               <span class="config-label-title">Mod Engine</span>
@@ -971,6 +973,7 @@
               <span class="chip" data-val="Vanilla">Vanilla</span>
               <span class="chip active" data-val="Fabric">Fabric</span>
               <span class="chip" data-val="Forge">Forge</span>
+              <span class="chip" data-val="Quilt">Quilt</span>
             </div>
           </div>
 
@@ -1049,6 +1052,36 @@
     loadActiveSkin();
   }
 
+  // Fetch ALL official Minecraft versions from Mojang Version Manifest
+  async function loadAllMinecraftVersions() {
+    const versionSelect = document.getElementById('cfgVersionSelect');
+    try {
+      const res = await fetch('https://piston-meta.mojang.com/mc/game/version_manifest_v2.json');
+      const data = await res.json();
+      const releases = data.versions.filter(v => v.type === 'release');
+      
+      versionSelect.innerHTML = '';
+      releases.forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v.id;
+        opt.textContent = `Minecraft ${v.id}`;
+        if (v.id === clientConfig.version) opt.selected = true;
+        versionSelect.appendChild(opt);
+      });
+    } catch (e) {
+      // Offline fallback versions
+      const fallbackList = ['1.21.1', '1.20.4', '1.20.1', '1.19.4', '1.18.2', '1.16.5', '1.12.2', '1.8.9', '1.7.10'];
+      versionSelect.innerHTML = '';
+      fallbackList.forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v;
+        opt.textContent = `Minecraft ${v}`;
+        if (v === clientConfig.version) opt.selected = true;
+        versionSelect.appendChild(opt);
+      });
+    }
+  }
+
   // Navigation Switcher
   function switchView(viewId) {
     document.querySelectorAll('.view-panel').forEach(el => el.classList.remove('active'));
@@ -1075,7 +1108,9 @@
     document.getElementById('cfgPlayerName').value = clientConfig.username || '';
     document.getElementById('cfgFpsToggle').classList.toggle('on', clientConfig.fpsBoost);
     
-    updateChipGroup('cfgVersionChips', clientConfig.version);
+    const versionSelect = document.getElementById('cfgVersionSelect');
+    if (versionSelect) versionSelect.value = clientConfig.version;
+
     updateChipGroup('cfgLoaderChips', clientConfig.loader);
     updateChipGroup('cfgRamChips', clientConfig.ram.toString());
   }
@@ -1100,7 +1135,6 @@
     });
   }
 
-  setupConfigChips('cfgVersionChips', 'version');
   setupConfigChips('cfgLoaderChips', 'loader');
   setupConfigChips('cfgRamChips', 'ram', true);
 
@@ -1131,6 +1165,12 @@
     } else if (!clientConfig.username) {
       clientConfig.username = 'Player';
     }
+
+    const versionSelect = document.getElementById('cfgVersionSelect');
+    if (versionSelect && versionSelect.value) {
+      clientConfig.version = versionSelect.value;
+    }
+
     clientConfig.fpsBoost = document.getElementById('cfgFpsToggle').classList.contains('on');
     saveConfig();
     switchView('viewHome');
@@ -1182,13 +1222,15 @@
     }
   }
 
-  // App Boot Sequence & First Launch Intercept
+  // App Boot Sequence
   window.addEventListener('load', () => {
     const bootProgress = document.getElementById('bootProgress');
     const bootScreen = document.getElementById('bootScreen');
     const appShell = document.getElementById('appShell');
 
-    syncHUD();
+    loadAllMinecraftVersions().then(() => {
+      syncHUD();
+    });
 
     setTimeout(() => { bootProgress.style.width = '45%'; }, 200);
     setTimeout(() => { bootProgress.style.width = '100%'; }, 600);
