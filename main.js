@@ -80,17 +80,24 @@ ipcMain.on('open-game-folder', () => {
   shell.openPath(gameRoot);
 });
 
-// Fabric resolver
-async function setupFabric(gameVersion) {
+// Dynamic Loader Resolvers (Fabric & Quilt)
+async function resolveLoaderProfile(loaderType, gameVersion) {
   try {
-    const metaUrl = `https://meta.fabricmc.net/v2/versions/loader/${gameVersion}`;
-    const { data } = await axios.get(metaUrl);
-    if (!data || data.length === 0) return null;
-    const loaderVersion = data[0].loader.version;
-    return `fabric-loader-${loaderVersion}-${gameVersion}`;
+    if (loaderType === 'Fabric') {
+      const { data } = await axios.get(`https://meta.fabricmc.net/v2/versions/loader/${gameVersion}`);
+      if (data && data.length > 0) {
+        return `fabric-loader-${data[0].loader.version}-${gameVersion}`;
+      }
+    } else if (loaderType === 'Quilt') {
+      const { data } = await axios.get(`https://meta.quiltmc.org/v3/versions/loader/${gameVersion}`);
+      if (data && data.length > 0) {
+        return `quilt-loader-${data[0].loader.version}-${gameVersion}`;
+      }
+    }
   } catch (err) {
     return null;
   }
+  return null;
 }
 
 // Launch Minecraft handler
@@ -131,9 +138,9 @@ ipcMain.on('launch-game', async (event, { username, version, loaderType, memoryM
     type: 'release'
   };
 
-  if (loaderType === 'Fabric') {
-    win.webContents.send('game-log', { text: `Resolving Fabric metadata for Minecraft ${version}...` });
-    const customVersion = await setupFabric(version);
+  if (loaderType === 'Fabric' || loaderType === 'Quilt') {
+    win.webContents.send('game-log', { text: `Resolving ${loaderType} metadata for Minecraft ${version}...` });
+    const customVersion = await resolveLoaderProfile(loaderType, version);
     if (customVersion) {
       versionPayload.custom = customVersion;
     }
