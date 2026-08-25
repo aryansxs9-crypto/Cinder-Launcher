@@ -20,13 +20,11 @@
   "build": {
     "appId": "com.ember.launcher",
     "productName": "Ember Launcher",
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "aryansxs9-crypto",
-        "repo": "Ember-Launch"
-      }
-    ],
+    "publish": {
+      "provider": "github",
+      "owner": "aryansxs9-crypto",
+      "repo": "Ember-Launch"
+    },
     "win": {
       "target": "nsis"
     },
