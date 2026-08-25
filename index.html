@@ -932,6 +932,21 @@
             <input type="text" class="config-input" id="cfgPlayerName" value="" placeholder="e.g. Alex" maxlength="16">
           </div>
 
+          <!-- Custom Skin Upload -->
+          <div class="config-card">
+            <div class="config-label">
+              <span class="config-label-title">Custom Avatar Skin</span>
+              <span class="config-label-sub">Upload your own Minecraft .png skin</span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <label class="glass-btn" style="cursor: pointer;">
+                📁 Browse .PNG
+                <input type="file" id="skinFileInput" accept="image/png" style="display: none;">
+              </label>
+              <button class="glass-btn" id="resetSkinBtn">Reset</button>
+            </div>
+          </div>
+
           <!-- Version Select -->
           <div class="config-card">
             <div class="config-label">
@@ -1005,7 +1020,7 @@
 
 </div>
 
-<!-- High-Resolution Minecraft Skin Renderer -->
+<!-- High-Resolution Minecraft Skin Viewer -->
 <script src="https://unpkg.com/skinview3d@3.0.1/bundles/skinview3d.bundle.js"></script>
 <script>
   // State Storage
@@ -1014,6 +1029,7 @@
 
   let clientConfig = {
     username: '',
+    customSkin: null,
     version: '1.20.4',
     loader: 'Fabric',
     ram: 4096,
@@ -1030,7 +1046,7 @@
   function saveConfig() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(clientConfig));
     syncHUD();
-    updateSkinForUser(clientConfig.username);
+    loadActiveSkin();
   }
 
   // Navigation Switcher
@@ -1088,6 +1104,26 @@
   setupConfigChips('cfgLoaderChips', 'loader');
   setupConfigChips('cfgRamChips', 'ram', true);
 
+  // Custom Skin Upload Handling
+  document.getElementById('skinFileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      clientConfig.customSkin = event.target.result;
+      if (skinViewer) {
+        skinViewer.loadSkin(clientConfig.customSkin);
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('resetSkinBtn').addEventListener('click', function() {
+    clientConfig.customSkin = null;
+    loadActiveSkin();
+  });
+
   document.getElementById('saveHubBtn').addEventListener('click', () => {
     const nameVal = document.getElementById('cfgPlayerName').value.trim();
     if (nameVal && /^[A-Za-z0-9_]{3,16}$/.test(nameVal)) {
@@ -1132,13 +1168,15 @@
     skinViewer.autoRotate = true;
     skinViewer.autoRotateSpeed = 0.8;
 
-    updateSkinForUser(clientConfig.username);
+    loadActiveSkin();
   }
 
-  function updateSkinForUser(username) {
+  function loadActiveSkin() {
     if (!skinViewer) return;
-    if (username && username !== 'Player') {
-      skinViewer.loadSkin(`https://minotar.net/skin/${username}`);
+    if (clientConfig.customSkin) {
+      skinViewer.loadSkin(clientConfig.customSkin);
+    } else if (clientConfig.username && clientConfig.username !== 'Player') {
+      skinViewer.loadSkin(`https://minotar.net/skin/${clientConfig.username}`);
     } else {
       skinViewer.loadSkin('https://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f0f6fa9d20477b6cf346141d83dd4cb1947b4');
     }
