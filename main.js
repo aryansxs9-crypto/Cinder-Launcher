@@ -1,6 +1,5 @@
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
-const fs = require('fs');
 const axios = require('axios');
 const { Client, Authenticator } = require('minecraft-launcher-core');
 
@@ -13,7 +12,7 @@ function createWindow() {
     height: 820,
     minWidth: 960,
     minHeight: 640,
-    backgroundColor: '#07070b',
+    backgroundColor: '#08090d',
     frame: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -47,7 +46,7 @@ async function setupFabric(gameVersion) {
   }
 }
 
-ipcMain.on('launch-game', async (event, { username, version, loaderType, memoryMax, fpsBoost }) => {
+ipcMain.on('launch-game', async (event, { username, version, loaderType, memoryMax, fpsBoost, serverIp }) => {
   const auth = Authenticator.getAuth(username || 'Player');
 
   const performanceFlags = fpsBoost ? [
@@ -69,6 +68,11 @@ ipcMain.on('launch-game', async (event, { username, version, loaderType, memoryM
     '-XX:+PerfDisableSharedMem',
     '-XX:MaxTenuringThreshold=1'
   ] : [];
+
+  const launchArgs = [...performanceFlags];
+  if (serverIp) {
+    launchArgs.push('--server', serverIp);
+  }
 
   let versionPayload = {
     number: version || '1.20.4',
@@ -92,7 +96,7 @@ ipcMain.on('launch-game', async (event, { username, version, loaderType, memoryM
       max: `${memoryMax}M`,
       min: '1024M'
     },
-    customArgs: performanceFlags
+    customArgs: launchArgs
   };
 
   win.webContents.send('game-status', 'downloading');
