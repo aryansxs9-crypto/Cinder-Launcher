@@ -1,6 +1,9 @@
 name: Build and Release
 
-on: [push, workflow_dispatch]
+on:
+  push:
+    tags:
+      - 'v*'
 
 permissions:
   contents: write
@@ -9,23 +12,18 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm install
-      - run: npm run dist
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v1.0.0
-          name: Ember Launcher v1.0.0
-          body: |
-            # 🔥 Ember Launcher v1.0.0
-            Clean, modern, and lightweight offline Minecraft launcher.
-            
-            ### 📥 How to run
-            1. Download `Ember Launcher Setup 1.0.0.exe` below.
-            2. Run the installer on Windows.
-            3. Make sure you have Java 17+ installed.
-          files: dist/*.exe
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build & Publish Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder --win --publish always
