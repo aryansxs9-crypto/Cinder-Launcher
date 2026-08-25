@@ -2,10 +2,15 @@ const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const axios = require('axios');
+const { autoUpdater } = require('electron-updater');
 const { Client, Authenticator } = require('minecraft-launcher-core');
 
 let win;
 const launcher = new Client();
+
+// Configure auto updater
+autoUpdater.autoDownload = true;
+autoUpdater.autoInstallOnAppQuit = true;
 
 function createWindow() {
   win = new BrowserWindow({
@@ -23,7 +28,42 @@ function createWindow() {
   });
 
   win.loadFile('index.html');
+
+  // Trigger silent update check via GitHub Releases
+  win.once('ready-to-show', () => {
+    if (app.isPackaged) {
+      autoUpdater.checkForUpdatesAndNotify();
+    }
+  });
 }
+
+// Auto-updater event broadcasts
+autoUpdater.on('checking-for-update', () => {
+  win && win.webContents.send('updater-log', 'Checking for new launcher updates...');
+});
+
+autoUpdater.on('update-available', (info) => {
+  win && win.webContents.send('updater-log', `New update v${info.version} found! Downloading in background...`);
+});
+
+autoUpdater.on('update-not-available', () => {
+  win && win.webContents.send('updater-log', 'Launcher is up to date.');
+});
+
+autoUpdater.on('download-progress', (progressObj) => {
+  win && win.webContents.send('updater-log', `Downloading update: ${Math.round(progressObj.percent)}%`);
+});
+
+autoUpdater.on('update-downloaded', () => {
+  win && win.webContents.send('updater-log', 'Update ready. Restarting launcher...');
+  setTimeout(() => {
+    autoUpdater.quitAndInstall();
+  }, 2000);
+});
+
+autoUpdater.on('error', (err) => {
+  win && win.webContents.send('updater-log', `Update check failed: ${err.message}`);
+});
 
 app.whenReady().then(createWindow);
 
@@ -32,7 +72,7 @@ ipcMain.on('window-minimize', () => win.minimize());
 ipcMain.on('window-maximize', () => win.isMaximized() ? win.unmaximize() : win.maximize());
 ipcMain.on('window-close', () => win.close());
 
-// Root folder handling with automatic directory creation
+// Root folder handling with automatic folder creation
 const gameRoot = path.join(app.getPath('appData'), '.ember');
 
 ipcMain.on('open-game-folder', () => {
@@ -42,7 +82,7 @@ ipcMain.on('open-game-folder', () => {
   shell.openPath(gameRoot);
 });
 
-// Fabric loader profile resolver
+// Fabric loader resolver
 async function setupFabric(gameVersion) {
   try {
     const metaUrl = `https://meta.fabricmc.net/v2/versions/loader/${gameVersion}`;
@@ -55,9 +95,8 @@ async function setupFabric(gameVersion) {
   }
 }
 
-// Game launch handler
+// Launch Minecraft handler
 ipcMain.on('launch-game', async (event, { username, version, loaderType, memoryMax, fpsBoost, serverIp }) => {
-  // Ensure the game root exists before launching
   if (!fs.existsSync(gameRoot)) {
     fs.mkdirSync(gameRoot, { recursive: true });
   }
