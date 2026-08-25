@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
+const fs = require('fs');
 const axios = require('axios');
 const { Client, Authenticator } = require('minecraft-launcher-core');
 
@@ -12,7 +13,7 @@ function createWindow() {
     height: 820,
     minWidth: 960,
     minHeight: 640,
-    backgroundColor: '#08090d',
+    backgroundColor: '#050608',
     frame: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -26,12 +27,20 @@ function createWindow() {
 
 app.whenReady().then(createWindow);
 
+// Window controls
 ipcMain.on('window-minimize', () => win.minimize());
 ipcMain.on('window-maximize', () => win.isMaximized() ? win.unmaximize() : win.maximize());
 ipcMain.on('window-close', () => win.close());
 
+// Root folder handling with automatic directory creation
 const gameRoot = path.join(app.getPath('appData'), '.ember');
-ipcMain.on('open-game-folder', () => shell.openPath(gameRoot));
+
+ipcMain.on('open-game-folder', () => {
+  if (!fs.existsSync(gameRoot)) {
+    fs.mkdirSync(gameRoot, { recursive: true });
+  }
+  shell.openPath(gameRoot);
+});
 
 // Fabric loader profile resolver
 async function setupFabric(gameVersion) {
@@ -46,7 +55,13 @@ async function setupFabric(gameVersion) {
   }
 }
 
+// Game launch handler
 ipcMain.on('launch-game', async (event, { username, version, loaderType, memoryMax, fpsBoost, serverIp }) => {
+  // Ensure the game root exists before launching
+  if (!fs.existsSync(gameRoot)) {
+    fs.mkdirSync(gameRoot, { recursive: true });
+  }
+
   const auth = Authenticator.getAuth(username || 'Player');
 
   const performanceFlags = fpsBoost ? [
