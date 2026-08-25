@@ -2,8 +2,11 @@ name: Build and Release
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -11,8 +14,9 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
+
     steps:
-      - name: Checkout repository
+      - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -20,7 +24,7 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: npm install
 
       - name: Build & Publish Release
