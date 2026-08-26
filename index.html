@@ -18,6 +18,8 @@
     --text-secondary: #94a3b8;
     --text-muted: #475569;
     --emerald: #10b981;
+    --rose: #f43f5e;
+    --discord: #5865F2;
     --radius-xl: 22px;
     --radius-md: 14px;
   }
@@ -193,6 +195,17 @@
     background: rgba(255, 255, 255, 0.08);
     transform: translateY(-1px);
   }
+  .glass-btn.discord {
+    color: #a5b4fc;
+    background: rgba(88, 101, 242, 0.15);
+    border-color: rgba(88, 101, 242, 0.3);
+  }
+  .glass-btn.discord:hover {
+    background: rgba(88, 101, 242, 0.3);
+    border-color: var(--discord);
+    color: #fff;
+    box-shadow: 0 0 14px rgba(88, 101, 242, 0.3);
+  }
 
   .win-group {
     display: flex;
@@ -293,7 +306,6 @@
     max-height: 100%;
     outline: none;
   }
-
   .identity-bar {
     display: flex;
     align-items: center;
@@ -486,6 +498,168 @@
     box-shadow: 0 0 6px var(--emerald);
   }
 
+  .discord-server-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(88, 101, 242, 0.12);
+    border: 1px solid rgba(88, 101, 242, 0.25);
+    padding: 10px;
+    border-radius: 12px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #c7d2fe;
+    cursor: pointer;
+    transition: 0.2s;
+    margin-top: 10px;
+  }
+  .discord-server-banner:hover {
+    background: rgba(88, 101, 242, 0.25);
+    border-color: var(--discord);
+    color: #fff;
+    box-shadow: 0 0 16px rgba(88, 101, 242, 0.35);
+  }
+
+  /* MODS HUB VIEW */
+  .mods-container {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 16px;
+    width: 100%;
+    height: 480px;
+  }
+  .mods-explore-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px 22px;
+    overflow-y: hidden;
+  }
+  .mods-search-bar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .mods-input {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--glass-border-hi);
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+  }
+  .mods-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+  .mod-card {
+    display: flex;
+    gap: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--glass-border);
+    padding: 12px;
+    border-radius: 14px;
+    align-items: center;
+    justify-content: space-between;
+    transition: 0.2s;
+  }
+  .mod-card:hover {
+    border-color: var(--glass-border-hi);
+    background: rgba(255, 255, 255, 0.03);
+  }
+  .mod-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: #1e293b;
+    object-fit: cover;
+  }
+  .mod-details {
+    flex: 1;
+    overflow: hidden;
+    margin-right: 8px;
+  }
+  .mod-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mod-desc {
+    font-size: 10.5px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+  }
+  .mod-btn {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .mod-btn.install {
+    background: var(--accent);
+    color: #0b0c10;
+  }
+  .mod-btn.install:hover {
+    box-shadow: 0 0 12px var(--accent-glow);
+  }
+  .mod-btn.installed {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--emerald);
+    border: 1px solid var(--emerald);
+    cursor: default;
+  }
+  .installed-panel {
+    display: flex;
+    flex-direction: column;
+    padding: 18px;
+    gap: 12px;
+    overflow-y: hidden;
+  }
+  .installed-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .installed-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--glass-border);
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 11.5px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .del-btn {
+    color: var(--rose);
+    background: rgba(244, 63, 94, 0.1);
+    border: 1px solid rgba(244, 63, 94, 0.3);
+    padding: 3px 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 10px;
+  }
+  .del-btn:hover { background: rgba(244, 63, 94, 0.25); }
+
+  /* CONFIG VIEW */
   .config-view-container {
     display: flex;
     justify-content: center;
@@ -764,6 +938,7 @@
     </div>
 
     <div class="top-actions">
+      <button class="glass-btn discord" id="discordTopBtn">💬 Discord</button>
       <button class="glass-btn" id="openFolderBtn">📁 Game Root</button>
       <button class="glass-btn" id="openConsoleBtn">⌘ Logs</button>
       <div class="win-group">
@@ -773,7 +948,7 @@
       </div>
     </div>
   </div>
-
+   <!-- HOME VIEW -->
   <div class="view-panel active" id="viewHome">
     <div class="home-3col-grid">
       
@@ -806,7 +981,7 @@
               <span class="hud-val" id="hudLoader">Fabric</span>
             </div>
             <div class="hud-row">
-           <span class="hud-label">🧠 Memory</span>
+              <span class="hud-label">🧠 Memory</span>
               <span class="hud-val" id="hudRam">4 GB</span>
             </div>
             <div class="hud-row">
@@ -827,19 +1002,15 @@
           <div class="patch-list">
             <div class="patch-item">
               <div class="patch-dot"></div>
-              <span><strong>Universal Manifest:</strong> Access every official Mojang release (1.0 to 1.21+).</span>
+              <span><strong>In-Built Mods Hub:</strong> Browse and 1-click install mods directly via Modrinth.</span>
             </div>
             <div class="patch-item">
               <div class="patch-dot"></div>
-              <span><strong>Type-Ahead Search:</strong> Search and jump straight to any version.</span>
+              <span><strong>Discord Rich Presence:</strong> Display live player status, timer, and icon on Discord.</span>
             </div>
             <div class="patch-item">
               <div class="patch-dot"></div>
-              <span><strong>Auto-Updater:</strong> Seamless cloud synchronization and manifest checks.</span>
-            </div>
-            <div class="patch-item">
-              <div class="patch-dot"></div>
-              <span><strong>Direct Connect:</strong> 1-Click join triggers for multiplayer servers.</span>
+              <span><strong>Universal Manifest:</strong> Full support for all official releases (1.0 to 1.21+).</span>
             </div>
           </div>
         </div>
@@ -888,14 +1059,48 @@
           </div>
         </div>
 
-        <div style="font-size:11px; color:var(--text-muted); text-align:center; padding-top:10px; border-top:1px solid var(--glass-border);">
-          Want your server featured? Apply in our Discord.
+        <div class="discord-server-banner" id="discordBannerBtn">
+          💬 Join Official Discord Community →
         </div>
       </div>
 
     </div>
   </div>
 
+  <!-- MODS HUB VIEW -->
+  <div class="view-panel" id="viewMods">
+    <div class="mods-container">
+      
+      <div class="glass-panel mods-explore-panel">
+        <div class="panel-header">
+          <span class="panel-tag">EXPLORE MODRINTH</span>
+          <span class="status-tag" id="modsFilterTag">FABRIC 1.20.4</span>
+        </div>
+
+        <div class="mods-search-bar">
+          <input type="text" class="mods-input" id="modsSearchInput" placeholder="🔍 Search mods (e.g. Sodium, Iris, Lithium)...">
+          <button class="glass-btn" id="refreshModsBtn">Search</button>
+        </div>
+
+        <div class="mods-grid" id="modsGrid">
+          <!-- Mod cards load dynamically -->
+        </div>
+      </div>
+
+      <div class="glass-panel installed-panel">
+        <div class="panel-header">
+          <span class="panel-tag">ACTIVE MODS</span>
+          <span class="status-tag" id="installedCountBadge">0 MODS</span>
+        </div>
+        <div class="installed-list" id="installedModsList">
+          <!-- Installed jars load dynamically -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CONFIG VIEW -->
   <div class="view-panel" id="viewConfig">
     <div class="config-view-container">
       <div class="glass-panel config-panel">
@@ -990,6 +1195,7 @@
 
     <div class="nav-dock">
       <button class="nav-tab active" data-target="viewHome">Home</button>
+      <button class="nav-tab" data-target="viewMods">Mods</button>
       <button class="nav-tab" data-target="viewConfig">Configure Hub</button>
     </div>
   </div>
@@ -999,8 +1205,10 @@
 <script src="https://unpkg.com/skinview3d@3.0.1/bundles/skinview3d.bundle.js"></script>
 <script>
   const STORAGE_KEY = 'ember_client_config';
+  const DISCORD_INVITE_URL = 'https://discord.gg/YOUR_INVITE_CODE'; // Replace with your Discord server invite code
   const isFirstLaunch = localStorage.getItem(STORAGE_KEY) === null;
   let allReleases = [];
+  let installedMods = [];
 
   let clientConfig = {
     username: '',
@@ -1036,6 +1244,7 @@
       versionSelect.appendChild(opt);
       return;
     }
+
     filtered.forEach(v => {
       const opt = document.createElement('option');
       opt.value = v.id;
@@ -1069,13 +1278,17 @@
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.target === viewId));
     const target = document.getElementById(viewId);
     if (target) target.classList.add('active');
+
+    if (viewId === 'viewMods') {
+      loadInstalledMods();
+      searchModrinthMods();
+    }
   }
 
   document.querySelectorAll('.nav-tab').forEach(tab => {
     tab.addEventListener('click', () => switchView(tab.dataset.target));
   });
-
-  function syncHUD() {
+    function syncHUD() {
     const currentName = clientConfig.username || 'Player';
     document.getElementById('displayPlayerName').textContent = currentName;
     document.getElementById('hudVersion').textContent = clientConfig.version;
@@ -1083,6 +1296,7 @@
     document.getElementById('hudRam').textContent = (clientConfig.ram / 1024) + ' GB';
     document.getElementById('hudFps').textContent = clientConfig.fpsBoost ? 'G1GC' : 'Off';
     document.getElementById('launchMetaBadge').textContent = `${clientConfig.version} · ${clientConfig.loader}`;
+    document.getElementById('modsFilterTag').textContent = `${clientConfig.loader.toUpperCase()} ${clientConfig.version}`;
 
     document.getElementById('cfgPlayerName').value = clientConfig.username || '';
     document.getElementById('cfgFpsToggle').classList.toggle('on', clientConfig.fpsBoost);
@@ -1116,6 +1330,93 @@
 
   setupConfigChips('cfgLoaderChips', 'loader');
   setupConfigChips('cfgRamChips', 'ram', true);
+
+  // --- MODS HUB LOGIC ---
+  async function loadInstalledMods() {
+    if (!window.launcherAPI) return;
+    installedMods = await window.launcherAPI.getInstalledMods();
+    const list = document.getElementById('installedModsList');
+    const badge = document.getElementById('installedCountBadge');
+    badge.textContent = `${installedMods.length} MODS`;
+    list.innerHTML = '';
+
+    if (installedMods.length === 0) {
+      list.innerHTML = `<div style="font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 20px;">No mods installed yet.</div>`;
+      return;
+    }
+
+    installedMods.forEach(file => {
+      const row = document.createElement('div');
+      row.className = 'installed-item';
+      row.innerHTML = `
+        <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:180px;">${file}</span>
+        <button class="del-btn" onclick="removeMod('${file}')">✕</button>
+      `;
+      list.appendChild(row);
+    });
+  }
+
+  async function removeMod(filename) {
+    if (!window.launcherAPI) return;
+    await window.launcherAPI.deleteMod(filename);
+    loadInstalledMods();
+    searchModrinthMods();
+  }
+
+  async function searchModrinthMods() {
+    const grid = document.getElementById('modsGrid');
+    const query = document.getElementById('modsSearchInput').value.trim();
+    grid.innerHTML = `<div style="font-size:12px; color:var(--text-muted); grid-column:span 2; text-align:center; padding:20px;">Searching Modrinth...</div>`;
+
+    if (!window.launcherAPI) {
+      grid.innerHTML = `<div style="font-size:12px; color:var(--text-muted); grid-column:span 2; text-align:center; padding:20px;">Mods Hub is active in the launcher build.</div>`;
+      return;
+    }
+
+    const mods = await window.launcherAPI.searchMods(query, clientConfig.version, clientConfig.loader);
+    grid.innerHTML = '';
+
+    if (mods.length === 0) {
+      grid.innerHTML = `<div style="font-size:12px; color:var(--text-muted); grid-column:span 2; text-align:center; padding:20px;">No compatible mods found for ${clientConfig.loader} ${clientConfig.version}.</div>`;
+      return;
+    }
+
+    mods.forEach(mod => {
+      const card = document.createElement('div');
+      card.className = 'mod-card';
+      const icon = mod.icon_url || 'https://raw.githubusercontent.com/modrinth/art/master/brand/badge.svg';
+      card.innerHTML = `
+        <img class="mod-icon" src="${icon}" onerror="this.src='https://raw.githubusercontent.com/modrinth/art/master/brand/badge.svg'">
+        <div class="mod-details">
+          <div class="mod-title">${mod.title}</div>
+          <div class="mod-desc">${mod.description || ''}</div>
+        </div>
+        <button class="mod-btn install" id="modBtn-${mod.project_id}" onclick="installSingleMod('${mod.project_id}')">Install</button>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  async function installSingleMod(projectId) {
+    if (!window.launcherAPI) return;
+    const btn = document.getElementById(`modBtn-${projectId}`);
+    btn.disabled = true;
+    btn.textContent = '...';
+
+    const res = await window.launcherAPI.installMod(projectId, clientConfig.version, clientConfig.loader);
+    if (res.success) {
+      btn.textContent = 'Installed';
+      btn.className = 'mod-btn installed';
+      loadInstalledMods();
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Failed';
+      alert(`Installation failed: ${res.error}`);
+    }
+  }
+
+  document.getElementById('refreshModsBtn').addEventListener('click', searchModrinthMods);
+  document.getElementById('modsSearchInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') searchModrinthMods(); });
 
   document.getElementById('skinFileInput').addEventListener('change', function(e) {
     const file = e.target.files[0];
@@ -1151,6 +1452,17 @@
     saveConfig();
     switchView('viewHome');
   });
+
+  function openDiscordServer() {
+    if (window.launcherAPI && window.launcherAPI.openLink) {
+      window.launcherAPI.openLink(DISCORD_INVITE_URL);
+    } else {
+      window.open(DISCORD_INVITE_URL, '_blank');
+    }
+  }
+
+  document.getElementById('discordTopBtn').addEventListener('click', openDiscordServer);
+  document.getElementById('discordBannerBtn').addEventListener('click', openDiscordServer);
 
   document.getElementById('minBtn').addEventListener('click', () => window.launcherAPI && window.launcherAPI.minimize());
   document.getElementById('maxBtn').addEventListener('click', () => window.launcherAPI && window.launcherAPI.maximize());
@@ -1247,6 +1559,7 @@
       serverIp: serverIp
     });
   }
+
   launchBtn.addEventListener('click', () => triggerLaunch());
 
   if (window.launcherAPI) {
@@ -1285,4 +1598,4 @@
   }
 </script>
 </body>
-</html>
+</html>            
