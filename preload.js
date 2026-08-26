@@ -1,10 +1,11 @@
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, shell } = require('electron');
 
 contextBridge.exposeInMainWorld('launcherAPI', {
   minimize: () => ipcRenderer.send('window-minimize'),
   maximize: () => ipcRenderer.send('window-maximize'),
   close: () => ipcRenderer.send('window-close'),
   openFolder: () => ipcRenderer.send('open-game-folder'),
+  openLink: (url) => shell.openExternal(url),
   launchGame: (config) => ipcRenderer.send('launch-game', config),
   onStatus: (callback) => ipcRenderer.on('game-status', (event, status) => callback(status)),
   onLog: (callback) => ipcRenderer.on('game-log', (event, data) => callback(data)),
