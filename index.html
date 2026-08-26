@@ -32,7 +32,6 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* Startup Screen */
   .boot-screen {
     position: fixed;
     inset: 0;
@@ -93,7 +92,6 @@
     transition: width 0.4s ease;
   }
 
-  /* Cinematic Wallpaper */
   .bg-art {
     position: fixed;
     inset: 0;
@@ -123,7 +121,6 @@
     transform: translateY(0);
   }
 
-  /* Top Bar */
   .topbar {
     display: flex;
     align-items: center;
@@ -221,7 +218,6 @@
   }
   .win-dot:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
 
-  /* Workspace Navigation */
   .view-panel {
     display: none;
     flex: 1;
@@ -235,7 +231,6 @@
     to { opacity: 1; transform: scale(1); }
   }
 
-  /* Glass Card Architecture */
   .glass-panel {
     background: var(--glass-base);
     border: 1px solid var(--glass-border);
@@ -245,7 +240,6 @@
     overflow: hidden;
   }
 
-  /* 3-COLUMN HOME GRID */
   .home-3col-grid {
     display: grid;
     grid-template-columns: 270px 1fr 280px;
@@ -254,7 +248,6 @@
     align-items: stretch;
   }
 
-  /* COLUMN 1: AVATAR CARD */
   .stage-panel {
     display: flex;
     flex-direction: column;
@@ -315,7 +308,6 @@
     font-weight: 700;
   }
 
-  /* COLUMN 2: CENTER (HUD + PATCH NOTES) */
   .center-column {
     display: flex;
     flex-direction: column;
@@ -386,7 +378,6 @@
     font-family: 'JetBrains Mono', monospace;
   }
 
-  /* Patch Notes Card */
   .patch-notes-panel {
     flex: 1;
     padding: 16px 20px;
@@ -442,7 +433,6 @@
     box-shadow: 0 0 6px var(--accent-glow);
   }
 
-  /* COLUMN 3: POPULAR SERVERS */
   .servers-panel {
     display: flex;
     flex-direction: column;
@@ -496,7 +486,6 @@
     box-shadow: 0 0 6px var(--emerald);
   }
 
-  /* CONFIG HUB VIEW */
   .config-view-container {
     display: flex;
     justify-content: center;
@@ -615,7 +604,6 @@
   }
   .save-hub-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(255, 122, 24, 0.6); }
 
-  /* Bottom Launch Bar */
   .bottom-dock {
     display: flex;
     flex-direction: column;
@@ -702,7 +690,6 @@
   }
   .nav-tab:hover:not(.active) { color: #fff; }
 
-  /* Console Modal */
   .modal-overlay {
     position: fixed;
     inset: 0;
@@ -747,7 +734,6 @@
 </head>
 <body>
 
-<!-- Boot Screen -->
 <div class="boot-screen" id="bootScreen">
   <div class="boot-gem">🔥</div>
   <div class="boot-title">EMBER CLIENT</div>
@@ -758,7 +744,6 @@
 
 <div class="bg-art"></div>
 
-<!-- Console Modal -->
 <div class="modal-overlay" id="consoleModal">
   <div class="console-panel">
     <div class="console-head">
@@ -771,12 +756,11 @@
 
 <div class="app-shell" id="appShell">
 
-  <!-- TOP BAR -->
   <div class="topbar">
     <div class="brand-chip">
       <div class="brand-gem">🔥</div>
       <span class="brand-title">EMBER</span>
-      <span class="brand-ver">v1.0.0</span>
+      <span class="brand-ver">v1.0.1</span>
     </div>
 
     <div class="top-actions">
@@ -790,11 +774,9 @@
     </div>
   </div>
 
-  <!-- VIEW 1: 3-COLUMN HOME WORKSPACE -->
   <div class="view-panel active" id="viewHome">
     <div class="home-3col-grid">
       
-      <!-- COL 1: 3D AVATAR -->
       <div class="glass-panel stage-panel">
         <div class="stage-badge">READY TO PLAY</div>
         <div class="skin-container" id="stage3d">
@@ -808,9 +790,7 @@
         </div>
       </div>
 
-      <!-- COL 2: HUD & PATCH NOTES -->
       <div class="center-column">
-        <!-- HUD Readout -->
         <div class="glass-panel dashboard-panel">
           <div class="panel-header">
             <span class="panel-tag">ENGINE HUD</span>
@@ -826,7 +806,7 @@
               <span class="hud-val" id="hudLoader">Fabric</span>
             </div>
             <div class="hud-row">
-              <span class="hud-label">🧠 Memory</span>
+           <span class="hud-label">🧠 Memory</span>
               <span class="hud-val" id="hudRam">4 GB</span>
             </div>
             <div class="hud-row">
@@ -836,37 +816,35 @@
           </div>
         </div>
 
-        <!-- Patch Notes -->
         <div class="glass-panel patch-notes-panel">
           <div class="patch-header">
             <div class="patch-title">
               <span>📢 Patch Notes</span>
-              <span class="patch-badge">v1.0.0</span>
+              <span class="patch-badge">v1.0.1</span>
             </div>
             <span style="font-size:10.5px; color:var(--text-muted);">Release</span>
           </div>
           <div class="patch-list">
             <div class="patch-item">
               <div class="patch-dot"></div>
-              <span><strong>Universal Manifest Support:</strong> Full access to all official Mojang releases (1.0 through 1.21+).</span>
+              <span><strong>Universal Manifest:</strong> Access every official Mojang release (1.0 to 1.21+).</span>
             </div>
             <div class="patch-item">
               <div class="patch-dot"></div>
-              <span><strong>Instant Search Filter:</strong> Type-ahead search bar for fast version lookups.</span>
+              <span><strong>Type-Ahead Search:</strong> Search and jump straight to any version.</span>
             </div>
             <div class="patch-item">
               <div class="patch-dot"></div>
-              <span><strong>Dynamic Loader Core:</strong> Automatic metadata resolving for Vanilla, Fabric, Forge, and Quilt.</span>
+              <span><strong>Auto-Updater:</strong> Seamless cloud synchronization and manifest checks.</span>
             </div>
             <div class="patch-item">
               <div class="patch-dot"></div>
-              <span><strong>FPS Booster:</strong> Low-latency G1GC garbage collection memory flags to prevent lag spikes.</span>
+              <span><strong>Direct Connect:</strong> 1-Click join triggers for multiplayer servers.</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- COL 3: COMMUNITY SERVERS -->
       <div class="glass-panel servers-panel">
         <div>
           <div class="panel-header">
@@ -918,7 +896,6 @@
     </div>
   </div>
 
-  <!-- VIEW 2: ENGINE & PROFILE CONFIG HUB -->
   <div class="view-panel" id="viewConfig">
     <div class="config-view-container">
       <div class="glass-panel config-panel">
@@ -928,7 +905,6 @@
         </div>
 
         <div class="config-grid">
-          <!-- Nickname Edit -->
           <div class="config-card">
             <div class="config-label">
               <span class="config-label-title">Offline Identity</span>
@@ -937,7 +913,6 @@
             <input type="text" class="config-input" id="cfgPlayerName" value="" placeholder="e.g. Alex" maxlength="16">
           </div>
 
-          <!-- Custom Skin Upload -->
           <div class="config-card">
             <div class="config-label">
               <span class="config-label-title">Custom Avatar Skin</span>
@@ -952,7 +927,6 @@
             </div>
           </div>
 
-          <!-- ALL Minecraft Versions with Search Bar -->
           <div class="config-card" style="align-items: flex-start; flex-direction: column; gap: 10px;">
             <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
               <div class="config-label">
@@ -966,7 +940,6 @@
             </select>
           </div>
 
-          <!-- ALL Mod Loaders -->
           <div class="config-card">
             <div class="config-label">
               <span class="config-label-title">Mod Engine</span>
@@ -980,7 +953,6 @@
             </div>
           </div>
 
-          <!-- Memory Select -->
           <div class="config-card">
             <div class="config-label">
               <span class="config-label-title">Memory Allocation</span>
@@ -994,7 +966,6 @@
             </div>
           </div>
 
-          <!-- FPS Booster Toggle -->
           <div class="config-card">
             <div class="config-label">
               <span class="config-label-title">FPS Booster</span>
@@ -1011,7 +982,6 @@
     </div>
   </div>
 
-  <!-- FLOATING BOTTOM DOCK & HERO LAUNCH -->
   <div class="bottom-dock">
     <button class="launch-pill" id="launchBtn">
       <span class="launch-title" id="launchBtnText">LAUNCH</span>
@@ -1026,10 +996,8 @@
 
 </div>
 
-<!-- High-Resolution Minecraft Skin Viewer -->
 <script src="https://unpkg.com/skinview3d@3.0.1/bundles/skinview3d.bundle.js"></script>
 <script>
-  // State Storage
   const STORAGE_KEY = 'ember_client_config';
   const isFirstLaunch = localStorage.getItem(STORAGE_KEY) === null;
   let allReleases = [];
@@ -1045,9 +1013,7 @@
 
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
-    try { 
-      clientConfig = Object.assign(clientConfig, JSON.parse(saved)); 
-    } catch(e){}
+    try { clientConfig = Object.assign(clientConfig, JSON.parse(saved)); } catch(e){}
   }
 
   function saveConfig() {
@@ -1056,7 +1022,6 @@
     loadActiveSkin();
   }
 
-  // Populate Dropdown with Filter Support
   function renderVersionDropdown(filterText = '') {
     const versionSelect = document.getElementById('cfgVersionSelect');
     versionSelect.innerHTML = '';
@@ -1071,7 +1036,6 @@
       versionSelect.appendChild(opt);
       return;
     }
-
     filtered.forEach(v => {
       const opt = document.createElement('option');
       opt.value = v.id;
@@ -1081,7 +1045,6 @@
     });
   }
 
-  // Fetch ALL official Minecraft versions from Mojang Version Manifest
   async function loadAllMinecraftVersions() {
     try {
       const res = await fetch('https://piston-meta.mojang.com/mc/game/version_manifest_v2.json');
@@ -1097,12 +1060,10 @@
     renderVersionDropdown();
   }
 
-  // Live Search Bar Listener
   document.getElementById('cfgVersionSearch').addEventListener('input', function(e) {
     renderVersionDropdown(e.target.value);
   });
 
-  // Navigation Switcher
   function switchView(viewId) {
     document.querySelectorAll('.view-panel').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.target === viewId));
@@ -1114,7 +1075,6 @@
     tab.addEventListener('click', () => switchView(tab.dataset.target));
   });
 
-  // Sync HUD Readout & Controls
   function syncHUD() {
     const currentName = clientConfig.username || 'Player';
     document.getElementById('displayPlayerName').textContent = currentName;
@@ -1124,7 +1084,6 @@
     document.getElementById('hudFps').textContent = clientConfig.fpsBoost ? 'G1GC' : 'Off';
     document.getElementById('launchMetaBadge').textContent = `${clientConfig.version} · ${clientConfig.loader}`;
 
-    // Config inputs
     document.getElementById('cfgPlayerName').value = clientConfig.username || '';
     document.getElementById('cfgFpsToggle').classList.toggle('on', clientConfig.fpsBoost);
     
@@ -1158,7 +1117,6 @@
   setupConfigChips('cfgLoaderChips', 'loader');
   setupConfigChips('cfgRamChips', 'ram', true);
 
-  // Custom Skin Upload Handling
   document.getElementById('skinFileInput').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -1166,9 +1124,7 @@
     const reader = new FileReader();
     reader.onload = function(event) {
       clientConfig.customSkin = event.target.result;
-      if (skinViewer) {
-        skinViewer.loadSkin(clientConfig.customSkin);
-      }
+      if (skinViewer) skinViewer.loadSkin(clientConfig.customSkin);
     };
     reader.readAsDataURL(file);
   });
@@ -1196,18 +1152,15 @@
     switchView('viewHome');
   });
 
-  // Window Controls
   document.getElementById('minBtn').addEventListener('click', () => window.launcherAPI && window.launcherAPI.minimize());
   document.getElementById('maxBtn').addEventListener('click', () => window.launcherAPI && window.launcherAPI.maximize());
   document.getElementById('closeBtn').addEventListener('click', () => window.launcherAPI && window.launcherAPI.close());
 
-  // Console Modal
   const modal = document.getElementById('consoleModal');
   document.getElementById('openConsoleBtn').addEventListener('click', () => modal.classList.add('open'));
   document.getElementById('consoleCloseBtn').addEventListener('click', () => modal.classList.remove('open'));
   modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
 
-  // 3D Minecraft Skin Viewer Setup
   let skinViewer = null;
 
   function init3DStage() {
@@ -1242,15 +1195,12 @@
     }
   }
 
-  // App Boot Sequence
   window.addEventListener('load', () => {
     const bootProgress = document.getElementById('bootProgress');
     const bootScreen = document.getElementById('bootScreen');
     const appShell = document.getElementById('appShell');
 
-    loadAllMinecraftVersions().then(() => {
-      syncHUD();
-    });
+    loadAllMinecraftVersions().then(() => syncHUD());
 
     setTimeout(() => { bootProgress.style.width = '45%'; }, 200);
     setTimeout(() => { bootProgress.style.width = '100%'; }, 600);
@@ -1266,7 +1216,6 @@
     }, 1000);
   });
 
-  // Launch Triggers
   const launchBtn = document.getElementById('launchBtn');
   const launchBtnText = document.getElementById('launchBtnText');
   const statusPill = document.getElementById('statusPill');
@@ -1275,7 +1224,7 @@
   function triggerLaunch(serverIp = null) {
     if (!clientConfig.username) {
       switchView('viewConfig');
-      alert('Please set your offline player username first!');
+      alert('Please set your player username first!');
       return;
     }
 
@@ -1298,7 +1247,6 @@
       serverIp: serverIp
     });
   }
-
   launchBtn.addEventListener('click', () => triggerLaunch());
 
   if (window.launcherAPI) {
