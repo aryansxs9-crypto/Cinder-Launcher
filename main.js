@@ -30,38 +30,23 @@ function createWindow() {
 
   win.once('ready-to-show', () => {
     if (app.isPackaged) {
-      autoUpdater.checkForUpdatesAndNotify();
+      autoUpdater.checkForUpdatesAndNotify().catch(() => {});
     }
   });
 }
 
-// Auto-updater logging & graceful handling
-autoUpdater.on('checking-for-update', () => {
-  win && win.webContents.send('updater-log', 'Checking for updates...');
-});
-
-autoUpdater.on('update-available', (info) => {
-  win && win.webContents.send('updater-log', `Update v${info.version} available! Downloading...`);
-});
-
-autoUpdater.on('update-not-available', () => {
-  win && win.webContents.send('updater-log', 'Launcher is up to date.');
-});
-
-autoUpdater.on('download-progress', (progressObj) => {
-  win && win.webContents.send('updater-log', `Downloading update: ${Math.round(progressObj.percent)}%`);
-});
-
+// Updater Log Handlers
+autoUpdater.on('checking-for-update', () => win && win.webContents.send('updater-log', 'Checking for updates...'));
+autoUpdater.on('update-available', (info) => win && win.webContents.send('updater-log', `Update v${info.version} found! Downloading...`));
+autoUpdater.on('update-not-available', () => win && win.webContents.send('updater-log', 'Launcher is up to date.'));
+autoUpdater.on('download-progress', (p) => win && win.webContents.send('updater-log', `Downloading update: ${Math.round(p.percent)}%`));
 autoUpdater.on('update-downloaded', () => {
   win && win.webContents.send('updater-log', 'Update ready. Restarting...');
-  setTimeout(() => {
-    autoUpdater.quitAndInstall();
-  }, 2000);
+  setTimeout(() => autoUpdater.quitAndInstall(), 2000);
 });
-
 autoUpdater.on('error', (err) => {
   if (err.message && err.message.includes('404')) {
-    win && win.webContents.send('updater-log', 'Running latest build.');
+    win && win.webContents.send('updater-log', 'Launcher is up to date (no newer release found).');
   } else {
     win && win.webContents.send('updater-log', `Updater status: ${err.message}`);
   }
@@ -70,17 +55,14 @@ autoUpdater.on('error', (err) => {
 app.whenReady().then(createWindow);
 
 // Window controls
-ipcMain.on('window-minimize', () => win.minimize());
-ipcMain.on('window-maximize', () => win.isMaximized() ? win.unmaximize() : win.maximize());
-ipcMain.on('window-close', () => win.close());
+ipcMain.on('window-minimize', () => win && win.minimize());
+ipcMain.on('window-maximize', () => win && (win.isMaximized() ? win.unmaximize() : win.maximize()));
+ipcMain.on('window-close', () => win && win.close());
 
-// Root folder directory
 const gameRoot = path.join(app.getPath('appData'), '.ember');
 
 ipcMain.on('open-game-folder', () => {
-  if (!fs.existsSync(gameRoot)) {
-    fs.mkdirSync(gameRoot, { recursive: true });
-  }
+  if (!fs.existsSync(gameRoot)) fs.mkdirSync(gameRoot, { recursive: true });
   shell.openPath(gameRoot);
 });
 
@@ -101,7 +83,6 @@ async function prepareFabricProfile(gameVersion) {
       fs.mkdirSync(versionDir, { recursive: true });
     }
 
-    // Fetch full version JSON metadata from Fabric Meta
     const profileUrl = `https://meta.fabricmc.net/v2/versions/loader/${gameVersion}/${loaderVersion}/profile/json`;
     const profileRes = await axios.get(profileUrl);
 
@@ -123,33 +104,18 @@ ipcMain.on('launch-game', async (event, { username, version, loaderType, memoryM
     }
 
     const auth = Authenticator.getAuth(username || 'Player');
+    const selectedVersion = version || '1.20.4';
 
-    const performanceFlags = fpsBoost ? [
+    const customArgs = fpsBoost ? [
       '-XX:+UseG1GC',
       '-XX:+ParallelRefProcEnabled',
       '-XX:MaxGCPauseMillis=200',
       '-XX:+UnlockExperimentalVMOptions',
       '-XX:+DisableExplicitGC',
-      '-XX:+AlwaysPreTouch',
-      '-XX:G1NewSizePercent=30',
-      '-XX:G1MaxNewSizePercent=40',
-      '-XX:G1ReservePercent=20',
-      '-XX:G1HeapWastePercent=5',
-      '-XX:G1MixedGCCountTarget=4',
-      '-XX:InitiatingHeapOccupancyPercent=15',
-      '-XX:G1MixedGCLiveThresholdPercent=90',
-      '-XX:G1RSetUpdatingPauseTimePercent=5',
-      '-XX:SurvivorRatio=32',
-      '-XX:+PerfDisableSharedMem',
-      '-XX:MaxTenuringThreshold=1'
+      '-XX:+AlwaysPreTouch'
     ] : [];
 
-    const customArgs = [...performanceFlags];
-    if (serverIp) {
-      customArgs.push('--server', serverIp);
-    }
-
-    const selectedVersion = version || '1.20.4';
+    if (serverIp) customArgs.push('--server', serverIp);
 
     let versionPayload = {
       number: selectedVersion,
@@ -176,17 +142,17 @@ ipcMain.on('launch-game', async (event, { username, version, loaderType, memoryM
       customArgs: customArgs
     };
 
-    win.webContents.send('game-log', { text: `[CORE] Initializing Minecraft ${selectedVersion}...` });
+    win.webContents.send('game-log', { text: `[CORE] Starting Minecraft ${selectedVersion} (${loaderType})...` });
     win.webContents.send('game-status', 'downloading');
 
     launcher.launch(opts);
   } catch (err) {
-    win.webContents.send('game-log', { text: `[ERROR] Failed to launch: ${err.message}` });
+    win.webContents.send('game-log', { text: `[ERROR] Launch failed: ${err.message}` });
     win.webContents.send('game-status', 'closed');
   }
 });
 
-// Stream Minecraft logs to UI
+// Logs streaming
 launcher.on('debug', (e) => win && win.webContents.send('game-log', { type: 'debug', text: e }));
 launcher.on('data', (e) => win && win.webContents.send('game-log', { type: 'info', text: e }));
 launcher.on('progress', (e) => {
@@ -197,13 +163,11 @@ launcher.on('progress', (e) => {
 launcher.on('start', () => win && win.webContents.send('game-status', 'started'));
 launcher.on('close', () => win && win.webContents.send('game-status', 'closed'));
 launcher.on('close-with-error', (err) => {
-  if (win) {
-    win.webContents.send('game-log', { text: `[CRASH] Process exited with error: ${err}` });
-    win.webContents.send('game-status', 'closed');
-  }
+  win && win.webContents.send('game-log', { text: `[CRASH] Process exited with error: ${err}` });
+  win && win.webContents.send('game-status', 'closed');
 });
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
-               
+      
