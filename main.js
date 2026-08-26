@@ -35,13 +35,13 @@ function createWindow() {
   });
 }
 
-// Auto-updater logging & graceful fallback
+// Auto-Updater Listeners
 autoUpdater.on('checking-for-update', () => {
   win && win.webContents.send('updater-log', 'Checking for updates...');
 });
 
 autoUpdater.on('update-available', (info) => {
-  win && win.webContents.send('updater-log', `Update v${info.version} found! Downloading...`);
+  win && win.webContents.send('updater-log', `Update v${info.version} available! Downloading...`);
 });
 
 autoUpdater.on('update-not-available', () => {
@@ -61,7 +61,7 @@ autoUpdater.on('update-downloaded', () => {
 
 autoUpdater.on('error', (err) => {
   if (err.message && err.message.includes('404')) {
-    win && win.webContents.send('updater-log', 'Launcher is running latest build.');
+    win && win.webContents.send('updater-log', 'Running latest release.');
   } else {
     win && win.webContents.send('updater-log', `Updater status: ${err.message}`);
   }
@@ -69,12 +69,12 @@ autoUpdater.on('error', (err) => {
 
 app.whenReady().then(createWindow);
 
-// Window controls
+// Window Controls
 ipcMain.on('window-minimize', () => win.minimize());
 ipcMain.on('window-maximize', () => win.isMaximized() ? win.unmaximize() : win.maximize());
 ipcMain.on('window-close', () => win.close());
 
-// Root folder auto-creation
+// Root Folder Directory
 const gameRoot = path.join(app.getPath('appData'), '.ember');
 
 ipcMain.on('open-game-folder', () => {
@@ -84,7 +84,7 @@ ipcMain.on('open-game-folder', () => {
   shell.openPath(gameRoot);
 });
 
-// Launch Minecraft handler with Error Boundary
+// Launch Minecraft Handler
 ipcMain.on('launch-game', async (event, { username, version, loaderType, memoryMax, fpsBoost, serverIp }) => {
   try {
     if (!fs.existsSync(gameRoot)) {
@@ -93,7 +93,6 @@ ipcMain.on('launch-game', async (event, { username, version, loaderType, memoryM
 
     const auth = Authenticator.getAuth(username || 'Player');
 
-    // Low-Latency Garbage Collection Flags
     const performanceFlags = fpsBoost ? [
       '-XX:+UseG1GC',
       '-XX:+ParallelRefProcEnabled',
@@ -141,12 +140,12 @@ ipcMain.on('launch-game', async (event, { username, version, loaderType, memoryM
 
     launcher.launch(opts);
   } catch (err) {
-    win.webContents.send('game-log', { text: `[ERROR] Launch initialization failed: ${err.message}` });
+    win.webContents.send('game-log', { text: `[ERROR] Failed to start launch process: ${err.message}` });
     win.webContents.send('game-status', 'closed');
   }
 });
 
-// Global Launcher Listeners
+// Stream Minecraft logs to UI
 launcher.on('debug', (e) => win && win.webContents.send('game-log', { type: 'debug', text: e }));
 launcher.on('data', (e) => win && win.webContents.send('game-log', { type: 'info', text: e }));
 launcher.on('progress', (e) => {
@@ -166,4 +165,4 @@ launcher.on('close-with-error', (err) => {
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
-      
+               
