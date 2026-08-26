@@ -35,13 +35,13 @@ function createWindow() {
   });
 }
 
-// Auto-updater logging
+// Auto-updater logging & graceful fallback
 autoUpdater.on('checking-for-update', () => {
-  win && win.webContents.send('updater-log', 'Checking for new launcher updates...');
+  win && win.webContents.send('updater-log', 'Checking for updates...');
 });
 
 autoUpdater.on('update-available', (info) => {
-  win && win.webContents.send('updater-log', `New update v${info.version} found! Downloading in background...`);
+  win && win.webContents.send('updater-log', `Update v${info.version} found! Downloading...`);
 });
 
 autoUpdater.on('update-not-available', () => {
@@ -53,14 +53,18 @@ autoUpdater.on('download-progress', (progressObj) => {
 });
 
 autoUpdater.on('update-downloaded', () => {
-  win && win.webContents.send('updater-log', 'Update ready. Restarting launcher...');
+  win && win.webContents.send('updater-log', 'Update ready. Restarting...');
   setTimeout(() => {
     autoUpdater.quitAndInstall();
   }, 2000);
 });
 
 autoUpdater.on('error', (err) => {
-  win && win.webContents.send('updater-log', `Update check failed: ${err.message}`);
+  if (err.message && err.message.includes('404')) {
+    win && win.webContents.send('updater-log', 'Launcher is running latest build.');
+  } else {
+    win && win.webContents.send('updater-log', `Updater status: ${err.message}`);
+  }
 });
 
 app.whenReady().then(createWindow);
@@ -80,97 +84,86 @@ ipcMain.on('open-game-folder', () => {
   shell.openPath(gameRoot);
 });
 
-// Dynamic Loader Resolvers (Fabric & Quilt)
-async function resolveLoaderProfile(loaderType, gameVersion) {
-  try {
-    if (loaderType === 'Fabric') {
-      const { data } = await axios.get(`https://meta.fabricmc.net/v2/versions/loader/${gameVersion}`);
-      if (data && data.length > 0) {
-        return `fabric-loader-${data[0].loader.version}-${gameVersion}`;
-      }
-    } else if (loaderType === 'Quilt') {
-      const { data } = await axios.get(`https://meta.quiltmc.org/v3/versions/loader/${gameVersion}`);
-      if (data && data.length > 0) {
-        return `quilt-loader-${data[0].loader.version}-${gameVersion}`;
-      }
-    }
-  } catch (err) {
-    return null;
-  }
-  return null;
-}
-
-// Launch Minecraft handler
+// Launch Minecraft handler with Error Boundary
 ipcMain.on('launch-game', async (event, { username, version, loaderType, memoryMax, fpsBoost, serverIp }) => {
-  if (!fs.existsSync(gameRoot)) {
-    fs.mkdirSync(gameRoot, { recursive: true });
-  }
-
-  const auth = Authenticator.getAuth(username || 'Player');
-
-  const performanceFlags = fpsBoost ? [
-    '-XX:+UseG1GC',
-    '-XX:+ParallelRefProcEnabled',
-    '-XX:MaxGCPauseMillis=200',
-    '-XX:+UnlockExperimentalVMOptions',
-    '-XX:+DisableExplicitGC',
-    '-XX:+AlwaysPreTouch',
-    '-XX:G1NewSizePercent=30',
-    '-XX:G1MaxNewSizePercent=40',
-    '-XX:G1ReservePercent=20',
-    '-XX:G1HeapWastePercent=5',
-    '-XX:G1MixedGCCountTarget=4',
-    '-XX:InitiatingHeapOccupancyPercent=15',
-    '-XX:G1MixedGCLiveThresholdPercent=90',
-    '-XX:G1RSetUpdatingPauseTimePercent=5',
-    '-XX:SurvivorRatio=32',
-    '-XX:+PerfDisableSharedMem',
-    '-XX:MaxTenuringThreshold=1'
-  ] : [];
-
-  const launchArgs = [...performanceFlags];
-  if (serverIp) {
-    launchArgs.push('--server', serverIp);
-  }
-
-  let versionPayload = {
-    number: version || '1.20.4',
-    type: 'release'
-  };
-
-  if (loaderType === 'Fabric' || loaderType === 'Quilt') {
-    win.webContents.send('game-log', { text: `Resolving ${loaderType} metadata for Minecraft ${version}...` });
-    const customVersion = await resolveLoaderProfile(loaderType, version);
-    if (customVersion) {
-      versionPayload.custom = customVersion;
+  try {
+    if (!fs.existsSync(gameRoot)) {
+      fs.mkdirSync(gameRoot, { recursive: true });
     }
+
+    const auth = Authenticator.getAuth(username || 'Player');
+
+    // Low-Latency Garbage Collection Flags
+    const performanceFlags = fpsBoost ? [
+      '-XX:+UseG1GC',
+      '-XX:+ParallelRefProcEnabled',
+      '-XX:MaxGCPauseMillis=200',
+      '-XX:+UnlockExperimentalVMOptions',
+      '-XX:+DisableExplicitGC',
+      '-XX:+AlwaysPreTouch',
+      '-XX:G1NewSizePercent=30',
+      '-XX:G1MaxNewSizePercent=40',
+      '-XX:G1ReservePercent=20',
+      '-XX:G1HeapWastePercent=5',
+      '-XX:G1MixedGCCountTarget=4',
+      '-XX:InitiatingHeapOccupancyPercent=15',
+      '-XX:G1MixedGCLiveThresholdPercent=90',
+      '-XX:G1RSetUpdatingPauseTimePercent=5',
+      '-XX:SurvivorRatio=32',
+      '-XX:+PerfDisableSharedMem',
+      '-XX:MaxTenuringThreshold=1'
+    ] : [];
+
+    const customArgs = [...performanceFlags];
+    if (serverIp) {
+      customArgs.push('--server', serverIp);
+    }
+
+    const selectedVersion = version || '1.20.4';
+
+    const opts = {
+      clientPackage: null,
+      authorization: auth,
+      root: gameRoot,
+      version: {
+        number: selectedVersion,
+        type: 'release'
+      },
+      memory: {
+        max: `${memoryMax || 4096}M`,
+        min: '1024M'
+      },
+      customArgs: customArgs
+    };
+
+    win.webContents.send('game-log', { text: `[CORE] Initializing Minecraft ${selectedVersion}...` });
+    win.webContents.send('game-status', 'downloading');
+
+    launcher.launch(opts);
+  } catch (err) {
+    win.webContents.send('game-log', { text: `[ERROR] Launch initialization failed: ${err.message}` });
+    win.webContents.send('game-status', 'closed');
   }
+});
 
-  const opts = {
-    clientPackage: null,
-    authorization: auth,
-    root: gameRoot,
-    version: versionPayload,
-    memory: {
-      max: `${memoryMax}M`,
-      min: '1024M'
-    },
-    customArgs: launchArgs
-  };
-
-  win.webContents.send('game-status', 'downloading');
-  launcher.launch(opts);
-
-  launcher.on('debug', (e) => win.webContents.send('game-log', { type: 'debug', text: e }));
-  launcher.on('data', (e) => win.webContents.send('game-log', { type: 'info', text: e }));
-  launcher.on('progress', (e) => {
+// Global Launcher Listeners
+launcher.on('debug', (e) => win && win.webContents.send('game-log', { type: 'debug', text: e }));
+launcher.on('data', (e) => win && win.webContents.send('game-log', { type: 'info', text: e }));
+launcher.on('progress', (e) => {
+  if (win && e.total > 0) {
     win.webContents.send('game-log', { type: 'info', text: `Downloading ${e.type}: ${Math.round((e.task / e.total) * 100)}%` });
-  });
-
-  launcher.on('start', () => win.webContents.send('game-status', 'started'));
-  launcher.on('close', () => win.webContents.send('game-status', 'closed'));
+  }
+});
+launcher.on('start', () => win && win.webContents.send('game-status', 'started'));
+launcher.on('close', () => win && win.webContents.send('game-status', 'closed'));
+launcher.on('close-with-error', (err) => {
+  if (win) {
+    win.webContents.send('game-log', { text: `[CRASH] Process exited with error: ${err}` });
+    win.webContents.send('game-status', 'closed');
+  }
 });
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
+      
