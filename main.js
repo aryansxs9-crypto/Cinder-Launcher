@@ -2,12 +2,42 @@ const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const axios = require('axios');
+const DiscordRPC = require('discord-rpc');
 const { autoUpdater } = require('electron-updater');
 const { Client, Authenticator } = require('minecraft-launcher-core');
 
 let win;
 const launcher = new Client();
 
+// --- Discord Rich Presence (RPC) ---
+const CLIENT_ID = '1542072339121045584';
+DiscordRPC.register(CLIENT_ID);
+const rpc = new DiscordRPC.Client({ transport: 'ipc' });
+let startTimestamp = new Date();
+
+async function setActivity(details = 'In Launcher', state = 'Browsing Settings') {
+  if (!rpc) return;
+  try {
+    await rpc.setActivity({
+      details: details,
+      state: state,
+      startTimestamp: startTimestamp,
+      largeImageKey: 'logo',
+      largeImageText: 'Ember Client',
+      smallImageKey: 'logo',
+      smallImageText: 'Ember Launcher',
+      instance: false
+    });
+  } catch (err) {}
+}
+
+rpc.on('ready', () => {
+  setActivity('In Launcher', 'Idling');
+});
+
+rpc.login({ clientId: CLIENT_ID }).catch(() => {});
+
+// --- Electron Window Management ---
 autoUpdater.autoDownload = true;
 autoUpdater.autoInstallOnAppQuit = true;
 
@@ -54,7 +84,7 @@ autoUpdater.on('error', (err) => {
 
 app.whenReady().then(createWindow);
 
-// Window controls
+// Window Controls
 ipcMain.on('window-minimize', () => win && win.minimize());
 ipcMain.on('window-maximize', () => win && (win.isMaximized() ? win.unmaximize() : win.maximize()));
 ipcMain.on('window-close', () => win && win.close());
@@ -145,14 +175,19 @@ ipcMain.on('launch-game', async (event, { username, version, loaderType, memoryM
     win.webContents.send('game-log', { text: `[CORE] Starting Minecraft ${selectedVersion} (${loaderType})...` });
     win.webContents.send('game-status', 'downloading');
 
+    // Update Discord Presence
+    startTimestamp = new Date();
+    setActivity(`Playing Minecraft ${selectedVersion} (${loaderType})`, `As ${username || 'Player'}`);
+
     launcher.launch(opts);
   } catch (err) {
     win.webContents.send('game-log', { text: `[ERROR] Launch failed: ${err.message}` });
     win.webContents.send('game-status', 'closed');
+    setActivity('In Launcher', 'Idling');
   }
 });
 
-// Logs streaming
+// Logs & Lifecycle Handlers
 launcher.on('debug', (e) => win && win.webContents.send('game-log', { type: 'debug', text: e }));
 launcher.on('data', (e) => win && win.webContents.send('game-log', { type: 'info', text: e }));
 launcher.on('progress', (e) => {
@@ -161,13 +196,18 @@ launcher.on('progress', (e) => {
   }
 });
 launcher.on('start', () => win && win.webContents.send('game-status', 'started'));
-launcher.on('close', () => win && win.webContents.send('game-status', 'closed'));
+launcher.on('close', () => {
+  if (win) win.webContents.send('game-status', 'closed');
+  setActivity('In Launcher', 'Idling');
+});
 launcher.on('close-with-error', (err) => {
-  win && win.webContents.send('game-log', { text: `[CRASH] Process exited with error: ${err}` });
-  win && win.webContents.send('game-status', 'closed');
+  if (win) {
+    win.webContents.send('game-log', { text: `[CRASH] Process exited with error: ${err}` });
+    win.webContents.send('game-status', 'closed');
+  }
+  setActivity('In Launcher', 'Idling');
 });
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
-      
