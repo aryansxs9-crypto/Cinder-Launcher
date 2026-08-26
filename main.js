@@ -37,7 +37,7 @@ rpc.on('ready', () => {
 
 rpc.login({ clientId: CLIENT_ID }).catch(() => {});
 
-// --- Electron Window Management ---
+// --- Electron Window Setup ---
 autoUpdater.autoDownload = true;
 autoUpdater.autoInstallOnAppQuit = true;
 
@@ -84,16 +84,97 @@ autoUpdater.on('error', (err) => {
 
 app.whenReady().then(createWindow);
 
-// Window Controls
+// Window controls
 ipcMain.on('window-minimize', () => win && win.minimize());
 ipcMain.on('window-maximize', () => win && (win.isMaximized() ? win.unmaximize() : win.maximize()));
 ipcMain.on('window-close', () => win && win.close());
 
 const gameRoot = path.join(app.getPath('appData'), '.ember');
+const modsDir = path.join(gameRoot, 'mods');
 
 ipcMain.on('open-game-folder', () => {
   if (!fs.existsSync(gameRoot)) fs.mkdirSync(gameRoot, { recursive: true });
   shell.openPath(gameRoot);
+});
+
+// --- MODRINTH API & MODS HANDLERS ---
+
+// Search mods on Modrinth
+ipcMain.handle('search-mods', async (event, { query, version, loader }) => {
+  try {
+    const facets = [];
+    facets.push([`project_type:mod`]);
+    if (version) facets.push([`versions:${version}`]);
+    if (loader && loader.toLowerCase() !== 'vanilla') facets.push([`categories:${loader.toLowerCase()}`]);
+
+    const url = `https://api.modrinth.com/v2/search?query=${encodeURIComponent(query || '')}&facets=${encodeURIComponent(JSON.stringify(facets))}&limit=20`;
+    const res = await axios.get(url, { headers: { 'User-Agent': 'EmberLauncher/1.0.1' } });
+    return res.data.hits || [];
+  } catch (err) {
+    return [];
+  }
+});
+
+// Install mod directly to .ember/mods/
+ipcMain.handle('install-mod', async (event, { projectId, version, loader }) => {
+  try {
+    if (!fs.existsSync(modsDir)) fs.mkdirSync(modsDir, { recursive: true });
+
+    let loaderFilter = (loader && loader.toLowerCase() !== 'vanilla') ? `&loaders=["${loader.toLowerCase()}"]` : '';
+    let versionFilter = version ? `&game_versions=["${version}"]` : '';
+    
+    const versionUrl = `https://api.modrinth.com/v2/project/${projectId}/version?${loaderFilter}${versionFilter}`;
+    const res = await axios.get(versionUrl, { headers: { 'User-Agent': 'EmberLauncher/1.0.1' } });
+    
+    if (!res.data || res.data.length === 0) {
+      throw new Error('No compatible release found for this version/loader.');
+    }
+
+    const primaryFile = res.data[0].files.find(f => f.primary) || res.data[0].files[0];
+    if (!primaryFile) throw new Error('No downloadable file attached.');
+
+    const targetPath = path.join(modsDir, primaryFile.filename);
+    const writer = fs.createWriteStream(targetPath);
+
+    const response = await axios({
+      url: primaryFile.url,
+      method: 'GET',
+      responseType: 'stream'
+    });
+
+    response.data.pipe(writer);
+
+    return new Promise((resolve, reject) => {
+      writer.on('finish', () => resolve({ success: true, filename: primaryFile.filename }));
+      writer.on('error', reject);
+    });
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+// Get installed mods
+ipcMain.handle('get-installed-mods', async () => {
+  try {
+    if (!fs.existsSync(modsDir)) return [];
+    return fs.readdirSync(modsDir).filter(file => file.endsWith('.jar'));
+  } catch (err) {
+    return [];
+  }
+});
+
+// Delete mod
+ipcMain.handle('delete-mod', async (event, filename) => {
+  try {
+    const filePath = path.join(modsDir, filename);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      return { success: true };
+    }
+    return { success: false, error: 'File not found' };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
 });
 
 // Download and write Fabric Loader JSON into .ember/versions/
@@ -129,9 +210,7 @@ async function prepareFabricProfile(gameVersion) {
 // Launch Minecraft Handler
 ipcMain.on('launch-game', async (event, { username, version, loaderType, memoryMax, fpsBoost, serverIp }) => {
   try {
-    if (!fs.existsSync(gameRoot)) {
-      fs.mkdirSync(gameRoot, { recursive: true });
-    }
+    if (!fs.existsSync(gameRoot)) fs.mkdirSync(gameRoot, { recursive: true });
 
     const auth = Authenticator.getAuth(username || 'Player');
     const selectedVersion = version || '1.20.4';
@@ -175,7 +254,6 @@ ipcMain.on('launch-game', async (event, { username, version, loaderType, memoryM
     win.webContents.send('game-log', { text: `[CORE] Starting Minecraft ${selectedVersion} (${loaderType})...` });
     win.webContents.send('game-status', 'downloading');
 
-    // Update Discord Presence
     startTimestamp = new Date();
     setActivity(`Playing Minecraft ${selectedVersion} (${loaderType})`, `As ${username || 'Player'}`);
 
@@ -211,3 +289,4 @@ launcher.on('close-with-error', (err) => {
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
+               
