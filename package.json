@@ -1,7 +1,7 @@
 {
   "name": "cinder-client",
   "productName": "Cinder Client",
-  "version": "1.0.2",
+  "version": "1.0.0",
   "description": "Next-Gen Minecraft Performance Launcher",
   "author": "aryansxs9",
   "main": "main.js",
