@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-    tags:
-      - 'v*'
   workflow_dispatch:
 
 permissions:
@@ -14,6 +12,7 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -26,8 +25,7 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Build & Publish Release
+      - name: Build and Publish Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx electron-builder --win --publish always
-        
+        run: npx electron-builder --win --publish always -c.publish.provider=github -c.publish.owner=aryansxs9-crypto -c.publish.repo=Cinder-Launcher
