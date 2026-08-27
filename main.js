@@ -10,13 +10,11 @@ let mainWindow;
 const launcher = new Client();
 const cinderRoot = path.join(app.getPath('appData'), '.cinder');
 
-// 1. Create Directories if they don't exist
 if (!fs.existsSync(cinderRoot)) {
   fs.mkdirSync(cinderRoot, { recursive: true });
 }
 
-// 2. Initialize Discord Rich Presence
-const CLIENT_ID = '123456789012345678'; // Replace with your Discord Application ID if available
+const CLIENT_ID = '123456789012345678';
 let rpcClient;
 
 function initDiscordRPC() {
@@ -28,12 +26,8 @@ function initDiscordRPC() {
       setRPCActivity('Idle in Launcher', 'Main Menu');
     });
 
-    rpcClient.login({ clientId: CLIENT_ID }).catch(() => {
-      console.log('Discord RPC could not connect.');
-    });
-  } catch (err) {
-    console.log('Discord RPC initialization skipped.');
-  }
+    rpcClient.login({ clientId: CLIENT_ID }).catch(() => {});
+  } catch (err) {}
 }
 
 function setRPCActivity(details, state) {
@@ -47,12 +41,9 @@ function setRPCActivity(details, state) {
       startTimestamp: new Date(),
       instance: false,
     });
-  } catch (e) {
-    // Suppress RPC errors if Discord client disconnects
-  }
+  } catch (e) {}
 }
 
-// 3. Create Main Application Window
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1080,
@@ -82,15 +73,12 @@ function createWindow() {
   });
 }
 
-// 4. App Lifecycle
 app.whenReady().then(() => {
   createWindow();
   initDiscordRPC();
 
   if (app.isPackaged) {
-    autoUpdater.checkForUpdatesAndNotify().catch((err) => {
-      console.log('Auto update error:', err);
-    });
+    autoUpdater.checkForUpdatesAndNotify().catch(() => {});
   }
 
   app.on('activate', () => {
@@ -104,18 +92,13 @@ app.on('window-all-closed', () => {
   }
 });
 
-// 5. Window Controls IPC
 ipcMain.on('window-minimize', () => {
   if (mainWindow) mainWindow.minimize();
 });
 
 ipcMain.on('window-maximize', () => {
   if (mainWindow) {
-    if (mainWindow.isMaximized()) {
-      mainWindow.unmaximize();
-    } else {
-      mainWindow.maximize();
-    }
+    mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize();
   }
 });
 
@@ -123,7 +106,6 @@ ipcMain.on('window-close', () => {
   if (mainWindow) mainWindow.close();
 });
 
-// 6. External Links & Utility IPC
 ipcMain.on('open-external', (event, url) => {
   if (url && (url.startsWith('https://') || url.startsWith('http://'))) {
     shell.openExternal(url);
@@ -134,7 +116,6 @@ ipcMain.on('open-game-folder', () => {
   shell.openPath(cinderRoot);
 });
 
-// 7. Minecraft Launch Handler
 ipcMain.on('launch-game', async (event, config) => {
   const { username, version, loaderType, memoryMax, fpsBoost, serverIp } = config;
 
@@ -158,7 +139,6 @@ ipcMain.on('launch-game', async (event, config) => {
     type: "release"
   };
 
-  // Automatically fetch Fabric metadata if loader is selected as Fabric
   if (loaderType === 'Fabric') {
     try {
       mainWindow?.webContents.send('game-log', { text: `Resolving Fabric metadata for Minecraft ${version}...` });
@@ -167,7 +147,7 @@ ipcMain.on('launch-game', async (event, config) => {
           let data = '';
           res.on('data', chunk => data += chunk);
           res.on('end', () => {
-            try { resolve(JSON.parse(data)); } catch (e) { reject(e); }
+            try { resolve(JSON.parse(data)); } catch(e) { reject(e); }
           });
         }).on('error', reject);
       });
@@ -181,7 +161,7 @@ ipcMain.on('launch-game', async (event, config) => {
         };
       }
     } catch (e) {
-      mainWindow?.webContents.send('game-log', { text: `Fabric fetch failed, fallback to vanilla: ${e.message}` });
+      mainWindow?.webContents.send('game-log', { text: `Fabric resolution fallback to vanilla: ${e.message}` });
     }
   }
 
@@ -227,13 +207,12 @@ ipcMain.on('launch-game', async (event, config) => {
   }
 });
 
-// 8. Auto-Updater Events
 autoUpdater.on('update-available', () => {
-  mainWindow?.webContents.send('update-message', 'Update available. Downloading now...');
+  mainWindow?.webContents.send('update-message', 'Update available. Downloading...');
 });
 
 autoUpdater.on('update-downloaded', () => {
-  mainWindow?.webContents.send('update-message', 'Update ready. Restarting launcher to install...');
+  mainWindow?.webContents.send('update-message', 'Update ready. Restarting...');
   setTimeout(() => {
     autoUpdater.quitAndInstall();
   }, 3000);
