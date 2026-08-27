@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#140b08" />
+      <stop offset="70%" stop-color="#07090e" />
+      <stop offset="100%" stop-color="#040507" />
+    </radialGradient>
+
+    <!-- Flame & Core Gradients -->
+    <linearGradient id="fireOuter" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ff3b00" />
+      <stop offset="40%" stop-color="#ff6a00" />
+      <stop offset="75%" stop-color="#ff9900" />
+      <stop offset="100%" stop-color="#ffcc33" />
+    </linearGradient>
+
+    <linearGradient id="fireInner" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#ff2a00" />
+      <stop offset="50%" stop-color="#ff8c00" />
+      <stop offset="100%" stop-color="#fff099" />
+    </linearGradient>
+
+    <linearGradient id="cinderShardLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
+      <stop offset="45%" stop-color="#ffcc33" />
+      <stop offset="100%" stop-color="#bf0603" />
+    </linearGradient>
+
+    <linearGradient id="cinderShardRight" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffe699" stop-opacity="0.9" />
+      <stop offset="40%" stop-color="#ff8c00" />
+      <stop offset="100%" stop-color="#9d0208" />
+    </linearGradient>
+
+    <!-- Shadow / Inner Glow Filter -->
+    <filter id="cinderGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="18" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- App Icon Background Squircle with Subtle Stroke -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGlow)" stroke="rgba(255, 106, 0, 0.2)" stroke-width="6" />
+
+  <!-- Ambient Internal Glow Behind Gem -->
+  <circle cx="256" cy="280" r="150" fill="#ff6a00" stop-opacity="0.15" filter="url(#cinderGlow)" />
+
+  <!-- Outer Geometric Flame / "Wing" Structure -->
+  <path d="M 256 50 C 270 120, 380 180, 390 280 C 400 380, 330 460, 256 490 C 182 460, 112 380, 122 280 C 132 180, 242 120, 256 50 Z" 
+        fill="url(#fireOuter)" 
+        opacity="0.9" />
+
+  <!-- Inner Dark Flame Contrast Void (Forms Core Outline) -->
+  <path d="M 256 130 C 265 170, 355 230, 360 300 C 365 370, 320 440, 256 465 C 192 440, 147 370, 152 300 C 157 230, 247 170, 256 130 Z" 
+        fill="#080a11" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1" />
+
+  <!-- Main Cinder Shard / Crystal (Isometric Diamond Prism) -->
+  <g filter="url(#cinderGlow)" transform="translate(0, -10)">
+    <!-- Top Left Shard Facet -->
+    <polygon points="256,160 190,280 256,380 256,230" fill="url(#cinderShardLeft)" />
+    
+    <!-- Top Right Shard Facet -->
+    <polygon points="256,160 322,280 256,380 256,230" fill="url(#cinderShardRight)" />
+    
+    <!-- Wing Accent Shards -->
+    <polygon points="190,280 256,380 160,340" fill="#bf0603" opacity="0.8" />
+    <polygon points="322,280 256,380 352,340" fill="#d00000" opacity="0.8" />
+    
+    <!-- Main Center Core Prism Spark (Shine) -->
+    <polygon points="256,190 270,240 256,290 242,240" fill="#ffffff" opacity="0.9" />
+  </g>
+
+  <!-- Flying Spark Particle Effects -->
+  <circle cx="160" cy="140" r="6" fill="#ffe169" filter="url(#cinderGlow)" />
+  <circle cx="360" cy="125" r="8" fill="#ffaa00" filter="url(#cinderGlow)" />
+  <circle cx="395" cy="200" r="5" fill="#ff6000" />
+  <circle cx="110" cy="215" r="5" fill="#ffcc33" />
+  <circle cx="256" cy="25" r="7" fill="#ffffff" filter="url(#cinderGlow)" />
+</svg>
