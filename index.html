@@ -6,19 +6,28 @@
   <title>Cinder Client</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <style>
     :root {
-      --bg-dark: #07090e;
-      --accent: #ff6a00;
+      --bg-base: #07090e;
+      --bg-surface: #0e121b;
+      --bg-card: rgba(18, 24, 38, 0.7);
+      --bg-card-hover: rgba(26, 35, 54, 0.85);
+      --cinder-500: #ff5500;
+      --cinder-400: #ff7722;
+      --cinder-600: #d63e00;
+      --cinder-gradient: linear-gradient(135deg, #ff6a00 0%, #ee0979 100%);
       --accent-glow: rgba(255, 106, 0, 0.35);
-      --glass-base: rgba(15, 18, 26, 0.75);
-      --glass-border: rgba(255, 255, 255, 0.08);
-      --glass-border-hi: rgba(255, 106, 0, 0.3);
+      --glass-border: rgba(255, 255, 255, 0.07);
+      --glass-border-focus: rgba(255, 106, 0, 0.5);
       --text-main: #f8fafc;
-      --text-muted: #64748b;
-      --radius-lg: 16px;
+      --text-muted: #8492a6;
+      --text-dim: #4c566a;
+      --emerald: #10b981;
+      --rose: #f43f5e;
+      --radius-xl: 18px;
+      --radius-lg: 14px;
       --radius-md: 10px;
     }
 
@@ -32,76 +41,110 @@
 
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      background: var(--bg-dark);
+      background: radial-gradient(circle at 10% 20%, rgba(255, 85, 0, 0.08) 0%, transparent 40%),
+                  radial-gradient(circle at 90% 80%, rgba(238, 9, 121, 0.06) 0%, transparent 40%),
+                  var(--bg-base);
       color: var(--text-main);
       height: 100vh;
       overflow: hidden;
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--glass-border);
       display: flex;
       flex-direction: column;
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-xl);
     }
 
+    /* Custom Titlebar */
     .titlebar {
       height: 42px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 0 16px;
-      -webkit-app-region: drag;
-      background: rgba(7, 9, 14, 0.85);
+      background: rgba(7, 9, 14, 0.95);
       border-bottom: 1px solid var(--glass-border);
+      -webkit-app-region: drag;
+      z-index: 1000;
     }
 
     .titlebar-brand {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       font-weight: 800;
       font-size: 13px;
-      letter-spacing: 1px;
-      color: var(--text-main);
+      letter-spacing: 1.5px;
     }
 
-    .titlebar-brand span {
-      color: var(--accent);
+    .brand-fire {
+      color: var(--cinder-500);
+      text-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .titlebar-version {
+      font-size: 10px;
+      font-weight: 700;
+      background: rgba(255, 106, 0, 0.15);
+      color: var(--cinder-400);
+      padding: 2px 6px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 106, 0, 0.3);
     }
 
     .window-controls {
       display: flex;
+      align-items: center;
       gap: 8px;
       -webkit-app-region: no-drag;
     }
 
     .win-btn {
-      width: 14px;
-      height: 14px;
+      width: 13px;
+      height: 13px;
       border-radius: 50%;
       border: none;
       cursor: pointer;
       opacity: 0.8;
-      transition: opacity 0.2s;
+      transition: all 0.2s ease;
     }
 
-    .win-btn:hover { opacity: 1; }
+    .win-btn:hover { opacity: 1; transform: scale(1.1); }
     .btn-close { background: #ef4444; }
     .btn-min { background: #eab308; }
     .btn-max { background: #22c55e; }
 
-    .app-body {
+    /* App Container Layout */
+    .app-container {
       display: flex;
       flex: 1;
       height: calc(100vh - 42px);
+      overflow: hidden;
     }
 
+    /* Sidebar Navigation */
     .sidebar {
-      width: 220px;
-      background: var(--glass-base);
+      width: 230px;
+      background: rgba(14, 18, 27, 0.85);
+      backdrop-filter: blur(20px);
       border-right: 1px solid var(--glass-border);
       padding: 20px 14px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      justify-content: space-between;
+    }
+
+    .nav-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .nav-section-title {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 12px 0 6px 12px;
     }
 
     .nav-btn {
@@ -120,21 +163,75 @@
       text-align: left;
     }
 
+    .nav-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
     .nav-btn:hover {
       color: var(--text-main);
       background: rgba(255, 255, 255, 0.03);
     }
 
     .nav-btn.active {
-      background: var(--glass-border-hi);
-      color: var(--text-main);
-      border-color: var(--accent);
+      background: rgba(255, 106, 0, 0.12);
+      color: #fff;
+      border-color: rgba(255, 106, 0, 0.35);
+      box-shadow: 0 0 15px rgba(255, 106, 0, 0.15);
     }
 
-    .main-view {
+    .nav-btn.active svg {
+      stroke: var(--cinder-400);
+    }
+
+    .user-profile-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-md);
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: #2a3142;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      image-rendering: pixelated;
+    }
+
+    .user-info {
       flex: 1;
-      padding: 28px;
+      overflow: hidden;
+    }
+
+    .user-name {
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-status {
+      font-size: 10px;
+      color: var(--emerald);
+      font-weight: 600;
+    }
+
+    /* Content Area */
+    .main-viewport {
+      flex: 1;
       overflow-y: auto;
+      padding: 24px 30px;
       display: flex;
       flex-direction: column;
       gap: 20px;
@@ -143,106 +240,336 @@
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
-    .card {
-      background: var(--glass-base);
-      border: 1px solid var(--glass-border);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      margin-bottom: 20px;
-    }
-
-    .card-title {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 16px;
+    /* Hero Banner */
+    .hero-banner {
+      position: relative;
+      border-radius: var(--radius-xl);
+      padding: 30px;
+      background: linear-gradient(135deg, rgba(255, 106, 0, 0.2) 0%, rgba(20, 24, 38, 0.9) 70%),
+                  url('https://images.unsplash.com/photo-1627856013091-fed6e4e30025?auto=format&fit=crop&w=1200&q=80') center/cover;
+      border: 1px solid rgba(255, 106, 0, 0.25);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: flex-end;
+      overflow: hidden;
     }
 
-    .input-group {
+    .hero-text h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+
+    .hero-text p {
+      font-size: 14px;
+      color: #cbd5e1;
+      max-width: 480px;
+      line-height: 1.5;
+    }
+
+    .hero-tags {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .tag-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(10px);
+    }
+
+    .tag-badge.featured {
+      background: rgba(255, 106, 0, 0.25);
+      border-color: var(--cinder-400);
+      color: #ff9d5c;
+    }
+
+    /* Launcher Controls Card */
+    .config-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(25px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-xl);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    .input-field {
       display: flex;
       flex-direction: column;
       gap: 8px;
-      margin-bottom: 16px;
     }
 
-    .input-group label {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-muted);
+    .input-field label {
+      font-size: 11px;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
     }
 
     input, select {
-      background: rgba(0, 0, 0, 0.4);
+      background: rgba(7, 9, 14, 0.7);
       border: 1px solid var(--glass-border);
       border-radius: var(--radius-md);
       padding: 12px 14px;
       color: var(--text-main);
       font-family: inherit;
-      font-size: 14px;
+      font-size: 13px;
       outline: none;
-      transition: border-color 0.2s;
+      transition: all 0.2s ease;
     }
 
     input:focus, select:focus {
-      border-color: var(--accent);
+      border-color: var(--cinder-400);
+      box-shadow: 0 0 10px rgba(255, 106, 0, 0.2);
     }
 
-    .btn-launch {
+    /* Launch Button */
+    .btn-launch-hero {
       width: 100%;
-      background: linear-gradient(135deg, #ff6a00 0%, #ee0979 100%);
-      color: #fff;
-      font-size: 16px;
-      font-weight: 800;
+      padding: 18px;
       border: none;
       border-radius: var(--radius-md);
-      padding: 16px;
+      background: var(--cinder-gradient);
+      color: #fff;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 1px;
       cursor: pointer;
-      box-shadow: 0 4px 20px var(--accent-glow);
-      transition: transform 0.15s, opacity 0.2s;
+      box-shadow: 0 8px 30px var(--accent-glow);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
     }
 
-    .btn-launch:hover {
-      opacity: 0.95;
+    .btn-launch-hero:hover {
       transform: translateY(-2px);
+      box-shadow: 0 12px 35px rgba(255, 106, 0, 0.5);
     }
 
-    .btn-launch:active {
+    .btn-launch-hero:active {
       transform: translateY(0);
     }
 
-    .btn-launch:disabled {
-      opacity: 0.5;
+    .btn-launch-hero:disabled {
+      opacity: 0.6;
       cursor: not-allowed;
       transform: none;
     }
 
-    .console-box {
-      background: #000;
-      border: 1px solid var(--glass-border);
-      border-radius: var(--radius-md);
-      height: 180px;
-      overflow-y: auto;
-      padding: 12px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      color: #10b981;
+    /* Modrinth Mod Browser Tab */
+    .mods-header {
       display: flex;
-      flex-direction: column;
-      gap: 4px;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
     }
 
-    .console-line { word-break: break-all; }
+    .search-input {
+      flex: 1;
+      position: relative;
+    }
+
+    .search-input input {
+      width: 100%;
+      padding-left: 38px;
+    }
+
+    .search-input svg {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      stroke: var(--text-muted);
+    }
+
+    .mods-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .mod-card {
+      background: var(--bg-card);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+      transition: all 0.2s ease;
+    }
+
+    .mod-card:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-3px);
+    }
+
+    .mod-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .mod-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: #182030;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .mod-meta h3 {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .mod-meta span {
+      font-size: 11px;
+      color: var(--emerald);
+      font-weight: 600;
+    }
+
+    .mod-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .mod-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .mod-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+    }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 42px;
+      height: 22px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #262e3d;
+      transition: 0.3s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--cinder-500);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    /* Live Terminal Console */
+    .console-container {
+      background: #000;
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      height: 280px;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .console-line {
+      word-break: break-all;
+      line-height: 1.5;
+    }
+
+    .log-info { color: #38bdf8; }
+    .log-cinder { color: var(--cinder-400); font-weight: 700; }
+    .log-success { color: var(--emerald); }
+    .log-warn { color: #facc15; }
+    .log-error { color: var(--rose); }
+
+    /* Performance Toggles */
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--glass-border);
+    }
   </style>
 </head>
 <body>
 
+  <!-- Custom Titlebar -->
   <div class="titlebar">
     <div class="titlebar-brand">
-      <span>CINDER</span> CLIENT
+      <span class="brand-fire">CINDER</span> CLIENT
+      <span class="titlebar-version">v1.0.4</span>
     </div>
     <div class="window-controls">
       <button class="win-btn btn-min" onclick="window.electronAPI.minimizeWindow()"></button>
@@ -251,129 +578,286 @@
     </div>
   </div>
 
-  <div class="app-body">
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
     <div class="sidebar">
-      <button class="nav-btn active" onclick="switchTab('play')">Play</button>
-      <button class="nav-btn" onclick="switchTab('settings')">Settings</button>
-      <button class="nav-btn" onclick="window.electronAPI.openGameFolder()">Game Folder</button>
+      <div class="nav-group">
+        <div class="nav-section-title">Launcher</div>
+        <button class="nav-btn active" onclick="switchTab(this, 'play')">
+          <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          Play / Launch
+        </button>
+        <button class="nav-btn" onclick="switchTab(this, 'mods')">
+          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+          Modrinth Hub
+        </button>
+        <button class="nav-btn" onclick="switchTab(this, 'settings')">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          Settings & RAM
+        </button>
+        <button class="nav-btn" onclick="switchTab(this, 'console')">
+          <svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+          Console Logs
+        </button>
+      </div>
+
+      <div>
+        <div class="user-profile-badge">
+          <img src="https://minotar.net/avatar/MHF_Steve/32" class="user-avatar" id="avatar-img" alt="Skin">
+          <div class="user-info">
+            <div class="user-name" id="profile-name">Player</div>
+            <div class="user-status">Ready to play</div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="main-view">
-      <!-- Play Tab -->
-      <div id="tab-play" class="tab-content active">
-        <div class="card">
-          <div class="card-title">Instance Launcher</div>
-          
-          <div class="input-group">
-            <label>Player Name</label>
-            <input type="text" id="mc-username" value="Player" placeholder="Enter offline or IGN username">
-          </div>
+    <!-- Main Content Area -->
+    <div class="main-viewport">
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-            <div class="input-group">
+      <!-- PLAY TAB -->
+      <div id="tab-play" class="tab-content active">
+        <div class="hero-banner">
+          <div class="hero-text">
+            <h1>CINDER CLIENT</h1>
+            <p>High-performance Minecraft client engineered for massive FPS gains, low latency, and modern modpack support.</p>
+            <div class="hero-tags">
+              <span class="tag-badge featured">⚡ G1GC ULTRA OPTIMIZED</span>
+              <span class="tag-badge">FABRIC METADATA SYNC</span>
+              <span class="tag-badge">DISCORD RPC ACTIVE</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="config-card" style="margin-top: 20px;">
+          <div class="grid-3">
+            <div class="input-field">
+              <label>Offline / IGN Username</label>
+              <input type="text" id="mc-username" value="Player" oninput="updateProfileName(this.value)">
+            </div>
+            <div class="input-field">
               <label>Minecraft Version</label>
               <select id="mc-version">
-                <option value="1.20.4">1.20.4</option>
-                <option value="1.20.2">1.20.2</option>
-                <option value="1.20.1">1.20.1</option>
-                <option value="1.19.4">1.19.4</option>
-                <option value="1.16.5">1.16.5</option>
-                <option value="1.8.9">1.8.9</option>
+                <option value="1.20.4">Minecraft 1.20.4 (Recommended)</option>
+                <option value="1.20.2">Minecraft 1.20.2</option>
+                <option value="1.20.1">Minecraft 1.20.1</option>
+                <option value="1.19.4">Minecraft 1.19.4</option>
+                <option value="1.16.5">Minecraft 1.16.5</option>
+                <option value="1.8.9">Minecraft 1.8.9 (Legacy PvP)</option>
               </select>
             </div>
-            <div class="input-group">
-              <label>Mod Loader</label>
+            <div class="input-field">
+              <label>Mod Loader Engine</label>
               <select id="mc-loader">
                 <option value="Fabric">Fabric (Optimized)</option>
-                <option value="Vanilla">Vanilla</option>
+                <option value="Vanilla">Vanilla (Official)</option>
               </select>
             </div>
           </div>
 
-          <button id="launch-btn" class="btn-launch" onclick="triggerLaunch()">LAUNCH GAME</button>
+          <button id="launch-btn" class="btn-launch-hero" onclick="triggerLaunch()">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            LAUNCH MINECRAFT
+          </button>
+        </div>
+      </div>
+
+      <!-- MODRINTH HUB TAB -->
+      <div id="tab-mods" class="tab-content">
+        <div class="mods-header">
+          <div class="search-input">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" placeholder="Search built-in optimization mods...">
+          </div>
+          <button class="nav-btn" style="background: var(--bg-card); border-color: var(--glass-border);" onclick="window.electronAPI.openGameFolder()">
+            Open .minecraft/mods
+          </button>
         </div>
 
-        <div class="card">
-          <div class="card-title">Console Output</div>
-          <div class="console-box" id="console-output">
-            <div class="console-line">[Cinder] Launcher initialized ready to start.</div>
+        <div class="mods-grid">
+          <div class="mod-card">
+            <div class="mod-top">
+              <div class="mod-icon">⚡</div>
+              <div class="mod-meta">
+                <h3>Sodium</h3>
+                <span>Performance Master</span>
+              </div>
+            </div>
+            <div class="mod-desc">Revolutionary modern rendering engine that drastically increases frame rates.</div>
+            <div class="mod-footer">
+              <span class="mod-badge">Fabric</span>
+              <label class="toggle-switch">
+                <input type="checkbox" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="mod-card">
+            <div class="mod-top">
+              <div class="mod-icon">🌈</div>
+              <div class="mod-meta">
+                <h3>Iris Shaders</h3>
+                <span>OptiFine Alternative</span>
+              </div>
+            </div>
+            <div class="mod-desc">High-speed, modern shaderpack support compatible with Sodium rendering.</div>
+            <div class="mod-footer">
+              <span class="mod-badge">Fabric</span>
+              <label class="toggle-switch">
+                <input type="checkbox" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="mod-card">
+            <div class="mod-top">
+              <div class="mod-icon">🧪</div>
+              <div class="mod-meta">
+                <h3>Lithium</h3>
+                <span>Physics & Ticks</span>
+              </div>
+            </div>
+            <div class="mod-desc">Optimizes entity physics, mob AI, and chunk loading without altering gameplay.</div>
+            <div class="mod-footer">
+              <span class="mod-badge">Fabric</span>
+              <label class="toggle-switch">
+                <input type="checkbox" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="mod-card">
+            <div class="mod-top">
+              <div class="mod-icon">💾</div>
+              <div class="mod-meta">
+                <h3>FerriteCore</h3>
+                <span>Memory Saver</span>
+              </div>
+            </div>
+            <div class="mod-desc">Significantly reduces RAM consumption of Minecraft instances by up to 50%.</div>
+            <div class="mod-footer">
+              <span class="mod-badge">Fabric</span>
+              <label class="toggle-switch">
+                <input type="checkbox" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Settings Tab -->
+      <!-- SETTINGS TAB -->
       <div id="tab-settings" class="tab-content">
-        <div class="card">
-          <div class="card-title">Performance & Memory</div>
-          
-          <div class="input-group">
-            <label>Max Memory (RAM in MB)</label>
-            <input type="number" id="ram-limit" value="4096" step="1024">
+        <div class="config-card">
+          <h2 style="font-size: 18px; font-weight: 700;">JVM Memory & Optimization</h2>
+          <div class="grid-2">
+            <div class="input-field">
+              <label>Allocated RAM (MB)</label>
+              <input type="number" id="ram-limit" value="4096" step="1024">
+            </div>
+            <div class="input-field">
+              <label>Direct Join Server IP (Optional)</label>
+              <input type="text" id="server-ip" placeholder="e.g. mc.hypixel.net">
+            </div>
           </div>
 
-          <div class="input-group">
-            <label>Quick Play Server IP (Optional)</label>
-            <input type="text" id="server-ip" placeholder="e.g. mc.hypixel.net">
+          <div class="toggle-row">
+            <div>
+              <div style="font-weight: 700; font-size: 13px;">Ultra FPS Boost Flags</div>
+              <div style="font-size: 11px; color: var(--text-muted);">Injects pre-touch JVM heap & low-pause garbage collection args.</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="fps-boost-toggle" checked>
+              <span class="slider"></span>
+            </label>
           </div>
         </div>
       </div>
+
+      <!-- CONSOLE TAB -->
+      <div id="tab-console" class="tab-content">
+        <div class="config-card">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="font-size: 18px; font-weight: 700;">Realtime Output Console</h2>
+            <button class="nav-btn" style="background: rgba(255,255,255,0.05); padding: 6px 12px; font-size: 11px;" onclick="clearConsole()">Clear</button>
+          </div>
+          <div class="console-container" id="console-stream">
+            <div class="console-line log-cinder">[CINDER-CORE] Initializing runtime hooks and Discord Rich Presence...</div>
+            <div class="console-line log-info">[READY] Client v1.0.4 loaded successfully.</div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
   <script>
-    function switchTab(tabId) {
+    function switchTab(btn, tabId) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
       
       const target = document.getElementById(`tab-${tabId}`);
       if (target) target.classList.add('active');
-      event.target.classList.add('active');
+      btn.classList.add('active');
     }
 
-    function addLog(msg) {
-      const consoleBox = document.getElementById('console-output');
+    function updateProfileName(val) {
+      const name = val.trim() || 'Player';
+      document.getElementById('profile-name').innerText = name;
+      document.getElementById('avatar-img').src = `https://minotar.net/avatar/${name}/32`;
+    }
+
+    function addLog(msg, type = 'info') {
+      const stream = document.getElementById('console-stream');
       const line = document.createElement('div');
-      line.className = 'console-line';
+      line.className = `console-line log-${type}`;
       line.innerText = msg;
-      consoleBox.appendChild(line);
-      consoleBox.scrollTop = consoleBox.scrollHeight;
+      stream.appendChild(line);
+      stream.scrollTop = stream.scrollHeight;
+    }
+
+    function clearConsole() {
+      document.getElementById('console-stream').innerHTML = '<div class="console-line log-info">[CONSOLE] Cleared.</div>';
     }
 
     function triggerLaunch() {
       const btn = document.getElementById('launch-btn');
       btn.disabled = true;
-      btn.innerText = 'LAUNCHING...';
+      btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path></svg> PREPARING LAUNCH...`;
 
       const config = {
         username: document.getElementById('mc-username').value.trim() || 'Player',
         version: document.getElementById('mc-version').value,
         loaderType: document.getElementById('mc-loader').value,
         memoryMax: parseInt(document.getElementById('ram-limit').value) || 4096,
-        fpsBoost: true,
+        fpsBoost: document.getElementById('fps-boost-toggle').checked,
         serverIp: document.getElementById('server-ip').value.trim() || null
       };
 
-      addLog(`[Cinder] Initializing launch sequence for Minecraft ${config.version} (${config.loaderType})...`);
+      addLog(`[CINDER] Launching Minecraft ${config.version} (${config.loaderType}) for user ${config.username}...`, 'cinder');
       window.electronAPI.launchGame(config);
     }
 
     window.electronAPI.onGameLog((data) => {
-      addLog(data.text);
+      addLog(data.text, 'info');
     });
 
     window.electronAPI.onGameStatus((status) => {
       const btn = document.getElementById('launch-btn');
       if (status === 'started') {
-        btn.innerText = 'GAME RUNNING';
+        btn.innerHTML = `GAME RUNNING`;
       } else if (status === 'closed') {
         btn.disabled = false;
-        btn.innerText = 'LAUNCH GAME';
-        addLog('[Cinder] Minecraft process finished.');
+        btn.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> LAUNCH MINECRAFT`;
+        addLog('[CINDER] Game process exited cleanly.', 'success');
       }
     });
 
     window.electronAPI.onUpdateMessage((msg) => {
-      addLog(`[AutoUpdater] ${msg}`);
+      addLog(`[AUTO-UPDATER] ${msg}`, 'warn');
     });
   </script>
 </body>
