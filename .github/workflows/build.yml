@@ -28,4 +28,4 @@ jobs:
       - name: Build and Publish Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx electron-builder --win --publish always -c.publish.provider=github -c.publish.owner=aryansxs9-crypto -c.publish.repo=Cinder-Launcher
+        run: npx electron-builder --win --publish always
