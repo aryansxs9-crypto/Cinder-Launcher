@@ -9,10 +9,10 @@ const DiscordRPC = require('discord-rpc');
 let mainWindow;
 const launcher = new Client();
 const cinderRoot = path.join(app.getPath('appData'), '.cinder');
+const modsDir = path.join(cinderRoot, 'mods');
 
-if (!fs.existsSync(cinderRoot)) {
-  fs.mkdirSync(cinderRoot, { recursive: true });
-}
+if (!fs.existsSync(cinderRoot)) fs.mkdirSync(cinderRoot, { recursive: true });
+if (!fs.existsSync(modsDir)) fs.mkdirSync(modsDir, { recursive: true });
 
 const CLIENT_ID = '123456789012345678';
 let rpcClient;
@@ -21,11 +21,7 @@ function initDiscordRPC() {
   try {
     DiscordRPC.register(CLIENT_ID);
     rpcClient = new DiscordRPC.Client({ transport: 'ipc' });
-
-    rpcClient.on('ready', () => {
-      setRPCActivity('Idle in Launcher', 'Main Menu');
-    });
-
+    rpcClient.on('ready', () => setRPCActivity('Idle in Launcher', 'Home'));
     rpcClient.login({ clientId: CLIENT_ID }).catch(() => {});
   } catch (err) {}
 }
@@ -46,10 +42,10 @@ function setRPCActivity(details, state) {
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1080,
-    height: 680,
-    minWidth: 960,
-    minHeight: 600,
+    width: 1100,
+    height: 700,
+    minWidth: 980,
+    minHeight: 640,
     frame: false,
     transparent: true,
     backgroundColor: '#00000000',
@@ -68,9 +64,7 @@ function createWindow() {
     return { action: 'deny' };
   });
 
-  mainWindow.on('closed', () => {
-    mainWindow = null;
-  });
+  mainWindow.on('closed', () => { mainWindow = null; });
 }
 
 app.whenReady().then(() => {
@@ -87,35 +81,95 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  if (process.platform !== 'darwin') app.quit();
 });
 
-ipcMain.on('window-minimize', () => {
-  if (mainWindow) mainWindow.minimize();
-});
-
+// Window controls
+ipcMain.on('window-minimize', () => mainWindow?.minimize());
 ipcMain.on('window-maximize', () => {
-  if (mainWindow) {
-    mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize();
+  if (mainWindow) mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize();
+});
+ipcMain.on('window-close', () => mainWindow?.close());
+ipcMain.on('open-external', (e, url) => { if (url) shell.openExternal(url); });
+ipcMain.on('open-game-folder', () => shell.openPath(cinderRoot));
+
+// Modrinth API IPC handlers
+ipcMain.handle('get-installed-mods', async () => {
+  try {
+    if (!fs.existsSync(modsDir)) return [];
+    return fs.readdirSync(modsDir).filter(f => f.endsWith('.jar'));
+  } catch (e) {
+    return [];
   }
 });
 
-ipcMain.on('window-close', () => {
-  if (mainWindow) mainWindow.close();
-});
-
-ipcMain.on('open-external', (event, url) => {
-  if (url && (url.startsWith('https://') || url.startsWith('http://'))) {
-    shell.openExternal(url);
+ipcMain.handle('delete-mod', async (event, filename) => {
+  try {
+    const filePath = path.join(modsDir, filename);
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: e.message };
   }
 });
 
-ipcMain.on('open-game-folder', () => {
-  shell.openPath(cinderRoot);
+ipcMain.handle('search-mods', async (event, { query, version, loader }) => {
+  return new Promise((resolve) => {
+    const facets = JSON.stringify([
+      [`project_type:mod`],
+      [`versions:${version}`],
+      [`categories:${loader.toLowerCase()}`]
+    ]);
+    const url = `https://api.modrinth.com/v2/search?query=${encodeURIComponent(query || '')}&facets=${encodeURIComponent(facets)}&limit=12`;
+
+    https.get(url, { headers: { 'User-Agent': 'CinderClient/1.0.4' } }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+          resolve(parsed.hits || []);
+        } catch (e) {
+          resolve([]);
+        }
+      });
+    }).on('error', () => resolve([]));
+  });
 });
 
+ipcMain.handle('install-mod', async (event, { projectId, version, loader }) => {
+  return new Promise((resolve) => {
+    const url = `https://api.modrinth.com/v2/project/${projectId}/version?loaders=["${loader.toLowerCase()}"]&game_versions=["${version}"]`;
+
+    https.get(url, { headers: { 'User-Agent': 'CinderClient/1.0.4' } }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const versions = JSON.parse(data);
+          if (!versions || versions.length === 0) {
+            return resolve({ success: false, error: 'No compatible build found' });
+          }
+          const primaryFile = versions[0].files.find(f => f.primary) || versions[0].files[0];
+          const destPath = path.join(modsDir, primaryFile.filename);
+          const fileStream = fs.createWriteStream(destPath);
+
+          https.get(primaryFile.url, (fileRes) => {
+            fileRes.pipe(fileStream);
+            fileStream.on('finish', () => {
+              fileStream.close();
+              resolve({ success: true });
+            });
+          }).on('error', (err) => resolve({ success: false, error: err.message }));
+        } catch (e) {
+          resolve({ success: false, error: e.message });
+        }
+      });
+    }).on('error', (e) => resolve({ success: false, error: e.message }));
+  });
+});
+
+// Launch Game IPC
 ipcMain.on('launch-game', async (event, config) => {
   const { username, version, loaderType, memoryMax, fpsBoost, serverIp } = config;
 
@@ -147,7 +201,7 @@ ipcMain.on('launch-game', async (event, config) => {
           let data = '';
           res.on('data', chunk => data += chunk);
           res.on('end', () => {
-            try { resolve(JSON.parse(data)); } catch(e) { reject(e); }
+            try { resolve(JSON.parse(data)); } catch (e) { reject(e); }
           });
         }).on('error', reject);
       });
@@ -161,7 +215,7 @@ ipcMain.on('launch-game', async (event, config) => {
         };
       }
     } catch (e) {
-      mainWindow?.webContents.send('game-log', { text: `Fabric resolution fallback to vanilla: ${e.message}` });
+      mainWindow?.webContents.send('game-log', { text: `Fabric fetch failed: ${e.message}` });
     }
   }
 
@@ -187,7 +241,6 @@ ipcMain.on('launch-game', async (event, config) => {
 
   try {
     launcher.launch(launchOpts);
-
     launcher.on('debug', (e) => mainWindow?.webContents.send('game-log', { text: e }));
     launcher.on('data', (e) => {
       mainWindow?.webContents.send('game-log', { text: e });
@@ -198,22 +251,20 @@ ipcMain.on('launch-game', async (event, config) => {
     });
     launcher.on('close', () => {
       mainWindow?.webContents.send('game-status', 'closed');
-      setRPCActivity('Idle in Launcher', 'Main Menu');
+      setRPCActivity('Idle in Launcher', 'Home');
     });
-
   } catch (err) {
     mainWindow?.webContents.send('game-log', { text: `[ERROR]: ${err.message}` });
     mainWindow?.webContents.send('game-status', 'closed');
   }
 });
 
+// Auto-Updater
 autoUpdater.on('update-available', () => {
   mainWindow?.webContents.send('update-message', 'Update available. Downloading...');
 });
 
 autoUpdater.on('update-downloaded', () => {
-  mainWindow?.webContents.send('update-message', 'Update ready. Restarting...');
-  setTimeout(() => {
-    autoUpdater.quitAndInstall();
-  }, 3000);
+  mainWindow?.webContents.send('update-message', 'Update downloaded. Restarting...');
+  setTimeout(() => autoUpdater.quitAndInstall(), 3000);
 });
