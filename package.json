@@ -1,38 +1,21 @@
 {
-  "name": "cinder-launcher",
+  "name": "cinder-client",
+  "productName": "Cinder Client",
   "version": "1.0.1",
-  "description": "Clean, Modern Minecraft Launcher",
+  "description": "Next-Gen Minecraft Performance Launcher",
   "main": "main.js",
-  "scripts": {
-    "start": "electron .",
-    "build": "electron-builder --win",
-    "dist": "electron-builder --win"
-  },
-  "dependencies": {
-    "axios": "^1.7.9",
-    "discord-rpc": "^4.0.1",
-    "electron-updater": "^6.3.9",
-    "minecraft-launcher-core": "^3.2.27"
-  },
-  "devDependencies": {
-    "electron": "^33.2.1",
-    "electron-builder": "^25.1.8"
-  },
   "build": {
-    "appId": "com.ember.launcher",
-    "productName": "Ember Launcher",
-    "publish": {
-      "provider": "github",
-      "owner": "aryansxs9-crypto",
-      "repo": "Ember-Launch"
-    },
+    "appId": "com.cinder.launcher",
+    "productName": "Cinder Client",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "aryansxs9-crypto",
+        "repo": "Ember-Launch"
+      }
+    ],
     "win": {
       "target": "nsis"
-    },
-    "files": [
-      "index.html",
-      "main.js",
-      "preload.js"
-    ]
+    }
   }
 }
