@@ -1,573 +1,1689 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cinder Client</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      user-select: none;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cinder Client</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    body {
-      background: radial-gradient(circle at top right, #1f1224, #0d0e15 60%, #050508);
-      color: #f4f4f5;
-      height: 100vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 10px;
-    }
+<style>
+  :root {
+    --bg-dark: #050608;
+    --accent: #ff6a00;
+    --accent-glow: rgba(255, 106, 0, 0.45);
+    --accent-dim: rgba(255, 106, 0, 0.12);
+    --glass-base: rgba(13, 14, 20, 0.72);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-border-hi: rgba(255, 255, 255, 0.18);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #475569;
+    --emerald: #10b981;
+    --rose: #f43f5e;
+    --discord: #5865F2;
+    --radius-xl: 22px;
+    --radius-md: 14px;
+  }
 
-    /* Title Bar */
-    .titlebar {
-      height: 40px;
-      background: rgba(13, 14, 21, 0.7);
-      backdrop-filter: blur(12px);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 16px;
-      -webkit-app-region: drag;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    }
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    height: 100vh;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.8px;
-      color: #ff5722;
-      text-transform: uppercase;
-    }
+  /* Boot Splash Screen */
+  .boot-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: #040507;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s ease;
+    pointer-events: all;
+  }
+  .boot-screen.fade-out {
+    opacity: 0;
+    transform: scale(1.04);
+    pointer-events: none;
+  }
+  .boot-gem {
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #ff8c00, #e52e71);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    box-shadow: 0 0 45px var(--accent-glow);
+    animation: pulseGem 2s infinite ease-in-out;
+  }
+  @keyframes pulseGem {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 35px var(--accent-glow); }
+    50% { transform: scale(1.05); box-shadow: 0 0 65px rgba(255, 106, 0, 0.7); }
+  }
+  .boot-title {
+    margin-top: 18px;
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: 4px;
+    background: linear-gradient(180deg, #fff 40%, #cbd5e1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .boot-bar {
+    width: 170px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 99px;
+    margin-top: 22px;
+    overflow: hidden;
+    position: relative;
+  }
+  .boot-progress {
+    position: absolute;
+    inset: 0;
+    width: 0%;
+    background: linear-gradient(90deg, #ff6a00, #ffaa40);
+    box-shadow: 0 0 12px var(--accent);
+    transition: width 0.4s ease;
+  }
 
-    .brand span {
-      color: #ffffff;
-    }
+  /* Ambient Canvas Background */
+  .bg-art {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: 
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255, 106, 0, 0.2), transparent 70%),
+      radial-gradient(circle at 15% 85%, rgba(16, 185, 129, 0.08), transparent 50%),
+      linear-gradient(180deg, rgba(5, 6, 8, 0.45) 0%, rgba(5, 6, 8, 0.92) 100%),
+      url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop') center/cover no-repeat;
+    filter: saturate(1.15);
+  }
 
-    .window-controls {
-      display: flex;
-      gap: 8px;
-      -webkit-app-region: no-drag;
-    }
+  .app-shell {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100vh;
+    padding: 14px 28px 18px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .app-shell.ready {
+    opacity: 1;
+    transform: translateY(0);
+  }
 
-    .win-btn {
-      background: transparent;
-      border: none;
-      color: #a1a1aa;
-      width: 26px;
-      height: 26px;
-      border-radius: 6px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      transition: background 0.2s, color 0.2s;
-    }
+  /* Top Navigation & Controls */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 42px;
+  }
+  .brand-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--glass-base);
+    border: 1px solid var(--glass-border);
+    padding: 5px 14px 5px 8px;
+    border-radius: 999px;
+    backdrop-filter: blur(24px);
+    -webkit-app-region: drag;
+  }
+  .brand-gem {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff8c00, #e52e71);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    box-shadow: 0 0 16px var(--accent-glow);
+  }
+  .brand-title {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    background: linear-gradient(180deg, #fff 30%, #cbd5e1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .brand-ver {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-dim);
+    border: 1px solid rgba(255, 106, 0, 0.25);
+    padding: 2px 6px;
+    border-radius: 999px;
+    font-family: 'JetBrains Mono', monospace;
+  }
 
-    .win-btn:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: #ffffff;
-    }
+  .top-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    -webkit-app-region: no-drag;
+  }
+  .glass-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 10px;
+    background: var(--glass-base);
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(20px);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .glass-btn:hover {
+    border-color: var(--glass-border-hi);
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-1px);
+  }
+  .glass-btn.discord {
+    color: #a5b4fc;
+    background: rgba(88, 101, 242, 0.15);
+    border-color: rgba(88, 101, 242, 0.3);
+  }
+  .glass-btn.discord:hover {
+    background: rgba(88, 101, 242, 0.3);
+    border-color: var(--discord);
+    color: #fff;
+    box-shadow: 0 0 14px rgba(88, 101, 242, 0.3);
+  }
 
-    .win-btn.close:hover {
-      background: #e11d48;
-      color: #ffffff;
-    }
+  .win-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 8px;
+    background: var(--glass-base);
+    border: 1px solid var(--glass-border);
+    padding: 4px 6px;
+    border-radius: 10px;
+  }
+  .win-dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 10px;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .win-dot:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
 
-    /* Main Container */
-    .app-body {
-      flex: 1;
-      display: flex;
-      padding: 24px;
-      gap: 24px;
-      overflow: hidden;
-    }
+  /* View Panels */
+  .view-panel {
+    display: none;
+    flex: 1;
+    margin: 8px 0;
+    overflow-y: auto;
+    animation: fadeInView 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .view-panel.active { display: flex; }
+  @keyframes fadeInView {
+    from { opacity: 0; transform: scale(0.985); }
+    to { opacity: 1; transform: scale(1); }
+  }
 
-    /* Left Panel: Settings */
-    .sidebar-panel {
-      width: 320px;
-      background: rgba(20, 21, 31, 0.6);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 12px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
+  .glass-panel {
+    background: var(--glass-base);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    backdrop-filter: blur(32px);
+    box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    overflow: hidden;
+  }
 
-    .section-title {
-      font-size: 12px;
-      font-weight: 700;
-      color: #71717a;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 2px;
-    }
+  /* HOME VIEW 3-COLUMNS */
+  .home-3col-grid {
+    display: grid;
+    grid-template-columns: 270px 1fr 280px;
+    gap: 16px;
+    width: 100%;
+    align-items: stretch;
+  }
 
-    .field-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
+  .stage-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 16px;
+    height: 480px;
+  }
+  .stage-badge {
+    align-self: flex-start;
+    font-size: 9.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--emerald);
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    padding: 3px 8px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .stage-badge::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--emerald);
+    box-shadow: 0 0 8px var(--emerald);
+  }
+  .skin-container {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    background: radial-gradient(circle at 50% 80%, rgba(255, 106, 0, 0.15) 0%, transparent 65%);
+  }
+  .skin-container:active { cursor: grabbing; }
+  .skin-container canvas {
+    max-width: 100%;
+    max-height: 100%;
+    outline: none;
+  }
 
-    .field-group label {
-      font-size: 12px;
-      color: #d4d4d8;
-      font-weight: 500;
-    }
+  .identity-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--glass-border);
+    padding: 6px 12px;
+    border-radius: 12px;
+  }
+  .identity-name {
+    font-size: 13px;
+    font-weight: 700;
+  }
 
-    input, select {
-      width: 100%;
-      background: rgba(0, 0, 0, 0.35);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      padding: 10px 12px;
-      font-size: 13px;
-      color: #ffffff;
-      outline: none;
-      transition: border-color 0.2s;
-    }
+  .center-column {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    height: 480px;
+  }
 
-    input:focus, select:focus {
-      border-color: #ff5722;
-    }
+  .dashboard-panel {
+    padding: 18px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--glass-border);
+  }
+  .panel-tag {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .status-tag {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+  }
 
-    .toggle-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 4px;
-    }
+  .hud-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .hud-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--glass-border);
+    padding: 9px 12px;
+    border-radius: 10px;
+  }
+  .hud-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+  .hud-val {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+  }
 
-    .toggle-row span {
-      font-size: 13px;
-      color: #d4d4d8;
-    }
+  .patch-notes-panel {
+    flex: 1;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .patch-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--glass-border);
+  }
+  .patch-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    font-weight: 800;
+  }
+  .patch-badge {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-dim);
+    border: 1px solid rgba(255, 106, 0, 0.25);
+    padding: 2px 6px;
+    border-radius: 999px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .patch-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+  }
+  .patch-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+  .patch-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-top: 5px;
+    flex-shrink: 0;
+    box-shadow: 0 0 6px var(--accent-glow);
+  }
 
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 40px;
-      height: 22px;
-    }
+  .servers-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 18px;
+    height: 480px;
+  }
+  .servers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .server-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid var(--glass-border);
+    padding: 10px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .server-card:hover {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+    transform: translateY(-1px);
+  }
+  .srv-rank {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--accent);
+    width: 20px;
+  }
+  .srv-info h4 { font-size: 12px; font-weight: 700; }
+  .srv-info span { font-size: 10.5px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+  .srv-badge {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--emerald);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .srv-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--emerald);
+    box-shadow: 0 0 6px var(--emerald);
+  }
 
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
+  .discord-server-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(88, 101, 242, 0.12);
+    border: 1px solid rgba(88, 101, 242, 0.25);
+    padding: 10px;
+    border-radius: 12px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #c7d2fe;
+    cursor: pointer;
+    transition: 0.2s;
+    margin-top: 10px;
+  }
+  .discord-server-banner:hover {
+    background: rgba(88, 101, 242, 0.25);
+    border-color: var(--discord);
+    color: #fff;
+    box-shadow: 0 0 16px rgba(88, 101, 242, 0.35);
+  }
 
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: rgba(255, 255, 255, 0.15);
-      transition: .3s;
-      border-radius: 22px;
-    }
+  /* MODS HUB VIEW */
+  .mods-container {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 16px;
+    width: 100%;
+    height: 480px;
+  }
+  .mods-explore-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px 22px;
+    overflow-y: hidden;
+  }
+  .mods-search-bar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .mods-input {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--glass-border-hi);
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+  }
+  .mods-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+  .mod-card {
+    display: flex;
+    gap: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--glass-border);
+    padding: 12px;
+    border-radius: 14px;
+    align-items: center;
+    justify-content: space-between;
+    transition: 0.2s;
+  }
+  .mod-card:hover {
+    border-color: var(--glass-border-hi);
+    background: rgba(255, 255, 255, 0.03);
+  }
+  .mod-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: #1e293b;
+    object-fit: cover;
+  }
+  .mod-details {
+    flex: 1;
+    overflow: hidden;
+    margin-right: 8px;
+  }
+  .mod-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mod-desc {
+    font-size: 10.5px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+  }
+  .mod-btn {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .mod-btn.install {
+    background: var(--accent);
+    color: #0b0c10;
+  }
+  .mod-btn.install:hover {
+    box-shadow: 0 0 12px var(--accent-glow);
+  }
+  .mod-btn.installed {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--emerald);
+    border: 1px solid var(--emerald);
+    cursor: default;
+  }
+  .installed-panel {
+    display: flex;
+    flex-direction: column;
+    padding: 18px;
+    gap: 12px;
+    overflow-y: hidden;
+  }
+  .installed-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .installed-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--glass-border);
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 11.5px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .del-btn {
+    color: var(--rose);
+    background: rgba(244, 63, 94, 0.1);
+    border: 1px solid rgba(244, 63, 94, 0.3);
+    padding: 3px 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 10px;
+  }
+  .del-btn:hover { background: rgba(244, 63, 94, 0.25); }
 
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 16px;
-      width: 16px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: .3s;
-      border-radius: 50%;
-    }
+  /* CONFIG VIEW */
+  .config-view-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+  }
+  .config-panel {
+    width: 680px;
+    padding: 24px 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .config-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .config-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--glass-border);
+    padding: 11px 16px;
+    border-radius: 12px;
+  }
+  .config-label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .config-label-title {
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .config-label-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .chip-group { display: flex; gap: 6px; }
+  .chip {
+    padding: 5px 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    font-size: 11.5px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .chip:hover { color: #fff; border-color: var(--glass-border-hi); }
+  .chip.active {
+    color: #fff;
+    background: rgba(255, 106, 0, 0.18);
+    border-color: var(--accent);
+    box-shadow: 0 0 14px rgba(255, 106, 0, 0.3);
+  }
 
-    input:checked + .slider {
-      background-color: #ff5722;
-    }
+  .config-input, .config-select {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--glass-border-hi);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    outline: none;
+    min-width: 170px;
+  }
 
-    input:checked + .slider:before {
-      transform: translateX(18px);
-    }
+  .config-select option {
+    background: #0f1016;
+    color: #fff;
+  }
 
-    /* Right Panel: Showcase / Launch Area */
-    .launch-panel {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      background: linear-gradient(180deg, rgba(255, 87, 34, 0.05), rgba(0, 0, 0, 0.4)), url('https://images.unsplash.com/photo-1627856013091-fed6e4e30025?q=80&w=1200&auto=format&fit=crop') center/cover;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 12px;
-      padding: 28px;
-      position: relative;
-      overflow: hidden;
-    }
+  .micro-switch {
+    width: 34px;
+    height: 19px;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.1);
+    position: relative;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .micro-switch.on { background: var(--accent); box-shadow: 0 0 12px var(--accent-glow); }
+  .switch-dot {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: #fff;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .micro-switch.on .switch-dot { left: 18px; }
 
-    .launch-panel::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: rgba(10, 10, 15, 0.7);
-      backdrop-filter: blur(4px);
-    }
+  .save-hub-btn {
+    align-self: flex-end;
+    padding: 10px 22px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #ff8c00, #ff4500);
+    color: #0b0c10;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.4px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px var(--accent-glow);
+    transition: 0.2s;
+  }
+  .save-hub-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(255, 106, 0, 0.6); }
 
-    .hero-content, .bottom-dock {
-      position: relative;
-      z-index: 2;
-    }
+  /* BOTTOM LAUNCH DOCK & PROGRESS BAR */
+  .bottom-dock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
 
-    .hero-tag {
-      display: inline-block;
-      background: rgba(255, 87, 34, 0.15);
-      border: 1px solid rgba(255, 87, 34, 0.3);
-      color: #ff784e;
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 12px;
-    }
+  .launch-progress-wrap {
+    width: 340px;
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 2px;
+  }
+  .progress-meta-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-secondary);
+  }
+  .progress-track-bg {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-bar-inner {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #ffaa40);
+    box-shadow: 0 0 10px var(--accent-glow);
+    transition: width 0.2s ease;
+  }
 
-    .hero-title {
-      font-size: 32px;
-      font-weight: 800;
-      line-height: 1.1;
-      margin-bottom: 8px;
-    }
+  .launch-pill {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border-radius: 999px;
+    padding: 6px 8px 6px 26px;
+    gap: 18px;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 40px rgba(255, 255, 255, 0.35), 0 10px 30px rgba(0,0,0,0.6);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .launch-pill:hover:not(:disabled) {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 0 60px rgba(255, 255, 255, 0.55), 0 14px 40px rgba(0,0,0,0.8);
+  }
+  .launch-pill:active:not(:disabled) { transform: translateY(0) scale(0.99); }
+  .launch-pill:disabled {
+    cursor: not-allowed;
+    opacity: 0.8;
+  }
+  .launch-title {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    color: #050608;
+    text-transform: uppercase;
+  }
+  .launch-meta-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #0d0e14;
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .launch-meta-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--emerald);
+    box-shadow: 0 0 8px var(--emerald);
+  }
+  .launch-pill.playing {
+    background: #1e293b;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+  .launch-pill.playing .launch-title { color: #fff; }
 
-    .hero-sub {
-      color: #a1a1aa;
-      font-size: 14px;
-      max-width: 440px;
-      line-height: 1.5;
-    }
+  .nav-dock {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--glass-base);
+    border: 1px solid var(--glass-border);
+    padding: 3px;
+    border-radius: 999px;
+    backdrop-filter: blur(24px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+  }
+  .nav-tab {
+    padding: 6px 16px;
+    border-radius: 999px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .nav-tab.active {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  }
+  .nav-tab:hover:not(.active) { color: #fff; }
 
-    /* Launch Actions & Progress Bar */
-    .bottom-dock {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 12px;
-      width: 100%;
-    }
-
-    .progress-box {
-      width: 100%;
-      max-width: 340px;
-      display: none;
-    }
-
-    .progress-meta {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      color: #d4d4d8;
-      margin-bottom: 6px;
-    }
-
-    .progress-track {
-      width: 100%;
-      height: 6px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 6px;
-      overflow: hidden;
-    }
-
-    .progress-bar-fill {
-      width: 0%;
-      height: 100%;
-      background: linear-gradient(90deg, #ff5722, #ff9800);
-      transition: width 0.25s ease;
-      box-shadow: 0 0 10px rgba(255, 87, 34, 0.6);
-    }
-
-    .action-row {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #ffffff;
-      padding: 12px 18px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 600;
-      transition: background 0.2s;
-    }
-
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.14);
-    }
-
-    .btn-launch {
-      background: linear-gradient(135deg, #ff5722, #e64a19);
-      border: none;
-      color: #ffffff;
-      padding: 14px 44px;
-      border-radius: 8px;
-      font-size: 15px;
-      font-weight: 800;
-      letter-spacing: 1px;
-      cursor: pointer;
-      box-shadow: 0 4px 20px rgba(255, 87, 34, 0.4);
-      transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
-    }
-
-    .btn-launch:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 24px rgba(255, 87, 34, 0.55);
-    }
-
-    .btn-launch:active:not(:disabled) {
-      transform: translateY(0);
-    }
-
-    .btn-launch:disabled {
-      cursor: not-allowed;
-      opacity: 0.65;
-    }
-
-    /* Logs Modal */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(8px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-    }
-
-    .modal-box {
-      width: 700px;
-      max-height: 480px;
-      background: #0d0e15;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .modal-header {
-      padding: 14px 18px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      font-size: 13px;
-      font-weight: 600;
-    }
-
-    .log-viewport {
-      padding: 14px;
-      font-family: monospace;
-      font-size: 12px;
-      color: #10b981;
-      background: #050508;
-      overflow-y: auto;
-      height: 380px;
-      white-space: pre-wrap;
-      word-break: break-all;
-    }
-  </style>
+  /* Console Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(16px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+  }
+  .modal-overlay.open { display: flex; }
+  .console-panel {
+    width: 680px;
+    height: 440px;
+    background: #08090d;
+    border: 1px solid var(--glass-border-hi);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 30px 70px rgba(0,0,0,0.9);
+  }
+  .console-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--glass-border);
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .console-logs {
+    flex: 1;
+    padding: 16px 20px;
+    overflow-y: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: #cbd5e1;
+  }
+</style>
 </head>
 <body>
 
-  <!-- Titlebar -->
-  <div class="titlebar">
-    <div class="brand">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.1-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/>
-      </svg>
-      Cinder <span>Client</span>
+<div class="boot-screen" id="bootScreen">
+  <div class="boot-gem">🔥</div>
+  <div class="boot-title">CINDER CLIENT</div>
+  <div class="boot-bar">
+    <div class="boot-progress" id="bootProgress"></div>
+  </div>
+</div>
+
+<div class="bg-art"></div>
+
+<div class="modal-overlay" id="consoleModal">
+  <div class="console-panel">
+    <div class="console-head">
+      <span>Console Output</span>
+      <div class="win-dot" id="consoleCloseBtn">✕</div>
     </div>
-    <div class="window-controls">
-      <button class="win-btn" id="minBtn">−</button>
-      <button class="win-btn" id="maxBtn">□</button>
-      <button class="win-btn close" id="closeBtn">✕</button>
+    <div class="console-logs" id="consoleLogs"></div>
+  </div>
+</div>
+
+<div class="app-shell" id="appShell">
+
+  <div class="topbar">
+    <div class="brand-chip">
+      <div class="brand-gem">🔥</div>
+      <span class="brand-title">CINDER</span>
+      <span class="brand-ver">v1.1.2</span>
+    </div>
+
+    <div class="top-actions">
+      <button class="glass-btn discord" id="discordTopBtn">💬 Discord</button>
+      <button class="glass-btn" id="openFolderBtn">📁 Game Root</button>
+      <button class="glass-btn" id="openConsoleBtn">⌘ Logs</button>
+      <div class="win-group">
+        <div class="win-dot" id="minBtn">—</div>
+        <div class="win-dot" id="maxBtn">▢</div>
+        <div class="win-dot" id="closeBtn">✕</div>
+      </div>
     </div>
   </div>
 
-  <!-- App Body -->
-  <div class="app-body">
-    <!-- Left Panel: Configuration -->
-    <div class="sidebar-panel">
-      <span class="section-title">Configuration Hub</span>
-
-      <div class="field-group">
-        <label>Player Username</label>
-        <input type="text" id="usernameInput" value="CinderUser" placeholder="Enter username">
-      </div>
-
-      <div class="field-group">
-        <label>Minecraft Version</label>
-        <select id="versionSelect">
-          <option value="1.21.4">1.21.4 (Latest)</option>
-          <option value="1.20.4">1.20.4</option>
-          <option value="1.20.1">1.20.1</option>
-          <option value="1.19.4">1.19.4</option>
-          <option value="1.16.5">1.16.5</option>
-          <option value="1.8.9">1.8.9 (Legacy)</option>
-        </select>
-      </div>
-
-      <div class="field-group">
-        <label>Mod Engine</label>
-        <select id="loaderSelect">
-          <option value="Fabric">Fabric (Optimized)</option>
-          <option value="Vanilla">Vanilla</option>
-          <option value="Forge">Forge</option>
-        </select>
-      </div>
-
-      <div class="field-group">
-        <label>Allocated Memory (RAM)</label>
-        <select id="ramSelect">
-          <option value="2048">2 GB</option>
-          <option value="4096" selected>4 GB (Recommended)</option>
-          <option value="6144">6 GB</option>
-          <option value="8192">8 GB</option>
-        </select>
-      </div>
-
-      <div class="toggle-row">
-        <span>FPS Boost Flags</span>
-        <label class="switch">
-          <input type="checkbox" id="fpsBoostToggle" checked>
-          <span class="slider"></span>
-        </label>
-      </div>
-
-      <div class="field-group" style="margin-top: auto;">
-        <button class="btn-secondary" id="openFolderBtn">Open Game Folder</button>
-      </div>
-    </div>
-
-    <!-- Right Panel: Launch Showcase -->
-    <div class="launch-panel">
-      <div class="hero-content">
-        <div class="hero-tag">High Performance Runtime</div>
-        <h1 class="hero-title">Ready for Departure</h1>
-        <p class="hero-sub">Equipped with automatic Adoptium Java runtime resolution and Fabric profile streaming.</p>
-      </div>
-
-      <div class="bottom-dock">
-        <!-- Progress Bar -->
-        <div class="progress-box" id="launchProgressContainer">
-          <div class="progress-meta">
-            <span id="statusLabel">Preparing engine...</span>
-            <span id="percentLabel">0%</span>
+  <!-- HOME VIEW -->
+  <div class="view-panel active" id="viewHome">
+    <div class="home-3col-grid">
+      
+      <div class="glass-panel stage-panel">
+        <div class="stage-badge">READY TO PLAY</div>
+        <div class="skin-container" id="stage3d">
+          <canvas id="skinCanvas"></canvas>
+        </div>
+        <div class="identity-bar">
+          <div>
+            <div style="font-size:9.5px; color:var(--text-muted); font-weight:700; text-transform:uppercase;">PROFILE</div>
+            <div class="identity-name" id="displayPlayerName">Player</div>
           </div>
-          <div class="progress-track">
-            <div class="progress-bar-fill" id="launchProgressBar"></div>
+        </div>
+      </div>
+
+      <div class="center-column">
+        <div class="glass-panel dashboard-panel">
+          <div class="panel-header">
+            <span class="panel-tag">ENGINE HUD</span>
+            <span class="status-tag" id="statusPill">ACTIVE</span>
+          </div>
+          <div class="hud-grid">
+            <div class="hud-row">
+              <span class="hud-label">📦 Version</span>
+              <span class="hud-val" id="hudVersion">1.20.4</span>
+            </div>
+            <div class="hud-row">
+              <span class="hud-label">⚙️ Loader</span>
+              <span class="hud-val" id="hudLoader">Fabric</span>
+            </div>
+            <div class="hud-row">
+              <span class="hud-label">🧠 Memory</span>
+              <span class="hud-val" id="hudRam">4 GB</span>
+            </div>
+            <div class="hud-row">
+              <span class="hud-label">🚀 Optimizations</span>
+              <span class="hud-val" id="hudFps">G1GC</span>
+            </div>
           </div>
         </div>
 
-        <!-- Launch Buttons -->
-        <div class="action-row">
-          <button class="btn-secondary" id="viewLogsBtn">Console</button>
-          <button class="btn-launch" id="launchBtn">LAUNCH</button>
+        <div class="glass-panel patch-notes-panel">
+          <div class="patch-header">
+            <div class="patch-title">
+              <span>📢 Patch Notes</span>
+              <span class="patch-badge">v1.1.2</span>
+            </div>
+            <span style="font-size:10.5px; color:var(--text-muted);">Release</span>
+          </div>
+          <div class="patch-list">
+            <div class="patch-item">
+              <div class="patch-dot"></div>
+              <span><strong>Auto-Java Resolver:</strong> Automatically installs OpenJDK 8, 17, or 21 without manual setup.</span>
+            </div>
+            <div class="patch-item">
+              <div class="patch-dot"></div>
+              <span><strong>Library Sanitizer:</strong> Automatically detects and fixes interrupted or corrupted JAR files.</span>
+            </div>
+            <div class="patch-item">
+              <div class="patch-dot"></div>
+              <span><strong>In-Built Mods Hub:</strong> Search and 1-click install mods directly via Modrinth.</span>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- Console Logs Modal -->
-  <div class="modal-overlay" id="logsModal">
-    <div class="modal-box">
-      <div class="modal-header">
-        <span>System & Launch Console</span>
-        <button class="win-btn close" id="closeLogsBtn">✕</button>
+      <div class="glass-panel servers-panel">
+        <div>
+          <div class="panel-header">
+            <span class="panel-tag">SERVERS</span>
+            <span class="status-tag">1-CLICK JOIN</span>
+          </div>
+
+          <div class="servers-list">
+            <div class="server-card" onclick="triggerLaunch('play.pika-network.net')">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="srv-rank">#1</span>
+                <div class="srv-info">
+                  <h4>PikaNetwork</h4>
+                  <span>play.pika-network.net</span>
+                </div>
+              </div>
+              <div class="srv-badge"><div class="srv-dot"></div>Online</div>
+            </div>
+
+            <div class="server-card" onclick="triggerLaunch('top.jartex.fun')">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="srv-rank">#2</span>
+                <div class="srv-info">
+                  <h4>JartexNetwork</h4>
+                  <span>top.jartex.fun</span>
+                </div>
+              </div>
+              <div class="srv-badge"><div class="srv-dot"></div>Online</div>
+            </div>
+
+            <div class="server-card" onclick="triggerLaunch('play.blocksmc.com')">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="srv-rank">#3</span>
+                <div class="srv-info">
+                  <h4>BlocksMC</h4>
+                  <span>play.blocksmc.com</span>
+                </div>
+              </div>
+              <div class="srv-badge"><div class="srv-dot"></div>Online</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="discord-server-banner" id="discordBannerBtn">
+          💬 Join Official Discord Community →
+        </div>
       </div>
-      <div class="log-viewport" id="logBox">Waiting for engine start...</div>
+
     </div>
   </div>
 
-  <script>
-    // Titlebar Events
-    document.getElementById('minBtn').addEventListener('click', () => window.launcherAPI.minimize());
-    document.getElementById('maxBtn').addEventListener('click', () => window.launcherAPI.maximize());
-    document.getElementById('closeBtn').addEventListener('click', () => window.launcherAPI.close());
+  <!-- MODS HUB VIEW -->
+  <div class="view-panel" id="viewMods">
+    <div class="mods-container">
+      
+      <div class="glass-panel mods-explore-panel">
+        <div class="panel-header">
+          <span class="panel-tag">EXPLORE MODRINTH</span>
+          <span class="status-tag" id="modsFilterTag">FABRIC 1.20.4</span>
+        </div>
+
+        <div class="mods-search-bar">
+          <input type="text" class="mods-input" id="modsSearchInput" placeholder="🔍 Search mods (e.g. Sodium, Iris, Lithium)...">
+          <button class="glass-btn" id="refreshModsBtn">Search</button>
+        </div>
+
+        <div class="mods-grid" id="modsGrid"></div>
+      </div>
+
+      <div class="glass-panel installed-panel">
+        <div class="panel-header">
+          <span class="panel-tag">ACTIVE MODS</span>
+          <span class="status-tag" id="installedCountBadge">0 MODS</span>
+        </div>
+        <div class="installed-list" id="installedModsList"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CONFIG VIEW -->
+  <div class="view-panel" id="viewConfig">
+    <div class="config-view-container">
+      <div class="glass-panel config-panel">
+        <div class="panel-header">
+          <span class="panel-tag">ENGINE CONFIGURATION</span>
+          <span class="status-tag">CUSTOMIZE SPECS</span>
+        </div>
+
+        <div class="config-grid">
+          <div class="config-card">
+            <div class="config-label">
+              <span class="config-label-title">Offline Identity</span>
+              <span class="config-label-sub">In-game player username</span>
+            </div>
+            <input type="text" class="config-input" id="cfgPlayerName" value="" placeholder="e.g. Alex" maxlength="16">
+          </div>
+
+          <div class="config-card">
+            <div class="config-label">
+              <span class="config-label-title">Custom Avatar Skin</span>
+              <span class="config-label-sub">Upload your own Minecraft .png skin</span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <label class="glass-btn" style="cursor: pointer;">
+                📁 Browse .PNG
+                <input type="file" id="skinFileInput" accept="image/png" style="display: none;">
+              </label>
+              <button class="glass-btn" id="resetSkinBtn">Reset</button>
+            </div>
+          </div>
+
+          <div class="config-card" style="align-items: flex-start; flex-direction: column; gap: 10px;">
+            <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+              <div class="config-label">
+                <span class="config-label-title">Minecraft Version</span>
+                <span class="config-label-sub">Search and choose any official release</span>
+              </div>
+              <input type="text" class="config-input" id="cfgVersionSearch" placeholder="🔍 Search (e.g. 1.8.9)..." style="width: 170px; font-size: 12px; padding: 5px 10px;">
+            </div>
+            <select class="config-select" id="cfgVersionSelect" style="width: 100%;">
+              <option value="1.20.4">Loading versions...</option>
+            </select>
+          </div>
+
+          <div class="config-card">
+            <div class="config-label">
+              <span class="config-label-title">Mod Engine</span>
+              <span class="config-label-sub">Loader framework injection</span>
+            </div>
+            <div class="chip-group" id="cfgLoaderChips">
+              <span class="chip" data-val="Vanilla">Vanilla</span>
+              <span class="chip active" data-val="Fabric">Fabric</span>
+              <span class="chip" data-val="Forge">Forge</span>
+            </div>
+          </div>
+
+          <div class="config-card">
+            <div class="config-label">
+              <span class="config-label-title">Memory Allocation</span>
+              <span class="config-label-sub">JVM maximum heap size</span>
+            </div>
+            <div class="chip-group" id="cfgRamChips">
+              <span class="chip" data-val="2048">2 GB</span>
+              <span class="chip active" data-val="4096">4 GB</span>
+              <span class="chip" data-val="6144">6 GB</span>
+              <span class="chip" data-val="8192">8 GB</span>
+            </div>
+          </div>
+
+          <div class="config-card">
+            <div class="config-label">
+              <span class="config-label-title">FPS Booster</span>
+              <span class="config-label-sub">Apply low-latency G1GC memory flags</span>
+            </div>
+            <div class="micro-switch on" id="cfgFpsToggle" onclick="this.classList.toggle('on')">
+              <div class="switch-dot"></div>
+            </div>
+          </div>
+        </div>
+
+        <button class="save-hub-btn" id="saveHubBtn">Save & Apply →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Launch Dock with Live Progress Streamer -->
+  <div class="bottom-dock">
+    
+    <div class="launch-progress-wrap" id="launchProgressContainer">
+      <div class="progress-meta-row">
+        <span id="launchStatusText">Preparing Engine...</span>
+        <span id="launchPercentText">0%</span>
+      </div>
+      <div class="progress-track-bg">
+        <div class="progress-bar-inner" id="launchProgressBar"></div>
+      </div>
+    </div>
+
+    <button class="launch-pill" id="launchBtn">
+      <span class="launch-title" id="launchBtnText">LAUNCH</span>
+      <div class="launch-meta-badge" id="launchMetaBadge">1.20.4 · Fabric</div>
+    </button>
+
+    <div class="nav-dock">
+      <button class="nav-tab active" data-target="viewHome">Home</button>
+      <button class="nav-tab" data-target="viewMods">Mods</button>
+      <button class="nav-tab" data-target="viewConfig">Configure Hub</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- 3D Skin Render Dependency -->
+<script src="https://unpkg.com/skinview3d@3.0.1/bundles/skinview3d.bundle.js"></script>
+
+<script>
+  const STORAGE_KEY = 'cinder_client_config';
+  const DISCORD_INVITE_URL = 'https://discord.gg/YOUR_INVITE_CODE';
+  const isFirstLaunch = localStorage.getItem(STORAGE_KEY) === null;
+  let allReleases = [];
+  let installedMods = [];
+
+  let clientConfig = {
+    username: '',
+    customSkin: null,
+    version: '1.20.4',
+    loader: 'Fabric',
+    ram: 4096,
+    fpsBoost: true
+  };
+
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try { clientConfig = Object.assign(clientConfig, JSON.parse(saved)); } catch(e){}
+  }
+
+  function saveConfig() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(clientConfig));
+    syncHUD();
+    loadActiveSkin();
+  }
+
+  function renderVersionDropdown(filterText = '') {
+    const versionSelect = document.getElementById('cfgVersionSelect');
+    versionSelect.innerHTML = '';
+
+    const query = filterText.toLowerCase().trim();
+    const filtered = allReleases.filter(v => v.id.toLowerCase().includes(query));
+
+    if (filtered.length === 0) {
+      const opt = document.createElement('option');
+      opt.disabled = true;
+      opt.textContent = 'No matching versions found';
+      versionSelect.appendChild(opt);
+      return;
+    }
+
+    filtered.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v.id;
+      opt.textContent = `Minecraft ${v.id}`;
+      if (v.id === clientConfig.version) opt.selected = true;
+      versionSelect.appendChild(opt);
+    });
+  }
+
+  async function loadAllMinecraftVersions() {
+    try {
+      const res = await fetch('https://piston-meta.mojang.com/mc/game/version_manifest_v2.json');
+      const data = await res.json();
+      allReleases = data.versions.filter(v => v.type === 'release');
+    } catch (e) {
+      allReleases = [
+        { id: '1.21.4' }, { id: '1.21.1' }, { id: '1.20.4' }, { id: '1.20.1' }, 
+        { id: '1.19.4' }, { id: '1.18.2' }, { id: '1.16.5' }, 
+        { id: '1.12.2' }, { id: '1.8.9' }
+      ];
+    }
+    renderVersionDropdown();
+  }
+
+  document.getElementById('cfgVersionSearch').addEventListener('input', function(e) {
+    renderVersionDropdown(e.target.value);
+  });
+
+  function switchView(viewId) {
+    document.querySelectorAll('.view-panel').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.target === viewId));
+    const target = document.getElementById(viewId);
+    if (target) target.classList.add('active');
+
+    if (viewId === 'viewMods') {
+      loadInstalledMods();
+      searchModrinthMods();
+    }
+  }
+
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.addEventListener('click', () => switchView(tab.dataset.target));
+  });
+
+  function syncHUD() {
+    const currentName = clientConfig.username || 'Player';
+    document.getElementById('displayPlayerName').textContent = currentName;
+    document.getElementById('hudVersion').textContent = clientConfig.version;
+    document.getElementById('hudLoader').textContent = clientConfig.loader;
+    document.getElementById('hudRam').textContent = (clientConfig.ram / 1024) + ' GB';
+    document.getElementById('hudFps').textContent = clientConfig.fpsBoost ? 'G1GC' : 'Off';
+    document.getElementById('launchMetaBadge').textContent = `${clientConfig.version} · ${clientConfig.loader}`;
+    document.getElementById('modsFilterTag').textContent = `${clientConfig.loader.toUpperCase()} ${clientConfig.version}`;
+
+    document.getElementById('cfgPlayerName').value = clientConfig.username || '';
+    document.getElementById('cfgFpsToggle').classList.toggle('on', clientConfig.fpsBoost);
+    
+    const versionSelect = document.getElementById('cfgVersionSelect');
+    if (versionSelect) versionSelect.value = clientConfig.version;
+
+    updateChipGroup('cfgLoaderChips', clientConfig.loader);
+    updateChipGroup('cfgRamChips', clientConfig.ram.toString());
+  }
+
+  function updateChipGroup(groupId, val) {
+    const group = document.getElementById(groupId);
+    if (!group) return;
+    group.querySelectorAll('.chip').forEach(c => {
+      c.classList.toggle('active', c.dataset.val === val);
+    });
+  }
+
+  function setupConfigChips(groupId, key, isInt = false) {
+    const group = document.getElementById(groupId);
+    if (!group) return;
+    group.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        group.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        clientConfig[key] = isInt ? parseInt(chip.dataset.val, 10) : chip.dataset.val;
+      });
+    });
+  }
+  setupConfigChips('cfgLoaderChips', 'loader');
+  setupConfigChips('cfgRamChips', 'ram', true);
+
+  // Modrinth Hub Engine
+  async function loadInstalledMods() {
+    if (!window.launcherAPI) return;
+    installedMods = await window.launcherAPI.getInstalledMods();
+    const list = document.getElementById('installedModsList');
+    const badge = document.getElementById('installedCountBadge');
+    badge.textContent = `${installedMods.length} MODS`;
+    list.innerHTML = '';
+
+    if (installedMods.length === 0) {
+      list.innerHTML = `<div style="font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 20px;">No mods installed yet.</div>`;
+      return;
+    }
+
+    installedMods.forEach(file => {
+      const row = document.createElement('div');
+      row.className = 'installed-item';
+      row.innerHTML = `
+        <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:180px;">${file}</span>
+        <button class="del-btn" onclick="removeMod('${file}')">✕</button>
+      `;
+      list.appendChild(row);
+    });
+  }
+
+  async function removeMod(filename) {
+    if (!window.launcherAPI) return;
+    await window.launcherAPI.deleteMod(filename);
+    loadInstalledMods();
+    searchModrinthMods();
+  }
+
+  async function searchModrinthMods() {
+    const grid = document.getElementById('modsGrid');
+    const query = document.getElementById('modsSearchInput').value.trim();
+    grid.innerHTML = `<div style="font-size:12px; color:var(--text-muted); grid-column:span 2; text-align:center; padding:20px;">Searching Modrinth...</div>`;
+
+    if (!window.launcherAPI) {
+      grid.innerHTML = `<div style="font-size:12px; color:var(--text-muted); grid-column:span 2; text-align:center; padding:20px;">Mods Hub active in Desktop Client.</div>`;
+      return;
+    }
+
+    const mods = await window.launcherAPI.searchMods({ query, version: clientConfig.version, loader: clientConfig.loader });
+    grid.innerHTML = '';
+
+    if (!mods || mods.length === 0) {
+      grid.innerHTML = `<div style="font-size:12px; color:var(--text-muted); grid-column:span 2; text-align:center; padding:20px;">No compatible mods found for ${clientConfig.loader} ${clientConfig.version}.</div>`;
+      return;
+    }
+
+    mods.forEach(mod => {
+      const card = document.createElement('div');
+      card.className = 'mod-card';
+      const icon = mod.icon_url || 'https://raw.githubusercontent.com/modrinth/art/master/brand/badge.svg';
+      card.innerHTML = `
+        <img class="mod-icon" src="${icon}" onerror="this.src='https://raw.githubusercontent.com/modrinth/art/master/brand/badge.svg'">
+        <div class="mod-details">
+          <div class="mod-title">${mod.title}</div>
+          <div class="mod-desc">${mod.description || ''}</div>
+        </div>
+        <button class="mod-btn install" id="modBtn-${mod.project_id}" onclick="installSingleMod('${mod.project_id}')">Install</button>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  async function installSingleMod(projectId) {
+    if (!window.launcherAPI) return;
+    const btn = document.getElementById(`modBtn-${projectId}`);
+    btn.disabled = true;
+    btn.textContent = '...';
+
+    const res = await window.launcherAPI.installMod({ projectId, version: clientConfig.version, loader: clientConfig.loader });
+    if (res.success) {
+      btn.textContent = 'Installed';
+      btn.className = 'mod-btn installed';
+      loadInstalledMods();
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Failed';
+      alert(`Installation failed: ${res.error}`);
+    }
+  }
+
+  document.getElementById('refreshModsBtn').addEventListener('click', searchModrinthMods);
+  document.getElementById('modsSearchInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') searchModrinthMods(); });
+
+  document.getElementById('skinFileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      clientConfig.customSkin = event.target.result;
+      if (skinViewer) skinViewer.loadSkin(clientConfig.customSkin);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('resetSkinBtn').addEventListener('click', function() {
+    clientConfig.customSkin = null;
+    loadActiveSkin();
+  });
+
+  document.getElementById('saveHubBtn').addEventListener('click', () => {
+    const nameVal = document.getElementById('cfgPlayerName').value.trim();
+    if (nameVal && /^[A-Za-z0-9_]{3,16}$/.test(nameVal)) {
+      clientConfig.username = nameVal;
+    } else if (!clientConfig.username) {
+      clientConfig.username = 'Player';
+    }
+
+    const versionSelect = document.getElementById('cfgVersionSelect');
+    if (versionSelect && versionSelect.value) {
+      clientConfig.version = versionSelect.value;
+    }
+
+    clientConfig.fpsBoost = document.getElementById('cfgFpsToggle').classList.contains('on');
+    saveConfig();
+    switchView('viewHome');
+  });
+
+  function openDiscordServer() {
+    if (window.launcherAPI) {
+      window.launcherAPI.openExternal(DISCORD_INVITE_URL);
+    } else {
+      window.open(DISCORD_INVITE_URL, '_blank');
+    }
+  }
+
+  document.getElementById('discordTopBtn').addEventListener('click', openDiscordServer);
+  document.getElementById('discordBannerBtn').addEventListener('click', openDiscordServer);
+
+  document.getElementById('minBtn').addEventListener('click', () => window.launcherAPI?.minimize());
+  document.getElementById('maxBtn').addEventListener('click', () => window.launcherAPI?.maximize());
+  document.getElementById('closeBtn').addEventListener('click', () => window.launcherAPI?.close());
+
+  const modal = document.getElementById('consoleModal');
+  document.getElementById('openConsoleBtn').addEventListener('click', () => modal.classList.add('open'));
+  document.getElementById('consoleCloseBtn').addEventListener('click', () => modal.classList.remove('open'));
+  modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
+
+  // 3D Skin Engine
+  let skinViewer = null;
+
+  function init3DStage() {
+    const canvas = document.getElementById('skinCanvas');
+    const container = document.getElementById('stage3d');
+
+    skinViewer = new skinview3d.SkinViewer({
+      canvas: canvas,
+      width: container.clientWidth || 240,
+      height: container.clientHeight || 340,
+      skin: 'https://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f0f6fa9d20477b6cf346141d83dd4cb1947b4'
+    });
+
+    skinViewer.camera.position.set(0, 0, 60);
+    skinViewer.zoom = 0.9;
+    skinViewer.animation = new skinview3d.WalkingAnimation();
+    skinViewer.animation.speed = 0.6;
+    skinViewer.autoRotate = true;
+    skinViewer.autoRotateSpeed = 0.8;
+
+    loadActiveSkin();
+  }
+
+  function loadActiveSkin() {
+    if (!skinViewer) return;
+    if (clientConfig.customSkin) {
+      skinViewer.loadSkin(clientConfig.customSkin);
+    } else if (clientConfig.username && clientConfig.username !== 'Player') {
+      skinViewer.loadSkin(`https://minotar.net/skin/${clientConfig.username}`);
+    } else {
+      skinViewer.loadSkin('https://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f0f6fa9d20477b6cf346141d83dd4cb1947b4');
+    }
+  }
+
+  window.addEventListener('load', () => {
+    const bootProgress = document.getElementById('bootProgress');
+    const bootScreen = document.getElementById('bootScreen');
+    const appShell = document.getElementById('appShell');
+
+    loadAllMinecraftVersions().then(() => syncHUD());
+
+    setTimeout(() => { bootProgress.style.width = '45%'; }, 200);
+    setTimeout(() => { bootProgress.style.width = '100%'; }, 600);
+
+    setTimeout(() => {
+      bootScreen.classList.add('fade-out');
+      appShell.classList.add('ready');
+      try { init3DStage(); } catch(e){}
+
+      if (isFirstLaunch || !clientConfig.username) {
+        switchView('viewConfig');
+      }
+    }, 1000);
+  });
+
+  // UI Launch Hooks & Dynamic Progress Pipeline
+  const launchBtn = document.getElementById('launchBtn');
+  const launchBtnText = document.getElementById('launchBtnText');
+  const statusPill = document.getElementById('statusPill');
+  const consoleLogs = document.getElementById('consoleLogs');
+
+  const progressWrap = document.getElementById('launchProgressContainer');
+  const progressBar = document.getElementById('launchProgressBar');
+  const statusLabel = document.getElementById('launchStatusText');
+  const percentLabel = document.getElementById('launchPercentText');
+
+  function triggerLaunch(serverIp = null) {
+    if (!clientConfig.username) {
+      switchView('viewConfig');
+      alert('Please set your player username first!');
+      return;
+    }
+
+    if (!window.launcherAPI) {
+      alert('Preview mode: Game launching runs inside the packaged Electron app.');
+      return;
+    }
+
+    launchBtn.disabled = true;
+    launchBtnText.textContent = 'PREPARING...';
+    statusPill.textContent = 'LAUNCHING';
+    statusPill.style.color = 'var(--accent)';
+
+    progressWrap.style.display = 'flex';
+    statusLabel.textContent = 'Initializing Engine...';
+    percentLabel.textContent = '0%';
+    progressBar.style.width = '5%';
+
+    window.launcherAPI.launchGame({
+      username: clientConfig.username,
+      version: clientConfig.version,
+      loaderType: clientConfig.loader,
+      memoryMax: clientConfig.ram,
+      fpsBoost: clientConfig.fpsBoost,
+      serverIp: serverIp
+    });
+  }
+
+  launchBtn.addEventListener('click', () => triggerLaunch());
+
+  if (window.launcherAPI) {
     document.getElementById('openFolderBtn').addEventListener('click', () => window.launcherAPI.openGameFolder());
 
-    // Modal Logs Controls
-    const logsModal = document.getElementById('logsModal');
-    const logBox = document.getElementById('logBox');
-    document.getElementById('viewLogsBtn').addEventListener('click', () => logsModal.style.display = 'flex');
-    document.getElementById('closeLogsBtn').addEventListener('click', () => logsModal.style.display = 'none');
-
-    // UI Elements
-    const launchBtn = document.getElementById('launchBtn');
-    const progressContainer = document.getElementById('launchProgressContainer');
-    const progressBar = document.getElementById('launchProgressBar');
-    const statusLabel = document.getElementById('statusLabel');
-    const percentLabel = document.getElementById('percentLabel');
-
-    // Append logs
-    window.launcherAPI.onGameLog((data) => {
-      logBox.textContent += `\n${data.text || data}`;
-      logBox.scrollTop = logBox.scrollHeight;
-    });
-
-    // Handle Launch Progress & Lifecycle
+    // Game Lifecycle Status Pipeline
     window.launcherAPI.onGameStatus((status) => {
-      progressContainer.style.display = 'block';
-      if (status.text) statusLabel.textContent = status.text;
-      if (status.percent !== undefined) {
-        percentLabel.textContent = `${status.percent}%`;
-        progressBar.style.width = `${status.percent}%`;
-      }
+      if (typeof status === 'object') {
+        progressWrap.style.display = 'flex';
+        if (status.text) statusLabel.textContent = status.text;
+        if (status.percent !== undefined) {
+          percentLabel.textContent = `${status.percent}%`;
+          progressBar.style.width = `${status.percent}%`;
+        }
 
-      if (status.stage === 'loading' || status.stage === 'downloading') {
-        launchBtn.disabled = true;
-        launchBtn.innerText = 'PREPARING...';
-      } else if (status.stage === 'launched') {
-        launchBtn.disabled = true;
-        launchBtn.innerText = 'PLAYING';
-      } else if (status.stage === 'closed') {
-        progressContainer.style.display = 'none';
-        progressBar.style.width = '0%';
-        launchBtn.disabled = false;
-        launchBtn.innerText = 'LAUNCH';
+        if (status.stage === 'loading' || status.stage === 'downloading') {
+          launchBtn.disabled = true;
+          launchBtnText.textContent = 'LAUNCHING...';
+          statusPill.textContent = 'LOADING';
+          statusPill.style.color = 'var(--accent)';
+        } else if (status.stage === 'launched') {
+          launchBtn.disabled = false;
+          launchBtn.classList.add('playing');
+          launchBtnText.textContent = 'PLAYING';
+          statusPill.textContent = 'RUNNING';
+          statusPill.style.color = 'var(--emerald)';
+          progressBar.style.width = '100%';
+          percentLabel.textContent = '100%';
+        } else if (status.stage === 'closed') {
+          progressWrap.style.display = 'none';
+          progressBar.style.width = '0%';
+          launchBtn.disabled = false;
+          launchBtn.classList.remove('playing');
+          launchBtnText.textContent = 'LAUNCH';
+          statusPill.textContent = 'ACTIVE';
+          statusPill.style.color = 'var(--text-secondary)';
+        }
       }
     });
 
-    // Handle MCLC Asset Stream Percentage
+    // Asset Stream Progress
     window.launcherAPI.onDownloadProgress((prog) => {
-      progressContainer.style.display = 'block';
+      progressWrap.style.display = 'flex';
       statusLabel.textContent = `Downloading ${prog.type}...`;
       percentLabel.textContent = `${prog.percent}%`;
       progressBar.style.width = `${prog.percent}%`;
     });
 
-    // Trigger Game Launch
-    launchBtn.addEventListener('click', () => {
-      const config = {
-        username: document.getElementById('usernameInput').value.trim() || 'Player',
-        version: document.getElementById('versionSelect').value,
-        loaderType: document.getElementById('loaderSelect').value,
-        memoryMax: parseInt(document.getElementById('ramSelect').value, 10),
-        fpsBoost: document.getElementById('fpsBoostToggle').checked
-      };
-
-      logBox.textContent = '[Client] Initiating launch procedure...';
-      window.launcherAPI.launchGame(config);
+    // Console Logging
+    window.launcherAPI.onGameLog((data) => {
+      const line = document.createElement('div');
+      line.textContent = `[${new Date().toLocaleTimeString()}] ${data.text || data}`;
+      consoleLogs.appendChild(line);
+      consoleLogs.scrollTop = consoleLogs.scrollHeight;
     });
-  </script>
+  }
+</script>
 </body>
 </html>
