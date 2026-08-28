@@ -26,13 +26,13 @@ jobs:
         run: npm install
 
       - name: Build Executable
-        run: npx electron-builder --win
+        run: npx electron-builder --win --publish never
 
       - name: Create GitHub Release and Upload Exe
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.1.0
-          name: Cinder Client v1.1.0
+          tag_name: v1.1.1
+          name: Cinder Client v1.1.1
           draft: false
           prerelease: false
           files: |
