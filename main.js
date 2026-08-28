@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const https = require('https');
+const AdmZip = require('adm-zip');
 const { Client, Authenticator } = require('minecraft-launcher-core');
 const { autoUpdater } = require('electron-updater');
 const DiscordRPC = require('discord-rpc');
@@ -10,12 +11,14 @@ let mainWindow;
 const launcher = new Client();
 const cinderRoot = path.join(app.getPath('appData'), '.cinder');
 const modsDir = path.join(cinderRoot, 'mods');
+const runtimesDir = path.join(cinderRoot, 'runtime');
 
-// Ensure root and mods directories exist
-if (!fs.existsSync(cinderRoot)) fs.mkdirSync(cinderRoot, { recursive: true });
-if (!fs.existsSync(modsDir)) fs.mkdirSync(modsDir, { recursive: true });
+// Ensure root directories exist
+[cinderRoot, modsDir, runtimesDir].forEach(dir => {
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+});
 
-// Discord Rich Presence Setup
+// Discord RPC Setup
 const CLIENT_ID = '123456789012345678';
 let rpcClient;
 
@@ -86,7 +89,7 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
-// Window Control Handlers
+// Window Controls
 ipcMain.on('window-minimize', () => mainWindow?.minimize());
 ipcMain.on('window-maximize', () => {
   if (mainWindow) mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize();
@@ -171,7 +174,87 @@ ipcMain.handle('install-mod', async (event, { projectId, version, loader }) => {
   });
 });
 
-// Game Launch Engine
+// Automatic Java Runtime Resolver & Downloader
+function getRequiredJavaVersion(mcVersion) {
+  const parts = mcVersion.split('.').map(n => parseInt(n, 10));
+  const major = parts[0];
+  const minor = parts[1] || 0;
+  const patch = parts[2] || 0;
+
+  if (major === 1) {
+    if (minor > 20 || (minor === 20 && patch >= 5)) return 21; // MC 1.20.5, 1.21, 1.21.4+
+    if (minor >= 17) return 17; // MC 1.17 - 1.20.4
+    return 8; // MC 1.16.5 and below
+  }
+  return 21;
+}
+
+function findExecutable(dir, exeName) {
+  const files = fs.readdirSync(dir);
+  for (const file of files) {
+    const fullPath = path.join(dir, file);
+    const stat = fs.statSync(fullPath);
+    if (stat.isDirectory()) {
+      const found = findExecutable(fullPath, exeName);
+      if (found) return found;
+    } else if (file.toLowerCase() === exeName.toLowerCase()) {
+      return fullPath;
+    }
+  }
+  return null;
+}
+
+function downloadFile(url, dest) {
+  return new Promise((resolve, reject) => {
+    https.get(url, { headers: { 'User-Agent': 'CinderClient/1.0.0' } }, (res) => {
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        return downloadFile(res.headers.location, dest).then(resolve).catch(reject);
+      }
+      if (res.statusCode !== 200) {
+        return reject(new Error(`Failed to download runtime: HTTP ${res.statusCode}`));
+      }
+      const fileStream = fs.createWriteStream(dest);
+      res.pipe(fileStream);
+      fileStream.on('finish', () => {
+        fileStream.close();
+        resolve();
+      });
+    }).on('error', reject);
+  });
+}
+
+async function ensureJavaRuntime(targetJavaMajor) {
+  const javaDir = path.join(runtimesDir, `java-${targetJavaMajor}`);
+  
+  if (fs.existsSync(javaDir)) {
+    const existingExe = findExecutable(javaDir, 'javaw.exe') || findExecutable(javaDir, 'java.exe');
+    if (existingExe) return existingExe;
+  }
+
+  fs.mkdirSync(javaDir, { recursive: true });
+  mainWindow?.webContents.send('game-log', { text: `[Java Engine] Required Java ${targetJavaMajor} not found. Auto-downloading OpenJDK...` });
+
+  const apiUrl = `https://api.adoptium.net/v3/binary/latest/${targetJavaMajor}/ga/windows/x64/jdk/hotspot/normal/eclipse?project=jdk`;
+  const zipPath = path.join(runtimesDir, `java-${targetJavaMajor}.zip`);
+
+  mainWindow?.webContents.send('game-log', { text: `[Java Engine] Downloading portable Java ${targetJavaMajor} package...` });
+  await downloadFile(apiUrl, zipPath);
+
+  mainWindow?.webContents.send('game-log', { text: `[Java Engine] Extracting Java runtime into client folder...` });
+  const zip = new AdmZip(zipPath);
+  zip.extractAllTo(javaDir, true);
+
+  // Clean up temporary zip
+  try { fs.unlinkSync(zipPath); } catch (e) {}
+
+  const javaExe = findExecutable(javaDir, 'javaw.exe') || findExecutable(javaDir, 'java.exe');
+  if (!javaExe) throw new Error(`Java extraction succeeded but javaw.exe was not found.`);
+
+  mainWindow?.webContents.send('game-log', { text: `[Java Engine] Java ${targetJavaMajor} installed and configured successfully.` });
+  return javaExe;
+}
+
+// Launch Game Engine
 ipcMain.on('launch-game', async (event, config) => {
   const { username, version, loaderType, memoryMax, fpsBoost, serverIp } = config;
 
@@ -195,81 +278,82 @@ ipcMain.on('launch-game', async (event, config) => {
     type: "release"
   };
 
-  const launchOpts = {
-    authorization: Authenticator.getAuth(username || 'Player'),
-    root: cinderRoot,
-    version: versionConfig,
-    memory: {
-      max: `${memoryMax || 4096}M`,
-      min: "2048M"
-    },
-    customArgs: customArgs
-  };
+  try {
+    // 1. Resolve and ensure matching Java runtime automatically
+    const targetJavaVer = getRequiredJavaVersion(version);
+    const resolvedJavaPath = await ensureJavaRuntime(targetJavaVer);
 
-  // 1. Fabric Loader Resolution & Profile Auto-Download
-  if (loaderType === 'Fabric') {
-    try {
-      mainWindow?.webContents.send('game-log', { text: `[Fabric] Resolving Fabric Loader metadata for Minecraft ${version}...` });
+    const launchOpts = {
+      authorization: Authenticator.getAuth(username || 'Player'),
+      root: cinderRoot,
+      javaPath: resolvedJavaPath,
+      version: versionConfig,
+      memory: {
+        max: `${memoryMax || 4096}M`,
+        min: "2048M"
+      },
+      customArgs: customArgs
+    };
 
-      const loadersData = await new Promise((resolve, reject) => {
-        https.get(`https://meta.fabricmc.net/v2/versions/loader/${version}`, { headers: { 'User-Agent': 'CinderClient/1.0.0' } }, (res) => {
-          let data = '';
-          res.on('data', chunk => data += chunk);
-          res.on('end', () => {
-            try { resolve(JSON.parse(data)); } catch (e) { reject(e); }
-          });
-        }).on('error', reject);
-      });
+    // 2. Fabric Loader Resolution & Profile Auto-Download
+    if (loaderType === 'Fabric') {
+      try {
+        mainWindow?.webContents.send('game-log', { text: `[Fabric] Resolving Fabric Loader metadata for Minecraft ${version}...` });
 
-      if (!loadersData || loadersData.length === 0) {
-        throw new Error(`No compatible Fabric Loader release for version ${version}`);
-      }
-
-      const loaderVer = loadersData[0].loader.version;
-      const customVersionName = `fabric-loader-${loaderVer}-${version}`;
-      const versionDir = path.join(cinderRoot, 'versions', customVersionName);
-      const versionJsonPath = path.join(versionDir, `${customVersionName}.json`);
-
-      // Download profile JSON if not cached locally
-      if (!fs.existsSync(versionJsonPath)) {
-        mainWindow?.webContents.send('game-log', { text: `[Fabric] Downloading profile JSON (${customVersionName})...` });
-        fs.mkdirSync(versionDir, { recursive: true });
-
-        const profileJson = await new Promise((resolve, reject) => {
-          https.get(`https://meta.fabricmc.net/v2/versions/loader/${version}/${loaderVer}/profile/json`, { headers: { 'User-Agent': 'CinderClient/1.0.0' } }, (res) => {
+        const loadersData = await new Promise((resolve, reject) => {
+          https.get(`https://meta.fabricmc.net/v2/versions/loader/${version}`, { headers: { 'User-Agent': 'CinderClient/1.0.0' } }, (res) => {
             let data = '';
             res.on('data', chunk => data += chunk);
-            res.on('end', () => resolve(data));
+            res.on('end', () => {
+              try { resolve(JSON.parse(data)); } catch (e) { reject(e); }
+            });
           }).on('error', reject);
         });
 
-        fs.writeFileSync(versionJsonPath, profileJson, 'utf-8');
-        mainWindow?.webContents.send('game-log', { text: `[Fabric] Profile ready.` });
+        if (!loadersData || loadersData.length === 0) {
+          throw new Error(`No compatible Fabric Loader release for version ${version}`);
+        }
+
+        const loaderVer = loadersData[0].loader.version;
+        const customVersionName = `fabric-loader-${loaderVer}-${version}`;
+        const versionDir = path.join(cinderRoot, 'versions', customVersionName);
+        const versionJsonPath = path.join(versionDir, `${customVersionName}.json`);
+
+        if (!fs.existsSync(versionJsonPath)) {
+          mainWindow?.webContents.send('game-log', { text: `[Fabric] Downloading profile JSON (${customVersionName})...` });
+          fs.mkdirSync(versionDir, { recursive: true });
+
+          const profileJson = await new Promise((resolve, reject) => {
+            https.get(`https://meta.fabricmc.net/v2/versions/loader/${version}/${loaderVer}/profile/json`, { headers: { 'User-Agent': 'CinderClient/1.0.0' } }, (res) => {
+              let data = '';
+              res.on('data', chunk => data += chunk);
+              res.on('end', () => resolve(data));
+            }).on('error', reject);
+          });
+
+          fs.writeFileSync(versionJsonPath, profileJson, 'utf-8');
+          mainWindow?.webContents.send('game-log', { text: `[Fabric] Profile ready.` });
+        }
+
+        versionConfig.custom = customVersionName;
+      } catch (e) {
+        mainWindow?.webContents.send('game-log', { text: `[Fabric Warning] ${e.message}. Launching Vanilla.` });
       }
-
-      versionConfig.custom = customVersionName;
-
-    } catch (e) {
-      mainWindow?.webContents.send('game-log', { text: `[Fabric Warning] ${e.message}. Launching standard Vanilla instead.` });
+    } else if (loaderType === 'Forge') {
+      launchOpts.forge = true;
     }
-  } 
-  // 2. Forge Loader Resolution
-  else if (loaderType === 'Forge') {
-    launchOpts.forge = true;
-  }
 
-  launchOpts.version = versionConfig;
+    launchOpts.version = versionConfig;
 
-  if (serverIp) {
-    launchOpts.quickPlay = {
-      type: 'multiplayer',
-      identifier: serverIp
-    };
-  }
+    if (serverIp) {
+      launchOpts.quickPlay = {
+        type: 'multiplayer',
+        identifier: serverIp
+      };
+    }
 
-  setRPCActivity(`Playing as ${username || 'Player'}`, `${version} (${loaderType})`);
+    setRPCActivity(`Playing as ${username || 'Player'}`, `${version} (${loaderType})`);
 
-  try {
     mainWindow?.webContents.send('game-log', { text: `[Cinder] Initializing launch for Minecraft ${version} (${loaderType})...` });
     launcher.launch(launchOpts);
 
@@ -285,6 +369,7 @@ ipcMain.on('launch-game', async (event, config) => {
       mainWindow?.webContents.send('game-status', 'closed');
       setRPCActivity('Idle in Launcher', 'Home');
     });
+
   } catch (err) {
     mainWindow?.webContents.send('game-log', { text: `[ERROR]: ${err.message}` });
     mainWindow?.webContents.send('game-status', 'closed');
