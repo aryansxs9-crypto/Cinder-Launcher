@@ -1,20 +1,18 @@
 {
-  "name": "cinder-client",
+  "name": "cinder-launcher",
   "productName": "Cinder Client",
-  "version": "1.0.4",
+  "version": "1.1.2",
   "description": "Next-Gen Minecraft Performance Launcher",
-  "author": "aryansxs9",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder"
   },
-"dependencies": {
+  "dependencies": {
     "adm-zip": "^0.5.16",
     "discord-rpc": "^4.0.1",
     "electron-updater": "^6.3.9",
     "minecraft-launcher-core": "^3.2.2"
-  }
   },
   "devDependencies": {
     "electron": "^31.0.0",
@@ -23,6 +21,9 @@
   "build": {
     "appId": "com.cinder.launcher",
     "productName": "Cinder Client",
+    "directories": {
+      "output": "dist"
+    },
     "publish": [
       {
         "provider": "github",
