@@ -400,7 +400,6 @@
     border-radius: 6px;
     font-family: 'JetBrains Mono', monospace;
   }
-
   .patch-notes-panel {
     flex: 1;
     padding: 16px 20px;
@@ -793,14 +792,14 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
   }
 
   .launch-progress-wrap {
-    width: 340px;
+    width: 310px;
     display: none;
     flex-direction: column;
-    gap: 5px;
+    gap: 4px;
     margin-bottom: 2px;
   }
   .progress-meta-row {
@@ -1049,15 +1048,15 @@
           <div class="patch-list">
             <div class="patch-item">
               <div class="patch-dot"></div>
-              <span><strong>Auto-Java Resolver:</strong> Automatically installs OpenJDK 8, 17, or 21 without manual setup.</span>
-            </div>
-            <div class="patch-item">
-              <div class="patch-dot"></div>
-              <span><strong>Library Sanitizer:</strong> Automatically detects and fixes interrupted or corrupted JAR files.</span>
+              <span><strong>Auto-Java Engine:</strong> Automatic OpenJDK runtime download & configuration.</span>
             </div>
             <div class="patch-item">
               <div class="patch-dot"></div>
               <span><strong>In-Built Mods Hub:</strong> Search and 1-click install mods directly via Modrinth.</span>
+            </div>
+            <div class="patch-item">
+              <div class="patch-dot"></div>
+              <span><strong>Discord Rich Presence:</strong> Display real-time status and timers on Discord.</span>
             </div>
           </div>
         </div>
@@ -1229,7 +1228,7 @@
     </div>
   </div>
 
-  <!-- Bottom Launch Dock with Live Progress Streamer -->
+  <!-- Bottom Launch Dock with Live Progress -->
   <div class="bottom-dock">
     
     <div class="launch-progress-wrap" id="launchProgressContainer">
@@ -1510,7 +1509,7 @@
   });
 
   function openDiscordServer() {
-    if (window.launcherAPI) {
+    if (window.launcherAPI && window.launcherAPI.openExternal) {
       window.launcherAPI.openExternal(DISCORD_INVITE_URL);
     } else {
       window.open(DISCORD_INVITE_URL, '_blank');
