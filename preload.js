@@ -1,17 +1,22 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('launcherAPI', {
+  // Window controls
   minimize: () => ipcRenderer.send('window-minimize'),
   maximize: () => ipcRenderer.send('window-maximize'),
   close: () => ipcRenderer.send('window-close'),
-  openFolder: () => ipcRenderer.send('open-game-folder'),
-  openLink: (url) => ipcRenderer.send('open-external', url),
+  openExternal: (url) => ipcRenderer.send('open-external', url),
+  openGameFolder: () => ipcRenderer.send('open-game-folder'),
+
+  // Game Engine
   launchGame: (config) => ipcRenderer.send('launch-game', config),
+  onGameLog: (callback) => ipcRenderer.on('game-log', (event, data) => callback(data)),
+  onGameStatus: (callback) => ipcRenderer.on('game-status', (event, data) => callback(data)),
+  onDownloadProgress: (callback) => ipcRenderer.on('download-progress', (event, data) => callback(data)),
+
+  // Modrinth API
   getInstalledMods: () => ipcRenderer.invoke('get-installed-mods'),
-  searchMods: (query, version, loader) => ipcRenderer.invoke('search-mods', { query, version, loader }),
-  installMod: (projectId, version, loader) => ipcRenderer.invoke('install-mod', { projectId, version, loader }),
   deleteMod: (filename) => ipcRenderer.invoke('delete-mod', filename),
-  onLog: (callback) => ipcRenderer.on('game-log', (event, value) => callback(value)),
-  onStatus: (callback) => ipcRenderer.on('game-status', (event, value) => callback(value)),
-  onUpdaterLog: (callback) => ipcRenderer.on('update-message', (event, value) => callback(value))
+  searchMods: (payload) => ipcRenderer.invoke('search-mods', payload),
+  installMod: (payload) => ipcRenderer.invoke('install-mod', payload)
 });
