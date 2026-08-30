@@ -12,8 +12,12 @@ contextBridge.exposeInMainWorld('launcherAPI', {
   loginMicrosoft: () => ipcRenderer.invoke('login-microsoft'),
   logoutAccount: () => ipcRenderer.invoke('logout-account'),
 
-  // Game Engine & Progress Listeners
+  // FPS Optimization Bundle
+  installFpsBundle: (payload) => ipcRenderer.invoke('install-fps-bundle', payload),
+
+  // Game Engine & Process Control
   launchGame: (config) => ipcRenderer.send('launch-game', config),
+  stopGame: () => ipcRenderer.send('stop-game'),
   onGameLog: (callback) => ipcRenderer.on('game-log', (event, data) => callback(data)),
   onGameStatus: (callback) => ipcRenderer.on('game-status', (event, data) => callback(data)),
   onDownloadProgress: (callback) => ipcRenderer.on('download-progress', (event, data) => callback(data)),
