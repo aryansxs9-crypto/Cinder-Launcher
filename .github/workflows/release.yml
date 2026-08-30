@@ -1,0 +1,56 @@
+name: Automated Release on Version Bump
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'package.json'
+
+permissions:
+  contents: write
+
+jobs:
+  check-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Detect Version Bump
+        id: version_check
+        shell: bash
+        run: |
+          # Read current version from package.json
+          CURRENT_VER=$(node -p "require('./package.json').version")
+          
+          # Read previous version from previous commit
+          PREV_VER=$(git show HEAD~1:package.json 2>/dev/null | node -p "require('./package.json').version" || echo "0.0.0")
+          
+          echo "Previous Version: $PREV_VER"
+          echo "Current Version: $CURRENT_VER"
+          
+          if [ "$CURRENT_VER" != "$PREV_VER" ]; then
+            echo "bumped=true" >> $GITHUB_OUTPUT
+            echo "version=v$CURRENT_VER" >> $GITHUB_OUTPUT
+          else
+            echo "bumped=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install dependencies
+        if: steps.version_check.outputs.bumped == 'true'
+        run: npm ci
+
+      - name: Build & Publish Release
+        if: steps.version_check.outputs.bumped == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder --publish always
