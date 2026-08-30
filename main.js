@@ -21,7 +21,7 @@ const authFile = path.join(cinderRoot, 'auth.json');
 });
 
 // Discord Rich Presence Setup
-const CLIENT_ID = '123456789012345678';
+const CLIENT_ID = '1542072339121045584';
 let rpcClient;
 
 function initDiscordRPC() {
