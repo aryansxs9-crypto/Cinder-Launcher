@@ -10,6 +10,8 @@ const DiscordRPC = require('discord-rpc');
 
 let mainWindow;
 const launcher = new Client();
+let activeGameProcess = null;
+
 const cinderRoot = path.join(app.getPath('appData'), '.cinder');
 const modsDir = path.join(cinderRoot, 'mods');
 const configDir = path.join(cinderRoot, 'config');
@@ -143,7 +145,7 @@ function fetchAndSaveMod(projectId, version, loader) {
   return new Promise((resolve) => {
     const url = `https://api.modrinth.com/v2/project/${projectId}/version?loaders=["${loader.toLowerCase()}"]&game_versions=["${version}"]`;
 
-    https.get(url, { headers: { 'User-Agent': 'CinderClient/1.1.3' } }, (res) => {
+    https.get(url, { headers: { 'User-Agent': 'CinderClient/1.1.4' } }, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
@@ -223,7 +225,7 @@ ipcMain.handle('search-mods', async (event, { query, version, loader }) => {
     ]);
     const url = `https://api.modrinth.com/v2/search?query=${encodeURIComponent(query || '')}&facets=${encodeURIComponent(facets)}&limit=12`;
 
-    https.get(url, { headers: { 'User-Agent': 'CinderClient/1.1.3' } }, (res) => {
+    https.get(url, { headers: { 'User-Agent': 'CinderClient/1.1.4' } }, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
@@ -280,7 +282,7 @@ function getRequiredJavaVersion(mcVersion) {
 
 function downloadFile(url, dest) {
   return new Promise((resolve, reject) => {
-    https.get(url, { headers: { 'User-Agent': 'CinderClient/1.1.3' } }, (res) => {
+    https.get(url, { headers: { 'User-Agent': 'CinderClient/1.1.4' } }, (res) => {
       if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
         return downloadFile(res.headers.location, dest).then(resolve).catch(reject);
       }
@@ -353,18 +355,36 @@ async function ensureJavaRuntime(targetJavaMajor) {
   return cleanExe;
 }
 
-// In-Launcher Process Killswitch
+// Interactive Stop Game Handler
 ipcMain.on('stop-game', () => {
-  if (launcher && launcher.client) {
-    launcher.client.kill();
-    mainWindow?.webContents.send('game-status', { stage: 'closed', text: 'Launch Minecraft', percent: 0 });
-    mainWindow?.webContents.send('game-log', { text: '[Cinder] Game instance terminated by user.' });
+  if (activeGameProcess) {
+    try {
+      activeGameProcess.kill();
+      mainWindow?.webContents.send('game-log', { text: '[Process Control] Minecraft session stopped by user.' });
+      mainWindow?.webContents.send('game-status', { stage: 'closed', text: 'Launch Minecraft', percent: 0 });
+      setRPCActivity('Idle in Launcher', 'Home');
+    } catch (e) {
+      mainWindow?.webContents.send('game-log', { text: `[Process Control Error]: ${e.message}` });
+    }
   }
 });
 
 // Game Launch Handler
 ipcMain.on('launch-game', async (event, config) => {
-  const { username, authType, version, loaderType, memoryMax, fpsBoost, serverIp, inGameConfig } = config;
+  const { username, authType, version, loaderType, memoryMax, fpsBoost, serverIp, inGameHud } = config;
+
+  // Sync In-Game HUD Config File for In-Game Mod Engine
+  try {
+    const hudConfigFile = path.join(configDir, 'cinder_hud.json');
+    const hudPayload = inGameHud || {
+      fpsCounter: true,
+      cpsCounter: true,
+      keystrokes: true,
+      customCrosshair: false,
+      fullbright: true
+    };
+    fs.writeFileSync(hudConfigFile, JSON.stringify(hudPayload, null, 2), 'utf-8');
+  } catch (e) {}
 
   const customArgs = [
     "-XX:+UnlockExperimentalVMOptions",
@@ -395,17 +415,6 @@ ipcMain.on('launch-game', async (event, config) => {
     mainWindow?.webContents.send('game-status', { stage: 'loading', text: 'Verifying Library Integrity...', percent: 25 });
     cleanCorruptedJars(path.join(cinderRoot, 'libraries'));
 
-    // Sync Launcher HUD Toggles to In-Game Mod JSON
-    const hudConfigFile = path.join(configDir, 'cinder_hud.json');
-    const hudConfigData = inGameConfig || {
-      fpsCounter: true,
-      cpsCounter: true,
-      keystrokes: true,
-      customCrosshair: false,
-      fullbright: true
-    };
-    fs.writeFileSync(hudConfigFile, JSON.stringify(hudConfigData, null, 2), 'utf-8');
-
     let authPayload;
     if (authType === 'microsoft' && fs.existsSync(authFile)) {
       authPayload = JSON.parse(fs.readFileSync(authFile, 'utf-8'));
@@ -431,7 +440,7 @@ ipcMain.on('launch-game', async (event, config) => {
         mainWindow?.webContents.send('game-log', { text: `[Fabric] Resolving Fabric Loader for Minecraft ${version}...` });
 
         const loadersData = await new Promise((resolve, reject) => {
-          https.get(`https://meta.fabricmc.net/v2/versions/loader/${version}`, { headers: { 'User-Agent': 'CinderClient/1.1.3' } }, (res) => {
+          https.get(`https://meta.fabricmc.net/v2/versions/loader/${version}`, { headers: { 'User-Agent': 'CinderClient/1.1.4' } }, (res) => {
             let data = '';
             res.on('data', chunk => data += chunk);
             res.on('end', () => {
@@ -453,7 +462,7 @@ ipcMain.on('launch-game', async (event, config) => {
           fs.mkdirSync(versionDir, { recursive: true });
 
           const profileJson = await new Promise((resolve, reject) => {
-            https.get(`https://meta.fabricmc.net/v2/versions/loader/${version}/${loaderVer}/profile/json`, { headers: { 'User-Agent': 'CinderClient/1.1.3' } }, (res) => {
+            https.get(`https://meta.fabricmc.net/v2/versions/loader/${version}/${loaderVer}/profile/json`, { headers: { 'User-Agent': 'CinderClient/1.1.4' } }, (res) => {
               let data = '';
               res.on('data', chunk => data += chunk);
               res.on('end', () => resolve(data));
@@ -486,7 +495,7 @@ ipcMain.on('launch-game', async (event, config) => {
     mainWindow?.webContents.send('game-status', { stage: 'loading', text: 'Initializing Minecraft Engine...', percent: 45 });
     mainWindow?.webContents.send('game-log', { text: `[Cinder] Initializing launch for Minecraft ${version} (${loaderType})...` });
     
-    launcher.launch(launchOpts);
+    activeGameProcess = await launcher.launch(launchOpts);
 
     launcher.on('debug', (e) => mainWindow?.webContents.send('game-log', { text: e }));
 
@@ -511,11 +520,13 @@ ipcMain.on('launch-game', async (event, config) => {
     });
 
     launcher.on('close', () => {
+      activeGameProcess = null;
       mainWindow?.webContents.send('game-status', { stage: 'closed', text: 'Launch Minecraft', percent: 0 });
       setRPCActivity('Idle in Launcher', 'Home');
     });
 
   } catch (err) {
+    activeGameProcess = null;
     mainWindow?.webContents.send('game-log', { text: `[ERROR]: ${err.message}` });
     mainWindow?.webContents.send('game-status', { stage: 'closed', text: 'Launch Failed', percent: 0 });
   }
