@@ -8,7 +8,7 @@ contextBridge.exposeInMainWorld('launcherAPI', {
   openExternal: (url) => ipcRenderer.send('open-external', url),
   openGameFolder: () => ipcRenderer.send('open-game-folder'),
 
-  // Game Engine
+  // Game Engine & Progress Listeners
   launchGame: (config) => ipcRenderer.send('launch-game', config),
   onGameLog: (callback) => ipcRenderer.on('game-log', (event, data) => callback(data)),
   onGameStatus: (callback) => ipcRenderer.on('game-status', (event, data) => callback(data)),
