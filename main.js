@@ -54,6 +54,7 @@ function createWindow() {
     frame: false,
     transparent: true,
     backgroundColor: '#00000000',
+    icon: path.join(__dirname, 'icon.ico'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
@@ -195,7 +196,7 @@ function cleanCorruptedJars(dir) {
   }
 }
 
-// Java Runtime Resolver & Clean Directory Extractor
+// Java Runtime Resolver & Clean Extractor
 function getRequiredJavaVersion(mcVersion) {
   const parts = mcVersion.split('.').map(n => parseInt(n, 10));
   const major = parts[0];
@@ -237,7 +238,6 @@ async function ensureJavaRuntime(targetJavaMajor) {
     return cleanExe;
   }
 
-  // Remove existing broken/malformed path
   if (fs.existsSync(javaDir)) {
     try { fs.rmSync(javaDir, { recursive: true, force: true }); } catch (e) {}
   }
@@ -257,11 +257,10 @@ async function ensureJavaRuntime(targetJavaMajor) {
   const zip = new AdmZip(zipPath);
   const zipEntries = zip.getEntries();
 
-  // Strip the top-level folder (e.g. "jdk-21.0.12.1+1/") so special '+' characters don't break JVM path resolution
   zipEntries.forEach((entry) => {
     const entryPath = entry.entryName;
     const parts = entryPath.split('/');
-    parts.shift(); // Remove top level jdk folder
+    parts.shift();
     const targetSubPath = parts.join(path.sep);
 
     if (targetSubPath) {
@@ -287,7 +286,7 @@ async function ensureJavaRuntime(targetJavaMajor) {
   return cleanExe;
 }
 
-// Game Launch Engine with Progress Pipeline
+// Game Launch Engine
 ipcMain.on('launch-game', async (event, config) => {
   const { username, version, loaderType, memoryMax, fpsBoost, serverIp } = config;
 
@@ -314,11 +313,9 @@ ipcMain.on('launch-game', async (event, config) => {
   try {
     mainWindow?.webContents.send('game-status', { stage: 'loading', text: 'Checking Java Runtime...', percent: 10 });
     
-    // 1. Resolve & extract Java runtime cleanly
     const targetJavaVer = getRequiredJavaVersion(version);
     const resolvedJavaPath = await ensureJavaRuntime(targetJavaVer);
 
-    // 2. Sanitize existing libraries against ZIP END header corruption
     mainWindow?.webContents.send('game-status', { stage: 'loading', text: 'Verifying Library Integrity...', percent: 25 });
     cleanCorruptedJars(path.join(cinderRoot, 'libraries'));
 
@@ -334,7 +331,6 @@ ipcMain.on('launch-game', async (event, config) => {
       customArgs: customArgs
     };
 
-    // 3. Fabric Loader Profile Resolution
     if (loaderType === 'Fabric') {
       try {
         mainWindow?.webContents.send('game-status', { stage: 'loading', text: 'Resolving Fabric Profile...', percent: 35 });
