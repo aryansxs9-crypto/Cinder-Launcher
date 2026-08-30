@@ -12,16 +12,17 @@ let mainWindow;
 const launcher = new Client();
 const cinderRoot = path.join(app.getPath('appData'), '.cinder');
 const modsDir = path.join(cinderRoot, 'mods');
+const configDir = path.join(cinderRoot, 'config');
 const runtimesDir = path.join(cinderRoot, 'runtime');
 const authFile = path.join(cinderRoot, 'auth.json');
 
 // Ensure system directories exist
-[cinderRoot, modsDir, runtimesDir].forEach(dir => {
+[cinderRoot, modsDir, configDir, runtimesDir].forEach(dir => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
 // Discord Rich Presence Setup
-const CLIENT_ID = '1542072339121045584';
+const CLIENT_ID = '123456789012345678';
 let rpcClient;
 
 function initDiscordRPC() {
@@ -352,18 +353,18 @@ async function ensureJavaRuntime(targetJavaMajor) {
   return cleanExe;
 }
 
-// Game Process Stopper
+// In-Launcher Process Killswitch
 ipcMain.on('stop-game', () => {
   if (launcher && launcher.client) {
     launcher.client.kill();
     mainWindow?.webContents.send('game-status', { stage: 'closed', text: 'Launch Minecraft', percent: 0 });
-    mainWindow?.webContents.send('game-log', { text: '[Cinder] Game process explicitly terminated by user.' });
+    mainWindow?.webContents.send('game-log', { text: '[Cinder] Game instance terminated by user.' });
   }
 });
 
 // Game Launch Handler
 ipcMain.on('launch-game', async (event, config) => {
-  const { username, authType, version, loaderType, memoryMax, fpsBoost, serverIp } = config;
+  const { username, authType, version, loaderType, memoryMax, fpsBoost, serverIp, inGameConfig } = config;
 
   const customArgs = [
     "-XX:+UnlockExperimentalVMOptions",
@@ -393,6 +394,17 @@ ipcMain.on('launch-game', async (event, config) => {
 
     mainWindow?.webContents.send('game-status', { stage: 'loading', text: 'Verifying Library Integrity...', percent: 25 });
     cleanCorruptedJars(path.join(cinderRoot, 'libraries'));
+
+    // Sync Launcher HUD Toggles to In-Game Mod JSON
+    const hudConfigFile = path.join(configDir, 'cinder_hud.json');
+    const hudConfigData = inGameConfig || {
+      fpsCounter: true,
+      cpsCounter: true,
+      keystrokes: true,
+      customCrosshair: false,
+      fullbright: true
+    };
+    fs.writeFileSync(hudConfigFile, JSON.stringify(hudConfigData, null, 2), 'utf-8');
 
     let authPayload;
     if (authType === 'microsoft' && fs.existsSync(authFile)) {
