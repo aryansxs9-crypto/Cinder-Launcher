@@ -23,6 +23,7 @@
     --emerald: #10b981;
     --rose: #f43f5e;
     --discord: #5865F2;
+    --ms: #00a4ef;
     --radius-xl: 22px;
     --radius-md: 14px;
   }
@@ -329,6 +330,20 @@
   .identity-name {
     font-size: 13px;
     font-weight: 700;
+  }
+  .identity-type-badge {
+    font-size: 9.5px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-secondary);
+  }
+  .identity-type-badge.ms {
+    background: rgba(0, 164, 239, 0.15);
+    color: var(--ms);
+    border: 1px solid rgba(0, 164, 239, 0.3);
   }
 
   .center-column {
@@ -979,7 +994,7 @@
     <div class="brand-chip">
       <div class="brand-gem">🔥</div>
       <span class="brand-title">CINDER</span>
-      <span class="brand-ver">v1.1.2</span>
+      <span class="brand-ver">v1.1.3</span>
     </div>
 
     <div class="top-actions">
@@ -1008,6 +1023,7 @@
             <div style="font-size:9.5px; color:var(--text-muted); font-weight:700; text-transform:uppercase;">PROFILE</div>
             <div class="identity-name" id="displayPlayerName">Player</div>
           </div>
+          <span class="identity-type-badge" id="displayAuthBadge">OFFLINE</span>
         </div>
       </div>
 
@@ -1041,22 +1057,22 @@
           <div class="patch-header">
             <div class="patch-title">
               <span>📢 Patch Notes</span>
-              <span class="patch-badge">v1.1.2</span>
+              <span class="patch-badge">v1.1.3</span>
             </div>
             <span style="font-size:10.5px; color:var(--text-muted);">Release</span>
           </div>
           <div class="patch-list">
             <div class="patch-item">
               <div class="patch-dot"></div>
-              <span><strong>Auto-Java Engine:</strong> Automatic OpenJDK runtime download & configuration.</span>
+              <span><strong>Microsoft Authentication:</strong> Official OAuth2 popup login with multi-account handling.</span>
+            </div>
+            <div class="patch-item">
+              <div class="patch-dot"></div>
+              <span><strong>Auto-Java Engine:</strong> Automatic OpenJDK runtime download & clean path configuration.</span>
             </div>
             <div class="patch-item">
               <div class="patch-dot"></div>
               <span><strong>In-Built Mods Hub:</strong> Search and 1-click install mods directly via Modrinth.</span>
-            </div>
-            <div class="patch-item">
-              <div class="patch-dot"></div>
-              <span><strong>Discord Rich Presence:</strong> Display real-time status and timers on Discord.</span>
             </div>
           </div>
         </div>
@@ -1152,7 +1168,19 @@
         </div>
 
         <div class="config-grid">
+          <!-- Microsoft Auth Section -->
           <div class="config-card">
+            <div class="config-label">
+              <span class="config-label-title">Account Authorization</span>
+              <span class="config-label-sub" id="authAccountStatus">Using Offline Identity</span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="glass-btn" id="msLoginBtn" style="color: #38bdf8; border-color: rgba(56, 189, 248, 0.3);">🔑 Microsoft Login</button>
+              <button class="glass-btn" id="msLogoutBtn" style="display: none; color: var(--rose);">Logout</button>
+            </div>
+          </div>
+
+          <div class="config-card" id="offlineNameCard">
             <div class="config-label">
               <span class="config-label-title">Offline Identity</span>
               <span class="config-label-sub">In-game player username</span>
@@ -1267,6 +1295,8 @@
 
   let clientConfig = {
     username: '',
+    authType: 'offline', // 'offline' or 'microsoft'
+    msAccount: null,
     customSkin: null,
     version: '1.20.4',
     loader: 'Fabric',
@@ -1345,8 +1375,14 @@
   });
 
   function syncHUD() {
-    const currentName = clientConfig.username || 'Player';
+    const isMS = clientConfig.authType === 'microsoft' && clientConfig.msAccount;
+    const currentName = isMS ? clientConfig.msAccount.name : (clientConfig.username || 'Player');
+    
     document.getElementById('displayPlayerName').textContent = currentName;
+    const authBadge = document.getElementById('displayAuthBadge');
+    authBadge.textContent = isMS ? 'PREMIUM' : 'OFFLINE';
+    authBadge.classList.toggle('ms', isMS);
+
     document.getElementById('hudVersion').textContent = clientConfig.version;
     document.getElementById('hudLoader').textContent = clientConfig.loader;
     document.getElementById('hudRam').textContent = (clientConfig.ram / 1024) + ' GB';
@@ -1354,7 +1390,25 @@
     document.getElementById('launchMetaBadge').textContent = `${clientConfig.version} · ${clientConfig.loader}`;
     document.getElementById('modsFilterTag').textContent = `${clientConfig.loader.toUpperCase()} ${clientConfig.version}`;
 
-    document.getElementById('cfgPlayerName').value = clientConfig.username || '';
+    // Auth Config View UI
+    const msLoginBtn = document.getElementById('msLoginBtn');
+    const msLogoutBtn = document.getElementById('msLogoutBtn');
+    const authStatus = document.getElementById('authAccountStatus');
+    const offlineCard = document.getElementById('offlineNameCard');
+
+    if (isMS) {
+      msLoginBtn.style.display = 'none';
+      msLogoutBtn.style.display = 'block';
+      authStatus.textContent = `Signed in as ${clientConfig.msAccount.name} (Microsoft)`;
+      offlineCard.style.display = 'none';
+    } else {
+      msLoginBtn.style.display = 'block';
+      msLogoutBtn.style.display = 'none';
+      authStatus.textContent = 'Using Offline Identity';
+      offlineCard.style.display = 'flex';
+      document.getElementById('cfgPlayerName').value = clientConfig.username || '';
+    }
+
     document.getElementById('cfgFpsToggle').classList.toggle('on', clientConfig.fpsBoost);
     
     const versionSelect = document.getElementById('cfgVersionSelect');
@@ -1385,6 +1439,35 @@
   }
   setupConfigChips('cfgLoaderChips', 'loader');
   setupConfigChips('cfgRamChips', 'ram', true);
+
+  // Microsoft Login / Logout Buttons
+  document.getElementById('msLoginBtn').addEventListener('click', async () => {
+    if (!window.launcherAPI) return alert('Microsoft Auth runs inside the Desktop App.');
+    const btn = document.getElementById('msLoginBtn');
+    btn.disabled = true;
+    btn.textContent = 'Signing in...';
+
+    const res = await window.launcherAPI.loginMicrosoft();
+    btn.disabled = false;
+    btn.textContent = '🔑 Microsoft Login';
+
+    if (res.success) {
+      clientConfig.authType = 'microsoft';
+      clientConfig.msAccount = res.profile;
+      saveConfig();
+      alert(`Successfully logged in as ${res.profile.name}!`);
+    } else {
+      alert(`Microsoft Login Failed: ${res.error}`);
+    }
+  });
+
+  document.getElementById('msLogoutBtn').addEventListener('click', async () => {
+    if (!window.launcherAPI) return;
+    await window.launcherAPI.logoutAccount();
+    clientConfig.authType = 'offline';
+    clientConfig.msAccount = null;
+    saveConfig();
+  });
 
   // Modrinth Hub Engine
   async function loadInstalledMods() {
@@ -1491,11 +1574,13 @@
   });
 
   document.getElementById('saveHubBtn').addEventListener('click', () => {
-    const nameVal = document.getElementById('cfgPlayerName').value.trim();
-    if (nameVal && /^[A-Za-z0-9_]{3,16}$/.test(nameVal)) {
-      clientConfig.username = nameVal;
-    } else if (!clientConfig.username) {
-      clientConfig.username = 'Player';
+    if (clientConfig.authType === 'offline') {
+      const nameVal = document.getElementById('cfgPlayerName').value.trim();
+      if (nameVal && /^[A-Za-z0-9_]{3,16}$/.test(nameVal)) {
+        clientConfig.username = nameVal;
+      } else if (!clientConfig.username) {
+        clientConfig.username = 'Player';
+      }
     }
 
     const versionSelect = document.getElementById('cfgVersionSelect');
@@ -1554,10 +1639,13 @@
 
   function loadActiveSkin() {
     if (!skinViewer) return;
+    const isMS = clientConfig.authType === 'microsoft' && clientConfig.msAccount;
+    const activeName = isMS ? clientConfig.msAccount.name : clientConfig.username;
+
     if (clientConfig.customSkin) {
       skinViewer.loadSkin(clientConfig.customSkin);
-    } else if (clientConfig.username && clientConfig.username !== 'Player') {
-      skinViewer.loadSkin(`https://minotar.net/skin/${clientConfig.username}`);
+    } else if (activeName && activeName !== 'Player') {
+      skinViewer.loadSkin(`https://minotar.net/skin/${activeName}`);
     } else {
       skinViewer.loadSkin('https://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f0f6fa9d20477b6cf346141d83dd4cb1947b4');
     }
@@ -1578,7 +1666,7 @@
       appShell.classList.add('ready');
       try { init3DStage(); } catch(e){}
 
-      if (isFirstLaunch || !clientConfig.username) {
+      if (isFirstLaunch || (!clientConfig.username && clientConfig.authType === 'offline')) {
         switchView('viewConfig');
       }
     }, 1000);
@@ -1596,9 +1684,10 @@
   const percentLabel = document.getElementById('launchPercentText');
 
   function triggerLaunch(serverIp = null) {
-    if (!clientConfig.username) {
+    const isMS = clientConfig.authType === 'microsoft' && clientConfig.msAccount;
+    if (!isMS && !clientConfig.username) {
       switchView('viewConfig');
-      alert('Please set your player username first!');
+      alert('Please set your player username or sign in with Microsoft!');
       return;
     }
 
@@ -1618,7 +1707,8 @@
     progressBar.style.width = '5%';
 
     window.launcherAPI.launchGame({
-      username: clientConfig.username,
+      username: isMS ? clientConfig.msAccount.name : clientConfig.username,
+      authType: clientConfig.authType,
       version: clientConfig.version,
       loaderType: clientConfig.loader,
       memoryMax: clientConfig.ram,
@@ -1632,7 +1722,6 @@
   if (window.launcherAPI) {
     document.getElementById('openFolderBtn').addEventListener('click', () => window.launcherAPI.openGameFolder());
 
-    // Game Lifecycle Status Pipeline
     window.launcherAPI.onGameStatus((status) => {
       if (typeof status === 'object') {
         progressWrap.style.display = 'flex';
@@ -1667,7 +1756,6 @@
       }
     });
 
-    // Asset Stream Progress
     window.launcherAPI.onDownloadProgress((prog) => {
       progressWrap.style.display = 'flex';
       statusLabel.textContent = `Downloading ${prog.type}...`;
@@ -1675,7 +1763,6 @@
       progressBar.style.width = `${prog.percent}%`;
     });
 
-    // Console Logging
     window.launcherAPI.onGameLog((data) => {
       const line = document.createElement('div');
       line.textContent = `[${new Date().toLocaleTimeString()}] ${data.text || data}`;
