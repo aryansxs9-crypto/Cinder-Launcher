@@ -609,7 +609,7 @@
     flex: 1;
   }
 
-  /* Empty Graphic Prompt */
+  /* Empty State */
   .empty-state-box {
     grid-column: 1 / -1;
     display: flex;
@@ -813,7 +813,7 @@
     font-weight: 800;
   }
 
-  /* DEDICATED PROFILE WORKSPACE (FULL VIEW) */
+  /* DEDICATED PROFILE WORKSPACE */
   .workspace-panel {
     display: flex;
     flex-direction: column;
@@ -1721,12 +1721,13 @@
 <script src="https://unpkg.com/skinview3d@3.0.1/bundles/skinview3d.bundle.js"></script>
 
 <script>
+  // Paste your real Discord Invite URL here:
+  const DISCORD_INVITE_URL = 'https://discord.gg/YOUR_INVITE_CODE';
   const STORAGE_KEY = 'cinder_client_config';
   const PROFILES_KEY = 'cinder_client_profiles';
   const ACCOUNTS_KEY = 'cinder_client_accounts';
   const ACTIVE_PROFILE_KEY = 'cinder_active_profile';
   const ACTIVE_ACCOUNT_KEY = 'cinder_active_account';
-  const DISCORD_INVITE_URL = 'https://discord.gg/6Harxs5GvZ';
   
   let allReleases = [];
   let installedMods = [];
