@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const https = require('https');
 const AdmZip = require('adm-zip');
+const msmc = require('msmc');
 const { Client, Authenticator } = require('minecraft-launcher-core');
 const { autoUpdater } = require('electron-updater');
 const DiscordRPC = require('discord-rpc');
@@ -12,6 +13,7 @@ const launcher = new Client();
 const cinderRoot = path.join(app.getPath('appData'), '.cinder');
 const modsDir = path.join(cinderRoot, 'mods');
 const runtimesDir = path.join(cinderRoot, 'runtime');
+const authFile = path.join(cinderRoot, 'auth.json');
 
 // Ensure system directories exist
 [cinderRoot, modsDir, runtimesDir].forEach(dir => {
@@ -98,6 +100,42 @@ ipcMain.on('window-maximize', () => {
 ipcMain.on('window-close', () => mainWindow?.close());
 ipcMain.on('open-external', (e, url) => { if (url) shell.openExternal(url); });
 ipcMain.on('open-game-folder', () => shell.openPath(cinderRoot));
+
+// Microsoft Authentication Handlers
+ipcMain.handle('login-microsoft', async () => {
+  try {
+    const authManager = new msmc.Auth("select_account");
+    const xboxManager = await authManager.launch("electron");
+    const token = await xboxManager.getMinecraft();
+
+    if (!token || !token.mclc()) {
+      return { success: false, error: 'Could not obtain Minecraft Java token. Account may not own Minecraft.' };
+    }
+
+    const mclcAuth = token.mclc();
+    fs.writeFileSync(authFile, JSON.stringify(mclcAuth, null, 2), 'utf-8');
+
+    return {
+      success: true,
+      profile: {
+        name: mclcAuth.name,
+        uuid: mclcAuth.uuid,
+        type: 'microsoft'
+      }
+    };
+  } catch (err) {
+    return { success: false, error: err.message || 'Authentication cancelled or failed.' };
+  }
+});
+
+ipcMain.handle('logout-account', async () => {
+  try {
+    if (fs.existsSync(authFile)) fs.unlinkSync(authFile);
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
 
 // Modrinth API IPC Handlers
 ipcMain.handle('get-installed-mods', async () => {
@@ -288,7 +326,7 @@ async function ensureJavaRuntime(targetJavaMajor) {
 
 // Game Launch Engine
 ipcMain.on('launch-game', async (event, config) => {
-  const { username, version, loaderType, memoryMax, fpsBoost, serverIp } = config;
+  const { username, authType, version, loaderType, memoryMax, fpsBoost, serverIp } = config;
 
   const customArgs = [
     "-XX:+UnlockExperimentalVMOptions",
@@ -319,8 +357,16 @@ ipcMain.on('launch-game', async (event, config) => {
     mainWindow?.webContents.send('game-status', { stage: 'loading', text: 'Verifying Library Integrity...', percent: 25 });
     cleanCorruptedJars(path.join(cinderRoot, 'libraries'));
 
+    // Resolve Authorization Mode (Microsoft vs Offline)
+    let authPayload;
+    if (authType === 'microsoft' && fs.existsSync(authFile)) {
+      authPayload = JSON.parse(fs.readFileSync(authFile, 'utf-8'));
+    } else {
+      authPayload = Authenticator.getAuth(username || 'Player');
+    }
+
     const launchOpts = {
-      authorization: Authenticator.getAuth(username || 'Player'),
+      authorization: authPayload,
       root: cinderRoot,
       javaPath: resolvedJavaPath,
       version: versionConfig,
@@ -386,7 +432,8 @@ ipcMain.on('launch-game', async (event, config) => {
       };
     }
 
-    setRPCActivity(`Playing as ${username || 'Player'}`, `${version} (${loaderType})`);
+    const activeUser = authPayload.name || username || 'Player';
+    setRPCActivity(`Playing as ${activeUser}`, `${version} (${loaderType})`);
 
     mainWindow?.webContents.send('game-status', { stage: 'loading', text: 'Initializing Minecraft Engine...', percent: 45 });
     mainWindow?.webContents.send('game-log', { text: `[Cinder] Initializing launch for Minecraft ${version} (${loaderType})...` });
