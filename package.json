@@ -25,6 +25,13 @@
     "directories": {
       "output": "dist"
     },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "aryansxs9-crypto",
+        "repo": "Cinder-Launcher"
+      }
+    ],
     "win": {
       "target": "nsis",
       "icon": "icon.ico"
