@@ -99,7 +99,7 @@
     transition: width 0.4s ease;
   }
 
-  /* Ambient Canvas Background */
+  /* Ambient Background */
   .bg-art {
     position: fixed;
     inset: 0;
@@ -129,7 +129,7 @@
     transform: translateY(0);
   }
 
-  /* Top Navigation & Controls */
+  /* Top Navigation */
   .topbar {
     display: flex;
     align-items: center;
@@ -263,7 +263,7 @@
     overflow: hidden;
   }
 
-  /* HOME VIEW 3-COLUMNS */
+  /* HOME VIEW */
   .home-3col-grid {
     display: grid;
     grid-template-columns: 270px 1fr 280px;
@@ -312,11 +312,7 @@
     background: radial-gradient(circle at 50% 80%, rgba(255, 106, 0, 0.15) 0%, transparent 65%);
   }
   .skin-container:active { cursor: grabbing; }
-  .skin-container canvas {
-    max-width: 100%;
-    max-height: 100%;
-    outline: none;
-  }
+  .skin-container canvas { max-width: 100%; max-height: 100%; outline: none; }
 
   .identity-bar {
     display: flex;
@@ -327,10 +323,7 @@
     padding: 6px 12px;
     border-radius: 12px;
   }
-  .identity-name {
-    font-size: 13px;
-    font-weight: 700;
-  }
+  .identity-name { font-size: 13px; font-weight: 700; }
   .identity-type-badge {
     font-size: 9.5px;
     font-weight: 700;
@@ -415,6 +408,7 @@
     border-radius: 6px;
     font-family: 'JetBrains Mono', monospace;
   }
+
   .patch-notes-panel {
     flex: 1;
     padding: 16px 20px;
@@ -546,6 +540,376 @@
     box-shadow: 0 0 16px rgba(88, 101, 242, 0.35);
   }
 
+  /* PROFILES VIEW */
+  .profiles-view-wrap {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 480px;
+    gap: 16px;
+  }
+  .profiles-head-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .profiles-title-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .profiles-icon-badge {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ff8c00, #ff4500);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+  .profiles-title-meta h2 {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+  }
+  .profiles-title-meta p {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .new-profile-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #ff8c00, #ff4500);
+    border: none;
+    color: #0b0c10;
+    font-weight: 800;
+    font-size: 12.5px;
+    padding: 10px 18px;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 0 16px var(--accent-glow);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .new-profile-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 24px rgba(255, 106, 0, 0.7);
+  }
+
+  .profiles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 16px;
+    overflow-y: auto;
+    padding-right: 4px;
+    align-content: flex-start;
+    flex: 1;
+  }
+
+  /* Empty Graphic Prompt */
+  .empty-state-box {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px dashed var(--glass-border-hi);
+    border-radius: 18px;
+    text-align: center;
+    gap: 12px;
+  }
+  .empty-state-box h3 { font-size: 15px; font-weight: 700; color: #fff; }
+  .empty-state-box p { font-size: 12px; color: var(--text-muted); max-width: 320px; }
+
+  /* Profile Card Design */
+  .profile-card {
+    background: rgba(13, 14, 20, 0.65);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 16px;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(20px);
+  }
+  .profile-card:hover {
+    border-color: var(--glass-border-hi);
+    background: rgba(255, 255, 255, 0.03);
+    transform: translateY(-2px);
+  }
+  .profile-card.active-card {
+    border-color: var(--accent);
+    box-shadow: 0 0 25px rgba(255, 106, 0, 0.2), inset 0 0 0 1px var(--accent);
+  }
+
+  .profile-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--glass-border);
+  }
+  .profile-card-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .profile-avatar-box {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: #1e293b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    border: 1px solid var(--glass-border);
+  }
+  .profile-card-name {
+    font-size: 14px;
+    font-weight: 800;
+  }
+  .profile-status-badge {
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 6px;
+    color: var(--accent);
+    background: var(--accent-dim);
+    border: 1px solid rgba(255, 106, 0, 0.3);
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    margin-left: 6px;
+  }
+
+  .profile-check-circle {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    color: transparent;
+    transition: 0.2s;
+  }
+  .profile-card.active-card .profile-check-circle {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #000;
+    box-shadow: 0 0 10px var(--accent-glow);
+  }
+
+  .profile-pills-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 14px 0;
+  }
+  .meta-pill {
+    font-size: 10.5px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+  }
+  .meta-pill.accent-pill {
+    color: #fff;
+    background: rgba(255, 106, 0, 0.12);
+    border-color: rgba(255, 106, 0, 0.3);
+  }
+  .meta-pill.perf-pill {
+    color: var(--emerald);
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.3);
+  }
+
+  .profile-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 10px;
+    border-top: 1px solid var(--glass-border);
+  }
+  .card-footer-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: color 0.2s, background 0.2s;
+  }
+  .card-footer-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .card-footer-btn.delete-btn:hover {
+    color: var(--rose);
+    background: rgba(244, 63, 94, 0.1);
+  }
+
+  /* ACCOUNTS TAB */
+  .accounts-view-wrap {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 480px;
+    gap: 16px;
+  }
+  .accounts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 14px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .account-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(13, 14, 20, 0.65);
+    border: 1px solid var(--glass-border);
+    padding: 14px 16px;
+    border-radius: 16px;
+    backdrop-filter: blur(20px);
+    transition: 0.2s;
+  }
+  .account-card.active-acc {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px rgba(255, 106, 0, 0.2);
+  }
+  .acc-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .acc-head {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: #1e293b;
+    object-fit: cover;
+  }
+  .acc-name {
+    font-size: 13.5px;
+    font-weight: 800;
+  }
+
+  /* DEDICATED PROFILE WORKSPACE (FULL VIEW) */
+  .workspace-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 22px 26px;
+    width: 100%;
+    max-height: 480px;
+    overflow-y: auto;
+  }
+  .workspace-section-title {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .workspace-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .config-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--glass-border);
+    padding: 12px 16px;
+    border-radius: 12px;
+  }
+  .config-label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .config-label-title { font-size: 13px; font-weight: 700; }
+  .config-label-sub { font-size: 11px; color: var(--text-muted); }
+
+  .config-input, .config-select {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--glass-border-hi);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    outline: none;
+    min-width: 170px;
+  }
+  .config-select option { background: #0f1016; color: #fff; }
+
+  .chip-group { display: flex; gap: 6px; }
+  .chip {
+    padding: 5px 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    font-size: 11.5px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .chip:hover { color: #fff; border-color: var(--glass-border-hi); }
+  .chip.active {
+    color: #fff;
+    background: rgba(255, 106, 0, 0.18);
+    border-color: var(--accent);
+    box-shadow: 0 0 14px rgba(255, 106, 0, 0.3);
+  }
+
+  .micro-switch {
+    width: 36px;
+    height: 20px;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.1);
+    position: relative;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .micro-switch.on { background: var(--accent); box-shadow: 0 0 12px var(--accent-glow); }
+  .switch-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .micro-switch.on .switch-dot { left: 19px; }
+
   /* MODS HUB VIEW */
   .mods-container {
     display: grid;
@@ -561,11 +925,7 @@
     padding: 18px 22px;
     overflow-y: hidden;
   }
-  .mods-search-bar {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-  }
+  .mods-search-bar { display: flex; gap: 10px; align-items: center; }
   .mods-input {
     flex: 1;
     background: rgba(0, 0, 0, 0.4);
@@ -595,10 +955,6 @@
     justify-content: space-between;
     transition: 0.2s;
   }
-  .mod-card:hover {
-    border-color: var(--glass-border-hi);
-    background: rgba(255, 255, 255, 0.03);
-  }
   .mod-icon {
     width: 44px;
     height: 44px;
@@ -606,26 +962,9 @@
     background: #1e293b;
     object-fit: cover;
   }
-  .mod-details {
-    flex: 1;
-    overflow: hidden;
-    margin-right: 8px;
-  }
-  .mod-title {
-    font-size: 12.5px;
-    font-weight: 700;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .mod-desc {
-    font-size: 10.5px;
-    color: var(--text-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-top: 2px;
-  }
+  .mod-details { flex: 1; overflow: hidden; margin-right: 8px; }
+  .mod-title { font-size: 12.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mod-desc { font-size: 10.5px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
   .mod-btn {
     padding: 6px 12px;
     border-radius: 8px;
@@ -635,19 +974,9 @@
     cursor: pointer;
     transition: 0.15s;
   }
-  .mod-btn.install {
-    background: var(--accent);
-    color: #0b0c10;
-  }
-  .mod-btn.install:hover {
-    box-shadow: 0 0 12px var(--accent-glow);
-  }
-  .mod-btn.installed {
-    background: rgba(16, 185, 129, 0.15);
-    color: var(--emerald);
-    border: 1px solid var(--emerald);
-    cursor: default;
-  }
+  .mod-btn.install { background: var(--accent); color: #0b0c10; }
+  .mod-btn.installed { background: rgba(16, 185, 129, 0.15); color: var(--emerald); border: 1px solid var(--emerald); cursor: default; }
+
   .installed-panel {
     display: flex;
     flex-direction: column;
@@ -655,13 +984,7 @@
     gap: 12px;
     overflow-y: hidden;
   }
-  .installed-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    overflow-y: auto;
-    flex: 1;
-  }
+  .installed-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; flex: 1; }
   .installed-item {
     display: flex;
     align-items: center;
@@ -682,136 +1005,111 @@
     cursor: pointer;
     font-size: 10px;
   }
-  .del-btn:hover { background: rgba(244, 63, 94, 0.25); }
 
-  /* CONFIG VIEW */
+  /* SETTINGS VIEW */
   .config-view-container {
     display: flex;
     justify-content: center;
     align-items: center;
     width: 100%;
   }
-  .config-panel {
+  .settings-panel {
     width: 680px;
     padding: 24px 30px;
     display: flex;
     flex-direction: column;
     gap: 16px;
+    max-height: 520px;
+    overflow-y: auto;
   }
-  .config-grid {
+
+  /* ONBOARDING / LOGIN GATE */
+  .auth-gate-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 5, 7, 0.94);
+    backdrop-filter: blur(30px);
+    z-index: 900;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .auth-gate-overlay.active { display: flex; }
+  .auth-card-panel {
+    width: 440px;
+    background: #090a0f;
+    border: 1px solid var(--glass-border-hi);
+    border-radius: 24px;
+    padding: 32px 30px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.95);
   }
-  .config-card {
+  .auth-gem-hero {
+    width: 54px;
+    height: 54px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #ff8c00, #ff4500);
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    background: rgba(0, 0, 0, 0.35);
-    border: 1px solid var(--glass-border);
-    padding: 11px 16px;
+    justify-content: center;
+    font-size: 26px;
+    box-shadow: 0 0 25px var(--accent-glow);
+    margin-bottom: 14px;
+  }
+  .auth-tabs-row {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    margin: 20px 0 16px;
+    background: rgba(255, 255, 255, 0.04);
+    padding: 4px;
     border-radius: 12px;
   }
-  .config-label {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-  .config-label-title {
-    font-size: 13px;
-    font-weight: 700;
-  }
-  .config-label-sub {
-    font-size: 11px;
-    color: var(--text-muted);
-  }
-  .chip-group { display: flex; gap: 6px; }
-  .chip {
-    padding: 5px 12px;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--glass-border);
+  .auth-tab-btn {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    background: transparent;
     color: var(--text-secondary);
-    font-size: 11.5px;
     font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
-    cursor: pointer;
-    transition: 0.15s;
-  }
-  .chip:hover { color: #fff; border-color: var(--glass-border-hi); }
-  .chip.active {
-    color: #fff;
-    background: rgba(255, 106, 0, 0.18);
-    border-color: var(--accent);
-    box-shadow: 0 0 14px rgba(255, 106, 0, 0.3);
-  }
-
-  .config-input, .config-select {
-    background: rgba(0, 0, 0, 0.5);
-    border: 1px solid var(--glass-border-hi);
-    color: #fff;
-    padding: 6px 12px;
+    font-size: 12px;
     border-radius: 8px;
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 600;
-    outline: none;
-    min-width: 170px;
-  }
-
-  .config-select option {
-    background: #0f1016;
-    color: #fff;
-  }
-
-  .micro-switch {
-    width: 34px;
-    height: 19px;
-    border-radius: 99px;
-    background: rgba(255, 255, 255, 0.1);
-    position: relative;
     cursor: pointer;
     transition: 0.2s;
   }
-  .micro-switch.on { background: var(--accent); box-shadow: 0 0 12px var(--accent-glow); }
-  .switch-dot {
-    width: 13px;
-    height: 13px;
-    border-radius: 50%;
-    background: #fff;
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  .auth-tab-btn.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
   }
-  .micro-switch.on .switch-dot { left: 18px; }
-
-  .save-hub-btn {
-    align-self: flex-end;
-    padding: 10px 22px;
+  .auth-submit-btn {
+    width: 100%;
+    padding: 12px;
     border-radius: 12px;
     border: none;
     background: linear-gradient(135deg, #ff8c00, #ff4500);
     color: #0b0c10;
     font-weight: 800;
     font-size: 13px;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.5px;
     cursor: pointer;
     box-shadow: 0 6px 20px var(--accent-glow);
+    margin-top: 14px;
     transition: 0.2s;
   }
-  .save-hub-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(255, 106, 0, 0.6); }
+  .auth-submit-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(255, 106, 0, 0.6); }
 
-  /* BOTTOM LAUNCH DOCK & PROGRESS BAR */
+  /* BOTTOM LAUNCH & DYNAMIC STOP DOCK */
   .bottom-dock {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 8px;
   }
-
   .launch-progress-wrap {
-    width: 310px;
+    width: 320px;
     display: none;
     flex-direction: column;
     gap: 4px;
@@ -839,6 +1137,12 @@
     transition: width 0.2s ease;
   }
 
+  .launch-controls-cluster {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
   .launch-pill {
     position: relative;
     display: flex;
@@ -856,18 +1160,8 @@
     transform: translateY(-2px) scale(1.02);
     box-shadow: 0 0 60px rgba(255, 255, 255, 0.55), 0 14px 40px rgba(0,0,0,0.8);
   }
-  .launch-pill:active:not(:disabled) { transform: translateY(0) scale(0.99); }
-  .launch-pill:disabled {
-    cursor: not-allowed;
-    opacity: 0.8;
-  }
-  .launch-title {
-    font-size: 14px;
-    font-weight: 800;
-    letter-spacing: 1.5px;
-    color: #050608;
-    text-transform: uppercase;
-  }
+  .launch-pill:disabled { opacity: 0.7; cursor: not-allowed; }
+  .launch-title { font-size: 14px; font-weight: 800; letter-spacing: 1.5px; color: #050608; text-transform: uppercase; }
   .launch-meta-badge {
     display: flex;
     align-items: center;
@@ -888,11 +1182,28 @@
     background: var(--emerald);
     box-shadow: 0 0 8px var(--emerald);
   }
-  .launch-pill.playing {
-    background: #1e293b;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+
+  /* Stop Button */
+  .stop-game-btn {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    background: rgba(244, 63, 94, 0.15);
+    border: 1px solid var(--rose);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(244, 63, 94, 0.3);
+    transition: 0.2s;
   }
-  .launch-pill.playing .launch-title { color: #fff; }
+  .stop-game-btn:hover {
+    background: var(--rose);
+    color: #0b0c10;
+    box-shadow: 0 0 30px rgba(244, 63, 94, 0.7);
+  }
 
   .nav-dock {
     display: flex;
@@ -921,9 +1232,8 @@
     color: #fff;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
   }
-  .nav-tab:hover:not(.active) { color: #fff; }
 
-  /* Console Modal */
+  /* Modals */
   .modal-overlay {
     position: fixed;
     inset: 0;
@@ -944,7 +1254,6 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    box-shadow: 0 30px 70px rgba(0,0,0,0.9);
   }
   .console-head {
     display: flex;
@@ -978,6 +1287,7 @@
 
 <div class="bg-art"></div>
 
+<!-- Console Modal -->
 <div class="modal-overlay" id="consoleModal">
   <div class="console-panel">
     <div class="console-head">
@@ -985,6 +1295,32 @@
       <div class="win-dot" id="consoleCloseBtn">✕</div>
     </div>
     <div class="console-logs" id="consoleLogs"></div>
+  </div>
+</div>
+
+<!-- Onboarding / Account Login Gate -->
+<div class="auth-gate-overlay" id="authGate">
+  <div class="auth-card-panel">
+    <div class="auth-gem-hero">🔥</div>
+    <h2 style="font-size: 18px; font-weight: 800;">Welcome to Cinder</h2>
+    <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Sign in or create an identity to get started.</p>
+
+    <div class="auth-tabs-row">
+      <button class="auth-tab-btn active" id="authTabOffline">Offline Mode</button>
+      <button class="auth-tab-btn" id="authTabMicrosoft">Microsoft</button>
+    </div>
+
+    <!-- Offline Form -->
+    <div id="authFormOffline" style="width: 100%;">
+      <input type="text" class="config-input" id="gateOfflineName" placeholder="Enter Username (e.g. Alex)" style="width: 100%; text-align: center; padding: 10px;" maxlength="16">
+      <button class="auth-submit-btn" id="gateOfflineSubmit">Continue with Identity →</button>
+    </div>
+
+    <!-- Microsoft Form -->
+    <div id="authFormMicrosoft" style="width: 100%; display: none;">
+      <p style="font-size: 12px; color: var(--text-secondary); margin: 10px 0 16px;">Sign in with your official Microsoft account to access premium servers & skins.</p>
+      <button class="auth-submit-btn" id="gateMicrosoftSubmit" style="background: #00a4ef; color: #fff;">🔑 Sign in with Microsoft</button>
+    </div>
   </div>
 </div>
 
@@ -1036,15 +1372,15 @@
           <div class="hud-grid">
             <div class="hud-row">
               <span class="hud-label">📦 Version</span>
-              <span class="hud-val" id="hudVersion">1.20.4</span>
+              <span class="hud-val" id="hudVersion">None</span>
             </div>
             <div class="hud-row">
               <span class="hud-label">⚙️ Loader</span>
-              <span class="hud-val" id="hudLoader">Fabric</span>
+              <span class="hud-val" id="hudLoader">None</span>
             </div>
             <div class="hud-row">
               <span class="hud-label">🧠 Memory</span>
-              <span class="hud-val" id="hudRam">4 GB</span>
+              <span class="hud-val" id="hudRam">4.0 GB</span>
             </div>
             <div class="hud-row">
               <span class="hud-label">🚀 Optimizations</span>
@@ -1064,15 +1400,15 @@
           <div class="patch-list">
             <div class="patch-item">
               <div class="patch-dot"></div>
-              <span><strong>Microsoft Authentication:</strong> Official OAuth2 popup login with multi-account handling.</span>
+              <span><strong>Custom Profiles Workspace:</strong> Full custom profile creator with modular feature toggles.</span>
             </div>
             <div class="patch-item">
               <div class="patch-dot"></div>
-              <span><strong>Auto-Java Engine:</strong> Automatic OpenJDK runtime download & clean path configuration.</span>
+              <span><strong>Dedicated Accounts Hub:</strong> Switch effortlessly between Offline and Microsoft profiles.</span>
             </div>
             <div class="patch-item">
               <div class="patch-dot"></div>
-              <span><strong>In-Built Mods Hub:</strong> Search and 1-click install mods directly via Modrinth.</span>
+              <span><strong>Interactive Stop Control:</strong> Kill running Minecraft instances instantly directly from Home.</span>
             </div>
           </div>
         </div>
@@ -1129,6 +1465,157 @@
     </div>
   </div>
 
+  <!-- PROFILES VIEW -->
+  <div class="view-panel" id="viewProfiles">
+    <div class="profiles-view-wrap">
+      <div class="profiles-head-bar">
+        <div class="profiles-title-area">
+          <div class="profiles-icon-badge">📁</div>
+          <div class="profiles-title-meta">
+            <h2>Profiles</h2>
+            <p>Manage your custom Minecraft configurations</p>
+          </div>
+        </div>
+        <button class="new-profile-btn" id="openCreateProfileWorkspaceBtn">＋ New Profile</button>
+      </div>
+
+      <div class="profiles-grid" id="profilesCardsContainer"></div>
+    </div>
+  </div>
+
+  <!-- DEDICATED PROFILE EDITOR / CREATOR WORKSPACE -->
+  <div class="view-panel" id="viewProfileEditor">
+    <div class="glass-panel workspace-panel">
+      <div class="panel-header">
+        <div>
+          <span class="panel-tag" id="workspaceHeaderTag">PROFILE CREATOR</span>
+          <h2 style="font-size: 16px; font-weight: 800; margin-top: 2px;" id="workspaceTitle">Configure New Game Instance</h2>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="glass-btn" onclick="switchView('viewProfiles')">Cancel</button>
+          <button class="new-profile-btn" id="saveWorkspaceProfileBtn" style="padding: 6px 18px;">Save Profile →</button>
+        </div>
+      </div>
+
+      <div class="workspace-section-title">1. Core Instance Parameters</div>
+      <div class="workspace-grid">
+        <div class="config-card">
+          <div class="config-label">
+            <span class="config-label-title">Profile Name</span>
+            <span class="config-label-sub">Unique label for this configuration</span>
+          </div>
+          <input type="text" class="config-input" id="wsProfName" placeholder="e.g. 1.21 Survival Modded">
+        </div>
+
+        <div class="config-card">
+          <div class="config-label">
+            <span class="config-label-title">Minecraft Version</span>
+            <span class="config-label-sub">Search and select official release</span>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:4px; width: 170px;">
+            <input type="text" class="config-input" id="wsVersionSearch" placeholder="🔍 Search..." style="width: 100%; font-size: 11.5px; padding: 4px 8px;">
+            <select class="config-select" id="wsVersionSelect" style="width: 100%;"></select>
+          </div>
+        </div>
+
+        <div class="config-card">
+          <div class="config-label">
+            <span class="config-label-title">Mod Loader</span>
+            <span class="config-label-sub">Injection framework</span>
+          </div>
+          <div class="chip-group" id="wsLoaderChips">
+            <span class="chip" data-val="Vanilla">Vanilla</span>
+            <span class="chip active" data-val="Fabric">Fabric</span>
+            <span class="chip" data-val="Forge">Forge</span>
+          </div>
+        </div>
+
+        <div class="config-card">
+          <div class="config-label">
+            <span class="config-label-title">RAM Allocation</span>
+            <span class="config-label-sub">JVM maximum heap limit</span>
+          </div>
+          <div class="chip-group" id="wsRamChips">
+            <span class="chip" data-val="2048">2 GB</span>
+            <span class="chip active" data-val="4096">4 GB</span>
+            <span class="chip" data-val="6144">6 GB</span>
+            <span class="chip" data-val="8192">8 GB</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="workspace-section-title" style="margin-top: 10px;">2. Performance & In-Game Feature Toggles</div>
+      <div class="workspace-grid">
+        <div class="config-card">
+          <div class="config-label">
+            <span class="config-label-title">⚡ Performance+ Modpack</span>
+            <span class="config-label-sub">Auto-bundle Sodium, Lithium & FerriteCore</span>
+          </div>
+          <div class="micro-switch on" id="wsTogglePerfPack" onclick="this.classList.toggle('on')"><div class="switch-dot"></div></div>
+        </div>
+
+        <div class="config-card">
+          <div class="config-label">
+            <span class="config-label-title">🚀 Low-Latency JVM Flags</span>
+            <span class="config-label-sub">High throughput G1GC garbage collection</span>
+          </div>
+          <div class="micro-switch on" id="wsToggleG1GC" onclick="this.classList.toggle('on')"><div class="switch-dot"></div></div>
+        </div>
+
+        <div class="config-card">
+          <div class="config-label">
+            <span class="config-label-title">📊 In-Game FPS & TPS Counter</span>
+            <span class="config-label-sub">Minimal real-time framerate HUD overlay</span>
+          </div>
+          <div class="micro-switch on" id="wsToggleFpsCounter" onclick="this.classList.toggle('on')"><div class="switch-dot"></div></div>
+        </div>
+
+        <div class="config-card">
+          <div class="config-label">
+            <span class="config-label-title">🎯 Custom Crosshair & Aim</span>
+            <span class="config-label-sub">Unlock custom reticle styling</span>
+          </div>
+          <div class="micro-switch" id="wsToggleCrosshair" onclick="this.classList.toggle('on')"><div class="switch-dot"></div></div>
+        </div>
+
+        <div class="config-card">
+          <div class="config-label">
+            <span class="config-label-title">⌨️ Keystrokes & Armor Status</span>
+            <span class="config-label-sub">PvP on-screen HUD status elements</span>
+          </div>
+          <div class="micro-switch" id="wsToggleKeystrokes" onclick="this.classList.toggle('on')"><div class="switch-dot"></div></div>
+        </div>
+
+        <div class="config-card">
+          <div class="config-label">
+            <span class="config-label-title">💡 Fullbright / Gamma Boost</span>
+            <span class="config-label-sub">Maximum cave & night brightness</span>
+          </div>
+          <div class="micro-switch on" id="wsToggleFullbright" onclick="this.classList.toggle('on')"><div class="switch-dot"></div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ACCOUNTS VIEW -->
+  <div class="view-panel" id="viewAccounts">
+    <div class="accounts-view-wrap">
+      <div class="profiles-head-bar">
+        <div class="profiles-title-area">
+          <div class="profiles-icon-badge" style="background: linear-gradient(135deg, #00a4ef, #5865F2);">👥</div>
+          <div class="profiles-title-meta">
+            <h2>Accounts</h2>
+            <p>Manage your signed-in offline and premium profiles</p>
+          </div>
+        </div>
+        <button class="new-profile-btn" id="openAddAccountGateBtn">＋ Add Account</button>
+      </div>
+
+      <div class="accounts-grid" id="accountsListContainer"></div>
+    </div>
+  </div>
+
   <!-- MODS HUB VIEW -->
   <div class="view-panel" id="viewMods">
     <div class="mods-container">
@@ -1136,7 +1623,7 @@
       <div class="glass-panel mods-explore-panel">
         <div class="panel-header">
           <span class="panel-tag">EXPLORE MODRINTH</span>
-          <span class="status-tag" id="modsFilterTag">FABRIC 1.20.4</span>
+          <span class="status-tag" id="modsFilterTag">FABRIC</span>
         </div>
 
         <div class="mods-search-bar">
@@ -1158,40 +1645,20 @@
     </div>
   </div>
 
-  <!-- CONFIG VIEW -->
+  <!-- SETTINGS VIEW -->
   <div class="view-panel" id="viewConfig">
     <div class="config-view-container">
-      <div class="glass-panel config-panel">
+      <div class="glass-panel settings-panel">
         <div class="panel-header">
-          <span class="panel-tag">ENGINE CONFIGURATION</span>
-          <span class="status-tag">CUSTOMIZE SPECS</span>
+          <span class="panel-tag">CLIENT SETTINGS</span>
+          <span class="status-tag">GLOBAL</span>
         </div>
 
-        <div class="config-grid">
-          <!-- Microsoft Auth Section -->
-          <div class="config-card">
-            <div class="config-label">
-              <span class="config-label-title">Account Authorization</span>
-              <span class="config-label-sub" id="authAccountStatus">Using Offline Identity</span>
-            </div>
-            <div style="display: flex; gap: 8px;">
-              <button class="glass-btn" id="msLoginBtn" style="color: #38bdf8; border-color: rgba(56, 189, 248, 0.3);">🔑 Microsoft Login</button>
-              <button class="glass-btn" id="msLogoutBtn" style="display: none; color: var(--rose);">Logout</button>
-            </div>
-          </div>
-
-          <div class="config-card" id="offlineNameCard">
-            <div class="config-label">
-              <span class="config-label-title">Offline Identity</span>
-              <span class="config-label-sub">In-game player username</span>
-            </div>
-            <input type="text" class="config-input" id="cfgPlayerName" value="" placeholder="e.g. Alex" maxlength="16">
-          </div>
-
+        <div style="display:flex; flex-direction:column; gap:12px;">
           <div class="config-card">
             <div class="config-label">
               <span class="config-label-title">Custom Avatar Skin</span>
-              <span class="config-label-sub">Upload your own Minecraft .png skin</span>
+              <span class="config-label-sub">Upload your own .png skin file</span>
             </div>
             <div style="display: flex; gap: 8px;">
               <label class="glass-btn" style="cursor: pointer;">
@@ -1202,61 +1669,20 @@
             </div>
           </div>
 
-          <div class="config-card" style="align-items: flex-start; flex-direction: column; gap: 10px;">
-            <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-              <div class="config-label">
-                <span class="config-label-title">Minecraft Version</span>
-                <span class="config-label-sub">Search and choose any official release</span>
-              </div>
-              <input type="text" class="config-input" id="cfgVersionSearch" placeholder="🔍 Search (e.g. 1.8.9)..." style="width: 170px; font-size: 12px; padding: 5px 10px;">
-            </div>
-            <select class="config-select" id="cfgVersionSelect" style="width: 100%;">
-              <option value="1.20.4">Loading versions...</option>
-            </select>
-          </div>
-
           <div class="config-card">
             <div class="config-label">
-              <span class="config-label-title">Mod Engine</span>
-              <span class="config-label-sub">Loader framework injection</span>
+              <span class="config-label-title">Discord Rich Presence</span>
+              <span class="config-label-sub">Display playing status on your Discord profile</span>
             </div>
-            <div class="chip-group" id="cfgLoaderChips">
-              <span class="chip" data-val="Vanilla">Vanilla</span>
-              <span class="chip active" data-val="Fabric">Fabric</span>
-              <span class="chip" data-val="Forge">Forge</span>
-            </div>
-          </div>
-
-          <div class="config-card">
-            <div class="config-label">
-              <span class="config-label-title">Memory Allocation</span>
-              <span class="config-label-sub">JVM maximum heap size</span>
-            </div>
-            <div class="chip-group" id="cfgRamChips">
-              <span class="chip" data-val="2048">2 GB</span>
-              <span class="chip active" data-val="4096">4 GB</span>
-              <span class="chip" data-val="6144">6 GB</span>
-              <span class="chip" data-val="8192">8 GB</span>
-            </div>
-          </div>
-
-          <div class="config-card">
-            <div class="config-label">
-              <span class="config-label-title">FPS Booster</span>
-              <span class="config-label-sub">Apply low-latency G1GC memory flags</span>
-            </div>
-            <div class="micro-switch on" id="cfgFpsToggle" onclick="this.classList.toggle('on')">
-              <div class="switch-dot"></div>
-            </div>
+            <div class="micro-switch on" id="cfgDiscordRpcToggle" onclick="this.classList.toggle('on')"><div class="switch-dot"></div></div>
           </div>
         </div>
 
-        <button class="save-hub-btn" id="saveHubBtn">Save & Apply →</button>
       </div>
     </div>
   </div>
 
-  <!-- Bottom Launch Dock with Live Progress -->
+  <!-- BOTTOM LAUNCH DOCK & STOP PILL -->
   <div class="bottom-dock">
     
     <div class="launch-progress-wrap" id="launchProgressContainer">
@@ -1269,95 +1695,406 @@
       </div>
     </div>
 
-    <button class="launch-pill" id="launchBtn">
-      <span class="launch-title" id="launchBtnText">LAUNCH</span>
-      <div class="launch-meta-badge" id="launchMetaBadge">1.20.4 · Fabric</div>
-    </button>
+    <div class="launch-controls-cluster">
+      <button class="launch-pill" id="launchBtn">
+        <span class="launch-title" id="launchBtnText">LAUNCH</span>
+        <div class="launch-meta-badge" id="launchMetaBadge">No Profile Selected</div>
+      </button>
+
+      <button class="stop-game-btn" id="stopGameBtn">
+        <span>🛑</span> STOP GAME
+      </button>
+    </div>
 
     <div class="nav-dock">
       <button class="nav-tab active" data-target="viewHome">Home</button>
+      <button class="nav-tab" data-target="viewProfiles">Profiles</button>
+      <button class="nav-tab" data-target="viewAccounts">Accounts</button>
       <button class="nav-tab" data-target="viewMods">Mods</button>
-      <button class="nav-tab" data-target="viewConfig">Configure Hub</button>
+      <button class="nav-tab" data-target="viewConfig">Settings</button>
     </div>
   </div>
 
 </div>
 
-<!-- 3D Skin Render Dependency -->
+<!-- 3D Skin Render Engine -->
 <script src="https://unpkg.com/skinview3d@3.0.1/bundles/skinview3d.bundle.js"></script>
 
 <script>
   const STORAGE_KEY = 'cinder_client_config';
+  const PROFILES_KEY = 'cinder_client_profiles';
+  const ACCOUNTS_KEY = 'cinder_client_accounts';
+  const ACTIVE_PROFILE_KEY = 'cinder_active_profile';
+  const ACTIVE_ACCOUNT_KEY = 'cinder_active_account';
   const DISCORD_INVITE_URL = 'https://discord.gg/YOUR_INVITE_CODE';
-  const isFirstLaunch = localStorage.getItem(STORAGE_KEY) === null;
+  
   let allReleases = [];
   let installedMods = [];
 
-  let clientConfig = {
-    username: '',
-    authType: 'offline', // 'offline' or 'microsoft'
-    msAccount: null,
-    customSkin: null,
-    version: '1.20.4',
-    loader: 'Fabric',
-    ram: 4096,
-    fpsBoost: true
-  };
-
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    try { clientConfig = Object.assign(clientConfig, JSON.parse(saved)); } catch(e){}
+  // Zero hardcoded profiles: cleanly wipe legacy dummies if present
+  let profiles = {};
+  const savedProfiles = localStorage.getItem(PROFILES_KEY);
+  if (savedProfiles) {
+    try { 
+      const parsed = JSON.parse(savedProfiles);
+      delete parsed['26-1'];
+      delete parsed['PvP 1.8.9'];
+      delete parsed['Default'];
+      profiles = parsed;
+    } catch(e) {
+      profiles = {};
+    }
   }
 
-  function saveConfig() {
+  // Multi-Account System
+  let accounts = [];
+  const savedAccounts = localStorage.getItem(ACCOUNTS_KEY);
+  if (savedAccounts) {
+    try { accounts = JSON.parse(savedAccounts); } catch(e){}
+  }
+
+  let activeProfileId = localStorage.getItem(ACTIVE_PROFILE_KEY);
+  if (!activeProfileId || !profiles[activeProfileId]) {
+    activeProfileId = Object.keys(profiles)[0] || null;
+  }
+
+  let activeAccountId = localStorage.getItem(ACTIVE_ACCOUNT_KEY) || (accounts[0] ? accounts[0].id : null);
+
+  let clientConfig = { customSkin: null };
+  const savedConfig = localStorage.getItem(STORAGE_KEY);
+  if (savedConfig) {
+    try { clientConfig = Object.assign(clientConfig, JSON.parse(savedConfig)); } catch(e){}
+  }
+
+  function getRequiredJavaPill(version) {
+    const parts = (version || '').split('.').map(n => parseInt(n, 10));
+    if (parts[0] === 1) {
+      if (parts[1] > 20 || (parts[1] === 20 && (parts[2] || 0) >= 5)) return 'Java 21+';
+      if (parts[1] >= 17) return 'Java 17+';
+      return 'Java 8+';
+    }
+    return 'Java 21+';
+  }
+
+  function saveAll() {
+    localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
+    localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
     localStorage.setItem(STORAGE_KEY, JSON.stringify(clientConfig));
+    if (activeProfileId) localStorage.setItem(ACTIVE_PROFILE_KEY, activeProfileId);
+    else localStorage.removeItem(ACTIVE_PROFILE_KEY);
+    if (activeAccountId) localStorage.setItem(ACTIVE_ACCOUNT_KEY, activeAccountId);
+    else localStorage.removeItem(ACTIVE_ACCOUNT_KEY);
+
     syncHUD();
+    renderProfileCards();
+    renderAccounts();
     loadActiveSkin();
   }
 
-  function renderVersionDropdown(filterText = '') {
-    const versionSelect = document.getElementById('cfgVersionSelect');
-    versionSelect.innerHTML = '';
+  // Account Gate & Switcher Logic
+  function checkAccountGate() {
+    const gate = document.getElementById('authGate');
+    if (accounts.length === 0) {
+      gate.classList.add('active');
+    } else {
+      gate.classList.remove('active');
+    }
+  }
 
-    const query = filterText.toLowerCase().trim();
-    const filtered = allReleases.filter(v => v.id.toLowerCase().includes(query));
+  document.getElementById('authTabOffline').addEventListener('click', () => {
+    document.getElementById('authTabOffline').classList.add('active');
+    document.getElementById('authTabMicrosoft').classList.remove('active');
+    document.getElementById('authFormOffline').style.display = 'block';
+    document.getElementById('authFormMicrosoft').style.display = 'none';
+  });
 
-    if (filtered.length === 0) {
-      const opt = document.createElement('option');
-      opt.disabled = true;
-      opt.textContent = 'No matching versions found';
-      versionSelect.appendChild(opt);
+  document.getElementById('authTabMicrosoft').addEventListener('click', () => {
+    document.getElementById('authTabMicrosoft').classList.add('active');
+    document.getElementById('authTabOffline').classList.remove('active');
+    document.getElementById('authFormOffline').style.display = 'none';
+    document.getElementById('authFormMicrosoft').style.display = 'block';
+  });
+
+  document.getElementById('gateOfflineSubmit').addEventListener('click', () => {
+    const name = document.getElementById('gateOfflineName').value.trim();
+    if (!name || !/^[A-Za-z0-9_]{3,16}$/.test(name)) {
+      return alert('Please enter a valid Minecraft username (3-16 letters, numbers, or underscores).');
+    }
+
+    const newAcc = { id: 'off_' + Date.now(), name: name, type: 'offline' };
+    accounts.push(newAcc);
+    activeAccountId = newAcc.id;
+    saveAll();
+    checkAccountGate();
+    switchView('viewProfiles');
+  });
+
+  document.getElementById('gateMicrosoftSubmit').addEventListener('click', async () => {
+    if (!window.launcherAPI) return alert('Microsoft Auth runs inside the Desktop App.');
+    const btn = document.getElementById('gateMicrosoftSubmit');
+    btn.disabled = true;
+    btn.textContent = 'Signing in...';
+
+    const res = await window.launcherAPI.loginMicrosoft();
+    btn.disabled = false;
+    btn.textContent = '🔑 Sign in with Microsoft';
+
+    if (res.success) {
+      const newAcc = { id: 'ms_' + Date.now(), name: res.profile.name, type: 'microsoft' };
+      accounts.push(newAcc);
+      activeAccountId = newAcc.id;
+      saveAll();
+      checkAccountGate();
+      switchView('viewProfiles');
+    } else {
+      alert(`Microsoft Login Failed: ${res.error}`);
+    }
+  });
+
+  document.getElementById('openAddAccountGateBtn').addEventListener('click', () => {
+    document.getElementById('authGate').classList.add('active');
+  });
+
+  // Render Accounts View
+  function renderAccounts() {
+    const list = document.getElementById('accountsListContainer');
+    list.innerHTML = '';
+
+    accounts.forEach(acc => {
+      const isActive = acc.id === activeAccountId;
+      const card = document.createElement('div');
+      card.className = `account-card ${isActive ? 'active-acc' : ''}`;
+
+      card.innerHTML = `
+        <div class="acc-left">
+          <img class="acc-head" src="https://minotar.net/avatar/${acc.name}/64" onerror="this.src='https://minotar.net/avatar/char/64'">
+          <div>
+            <div class="acc-name">${acc.name}</div>
+            <span class="identity-type-badge ${acc.type === 'microsoft' ? 'ms' : ''}">${acc.type.toUpperCase()}</span>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          ${!isActive ? `<button class="glass-btn" onclick="selectAccount('${acc.id}')">Select</button>` : '<span style="font-size:11px; color:var(--accent); font-weight:800;">ACTIVE</span>'}
+          <button class="del-btn" onclick="removeAccount('${acc.id}')">✕</button>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+  }
+
+  window.selectAccount = function(id) {
+    activeAccountId = id;
+    saveAll();
+  };
+
+  window.removeAccount = function(id) {
+    if (confirm('Remove this account?')) {
+      accounts = accounts.filter(a => a.id !== id);
+      if (activeAccountId === id) {
+        activeAccountId = accounts[0] ? accounts[0].id : null;
+      }
+      saveAll();
+      checkAccountGate();
+    }
+  };
+
+  // Render Profile Cards
+  function renderProfileCards() {
+    const container = document.getElementById('profilesCardsContainer');
+    container.innerHTML = '';
+
+    const keys = Object.keys(profiles);
+    if (keys.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state-box">
+          <div style="font-size:36px;">📁</div>
+          <h3>No Profiles Configured</h3>
+          <p>Create your custom Minecraft instance to pick your version, mod loader, and in-game performance pack.</p>
+          <button class="new-profile-btn" onclick="openProfileWorkspace(null)">＋ Create First Profile</button>
+        </div>
+      `;
       return;
     }
+
+    keys.forEach(key => {
+      const p = profiles[key];
+      const isActive = key === activeProfileId;
+
+      const card = document.createElement('div');
+      card.className = `profile-card ${isActive ? 'active-card' : ''}`;
+
+      card.innerHTML = `
+        <div>
+          <div class="profile-card-top">
+            <div class="profile-card-info">
+              <div class="profile-avatar-box">🎮</div>
+              <div style="display:flex; align-items:center;">
+                <span class="profile-card-name">${p.name}</span>
+                ${isActive ? '<span class="profile-status-badge">ACTIVE</span>' : ''}
+              </div>
+            </div>
+            <div class="profile-check-circle" onclick="setActiveProfile('${key}')" title="Select as Active Profile">
+              ✓
+            </div>
+          </div>
+
+          <div class="profile-pills-row">
+            <span class="meta-pill accent-pill">${p.version}</span>
+            <span class="meta-pill">${p.loader}</span>
+            <span class="meta-pill">☕ ${getRequiredJavaPill(p.version)}</span>
+            <span class="meta-pill">🧠 ${(p.ram / 1024).toFixed(1)}GB</span>
+            ${p.perfPack ? '<span class="meta-pill perf-pill">⚡ Performance+</span>' : ''}
+            ${p.fullbright ? '<span class="meta-pill">💡 Fullbright</span>' : ''}
+          </div>
+        </div>
+
+        <div class="profile-card-footer">
+          <button class="card-footer-btn" onclick="openProfileWorkspace('${key}')">✏️ Edit</button>
+          <button class="card-footer-btn" onclick="switchView('viewMods')">📦 Content</button>
+          <button class="card-footer-btn" onclick="window.launcherAPI && window.launcherAPI.openGameFolder()">📁 Folder</button>
+          <button class="card-footer-btn delete-btn" onclick="deleteProfile('${key}')">🗑️</button>
+        </div>
+      `;
+
+      container.appendChild(card);
+    });
+  }
+
+  window.setActiveProfile = function(key) {
+    activeProfileId = key;
+    saveAll();
+  };
+
+  window.deleteProfile = function(key) {
+    if (confirm(`Delete profile "${profiles[key].name}"?`)) {
+      delete profiles[key];
+      if (activeProfileId === key) {
+        const remaining = Object.keys(profiles);
+        activeProfileId = remaining.length > 0 ? remaining[0] : null;
+      }
+      saveAll();
+    }
+  };
+
+  // Full Workspace Profile Editor Logic
+  let editingWorkspaceKey = null;
+  let wsLoaderVal = 'Fabric';
+  let wsRamVal = 4096;
+
+  function renderWsVersionDropdown(filterText = '') {
+    const select = document.getElementById('wsVersionSelect');
+    select.innerHTML = '';
+    const query = filterText.toLowerCase().trim();
+    const filtered = allReleases.filter(v => v.id.toLowerCase().includes(query));
 
     filtered.forEach(v => {
       const opt = document.createElement('option');
       opt.value = v.id;
       opt.textContent = `Minecraft ${v.id}`;
-      if (v.id === clientConfig.version) opt.selected = true;
-      versionSelect.appendChild(opt);
+      select.appendChild(opt);
     });
   }
 
-  async function loadAllMinecraftVersions() {
-    try {
-      const res = await fetch('https://piston-meta.mojang.com/mc/game/version_manifest_v2.json');
-      const data = await res.json();
-      allReleases = data.versions.filter(v => v.type === 'release');
-    } catch (e) {
-      allReleases = [
-        { id: '1.21.4' }, { id: '1.21.1' }, { id: '1.20.4' }, { id: '1.20.1' }, 
-        { id: '1.19.4' }, { id: '1.18.2' }, { id: '1.16.5' }, 
-        { id: '1.12.2' }, { id: '1.8.9' }
-      ];
+  document.getElementById('wsVersionSearch').addEventListener('input', (e) => renderWsVersionDropdown(e.target.value));
+
+  function openProfileWorkspace(key = null) {
+    editingWorkspaceKey = key;
+    renderWsVersionDropdown();
+
+    const headerTag = document.getElementById('workspaceHeaderTag');
+    const title = document.getElementById('workspaceTitle');
+    const nameInput = document.getElementById('wsProfName');
+    const versionSelect = document.getElementById('wsVersionSelect');
+
+    if (key && profiles[key]) {
+      const p = profiles[key];
+      headerTag.textContent = 'PROFILE EDITOR';
+      title.textContent = `Customize: ${p.name}`;
+      nameInput.value = p.name;
+      versionSelect.value = p.version;
+      wsLoaderVal = p.loader;
+      wsRamVal = p.ram;
+
+      document.getElementById('wsTogglePerfPack').classList.toggle('on', !!p.perfPack);
+      document.getElementById('wsToggleG1GC').classList.toggle('on', !!p.g1gc);
+      document.getElementById('wsToggleFpsCounter').classList.toggle('on', !!p.fpsCounter);
+      document.getElementById('wsToggleCrosshair').classList.toggle('on', !!p.crosshair);
+      document.getElementById('wsToggleKeystrokes').classList.toggle('on', !!p.keystrokes);
+      document.getElementById('wsToggleFullbright').classList.toggle('on', !!p.fullbright);
+    } else {
+      headerTag.textContent = 'PROFILE CREATOR';
+      title.textContent = 'Configure New Game Instance';
+      nameInput.value = '';
+      if (allReleases[0]) versionSelect.value = allReleases[0].id;
+      wsLoaderVal = 'Fabric';
+      wsRamVal = 4096;
+
+      document.getElementById('wsTogglePerfPack').classList.add('on');
+      document.getElementById('wsToggleG1GC').classList.add('on');
+      document.getElementById('wsToggleFpsCounter').classList.add('on');
+      document.getElementById('wsToggleCrosshair').classList.remove('on');
+      document.getElementById('wsToggleKeystrokes').classList.remove('on');
+      document.getElementById('wsToggleFullbright').classList.add('on');
     }
-    renderVersionDropdown();
+
+    updateChipGroup('wsLoaderChips', wsLoaderVal);
+    updateChipGroup('wsRamChips', wsRamVal.toString());
+
+    switchView('viewProfileEditor');
   }
 
-  document.getElementById('cfgVersionSearch').addEventListener('input', function(e) {
-    renderVersionDropdown(e.target.value);
+  document.getElementById('openCreateProfileWorkspaceBtn').addEventListener('click', () => openProfileWorkspace(null));
+
+  // Workspace Chips
+  document.querySelectorAll('#wsLoaderChips .chip').forEach(c => {
+    c.addEventListener('click', () => {
+      document.querySelectorAll('#wsLoaderChips .chip').forEach(el => el.classList.remove('active'));
+      c.classList.add('active');
+      wsLoaderVal = c.dataset.val;
+    });
   });
 
+  document.querySelectorAll('#wsRamChips .chip').forEach(c => {
+    c.addEventListener('click', () => {
+      document.querySelectorAll('#wsRamChips .chip').forEach(el => el.classList.remove('active'));
+      c.classList.add('active');
+      wsRamVal = parseInt(c.dataset.val, 10);
+    });
+  });
+
+  document.getElementById('saveWorkspaceProfileBtn').addEventListener('click', () => {
+    const name = document.getElementById('wsProfName').value.trim();
+    const version = document.getElementById('wsVersionSelect').value;
+
+    if (!name) return alert('Please enter a profile name.');
+
+    const targetKey = editingWorkspaceKey || name;
+    const perfPack = document.getElementById('wsTogglePerfPack').classList.contains('on');
+
+    profiles[targetKey] = {
+      name: name,
+      version: version,
+      loader: wsLoaderVal,
+      ram: wsRamVal,
+      perfPack: perfPack,
+      g1gc: document.getElementById('wsToggleG1GC').classList.contains('on'),
+      fpsCounter: document.getElementById('wsToggleFpsCounter').classList.contains('on'),
+      crosshair: document.getElementById('wsToggleCrosshair').classList.contains('on'),
+      keystrokes: document.getElementById('wsToggleKeystrokes').classList.contains('on'),
+      fullbright: document.getElementById('wsToggleFullbright').classList.contains('on')
+    };
+
+    activeProfileId = targetKey;
+    saveAll();
+
+    if (perfPack && wsLoaderVal === 'Fabric' && window.launcherAPI) {
+      window.launcherAPI.installFpsBundle({ version, loader: wsLoaderVal });
+    }
+
+    switchView('viewProfiles');
+  });
+
+  // Switch View Tab Helper
   function switchView(viewId) {
     document.querySelectorAll('.view-panel').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.target === viewId));
@@ -1367,56 +2104,16 @@
     if (viewId === 'viewMods') {
       loadInstalledMods();
       searchModrinthMods();
+    } else if (viewId === 'viewProfiles') {
+      renderProfileCards();
+    } else if (viewId === 'viewAccounts') {
+      renderAccounts();
     }
   }
 
   document.querySelectorAll('.nav-tab').forEach(tab => {
     tab.addEventListener('click', () => switchView(tab.dataset.target));
   });
-
-  function syncHUD() {
-    const isMS = clientConfig.authType === 'microsoft' && clientConfig.msAccount;
-    const currentName = isMS ? clientConfig.msAccount.name : (clientConfig.username || 'Player');
-    
-    document.getElementById('displayPlayerName').textContent = currentName;
-    const authBadge = document.getElementById('displayAuthBadge');
-    authBadge.textContent = isMS ? 'PREMIUM' : 'OFFLINE';
-    authBadge.classList.toggle('ms', isMS);
-
-    document.getElementById('hudVersion').textContent = clientConfig.version;
-    document.getElementById('hudLoader').textContent = clientConfig.loader;
-    document.getElementById('hudRam').textContent = (clientConfig.ram / 1024) + ' GB';
-    document.getElementById('hudFps').textContent = clientConfig.fpsBoost ? 'G1GC' : 'Off';
-    document.getElementById('launchMetaBadge').textContent = `${clientConfig.version} · ${clientConfig.loader}`;
-    document.getElementById('modsFilterTag').textContent = `${clientConfig.loader.toUpperCase()} ${clientConfig.version}`;
-
-    // Auth Config View UI
-    const msLoginBtn = document.getElementById('msLoginBtn');
-    const msLogoutBtn = document.getElementById('msLogoutBtn');
-    const authStatus = document.getElementById('authAccountStatus');
-    const offlineCard = document.getElementById('offlineNameCard');
-
-    if (isMS) {
-      msLoginBtn.style.display = 'none';
-      msLogoutBtn.style.display = 'block';
-      authStatus.textContent = `Signed in as ${clientConfig.msAccount.name} (Microsoft)`;
-      offlineCard.style.display = 'none';
-    } else {
-      msLoginBtn.style.display = 'block';
-      msLogoutBtn.style.display = 'none';
-      authStatus.textContent = 'Using Offline Identity';
-      offlineCard.style.display = 'flex';
-      document.getElementById('cfgPlayerName').value = clientConfig.username || '';
-    }
-
-    document.getElementById('cfgFpsToggle').classList.toggle('on', clientConfig.fpsBoost);
-    
-    const versionSelect = document.getElementById('cfgVersionSelect');
-    if (versionSelect) versionSelect.value = clientConfig.version;
-
-    updateChipGroup('cfgLoaderChips', clientConfig.loader);
-    updateChipGroup('cfgRamChips', clientConfig.ram.toString());
-  }
 
   function updateChipGroup(groupId, val) {
     const group = document.getElementById(groupId);
@@ -1426,50 +2123,35 @@
     });
   }
 
-  function setupConfigChips(groupId, key, isInt = false) {
-    const group = document.getElementById(groupId);
-    if (!group) return;
-    group.querySelectorAll('.chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        group.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-        chip.classList.add('active');
-        clientConfig[key] = isInt ? parseInt(chip.dataset.val, 10) : chip.dataset.val;
-      });
-    });
-  }
-  setupConfigChips('cfgLoaderChips', 'loader');
-  setupConfigChips('cfgRamChips', 'ram', true);
+  function syncHUD() {
+    const curProfile = activeProfileId && profiles[activeProfileId] ? profiles[activeProfileId] : null;
+    const activeAcc = accounts.find(a => a.id === activeAccountId);
+    const activeName = activeAcc ? activeAcc.name : 'Player';
+    const isMS = activeAcc && activeAcc.type === 'microsoft';
 
-  // Microsoft Login / Logout Buttons
-  document.getElementById('msLoginBtn').addEventListener('click', async () => {
-    if (!window.launcherAPI) return alert('Microsoft Auth runs inside the Desktop App.');
-    const btn = document.getElementById('msLoginBtn');
-    btn.disabled = true;
-    btn.textContent = 'Signing in...';
+    document.getElementById('displayPlayerName').textContent = activeName;
+    const authBadge = document.getElementById('displayAuthBadge');
+    authBadge.textContent = isMS ? 'PREMIUM' : 'OFFLINE';
+    authBadge.classList.toggle('ms', isMS);
 
-    const res = await window.launcherAPI.loginMicrosoft();
-    btn.disabled = false;
-    btn.textContent = '🔑 Microsoft Login';
-
-    if (res.success) {
-      clientConfig.authType = 'microsoft';
-      clientConfig.msAccount = res.profile;
-      saveConfig();
-      alert(`Successfully logged in as ${res.profile.name}!`);
+    if (curProfile) {
+      document.getElementById('hudVersion').textContent = curProfile.version;
+      document.getElementById('hudLoader').textContent = curProfile.loader;
+      document.getElementById('hudRam').textContent = (curProfile.ram / 1024).toFixed(1) + ' GB';
+      document.getElementById('launchMetaBadge').textContent = `${curProfile.name} · ${curProfile.version}`;
+      document.getElementById('modsFilterTag').textContent = `${curProfile.loader.toUpperCase()} ${curProfile.version}`;
+      document.getElementById('hudFps').textContent = curProfile.g1gc ? 'G1GC' : 'Off';
     } else {
-      alert(`Microsoft Login Failed: ${res.error}`);
+      document.getElementById('hudVersion').textContent = 'None';
+      document.getElementById('hudLoader').textContent = 'None';
+      document.getElementById('hudRam').textContent = '4.0 GB';
+      document.getElementById('launchMetaBadge').textContent = 'No Profile Selected';
+      document.getElementById('modsFilterTag').textContent = 'FABRIC';
+      document.getElementById('hudFps').textContent = 'Off';
     }
-  });
+  }
 
-  document.getElementById('msLogoutBtn').addEventListener('click', async () => {
-    if (!window.launcherAPI) return;
-    await window.launcherAPI.logoutAccount();
-    clientConfig.authType = 'offline';
-    clientConfig.msAccount = null;
-    saveConfig();
-  });
-
-  // Modrinth Hub Engine
+  // Modrinth Hub
   async function loadInstalledMods() {
     if (!window.launcherAPI) return;
     installedMods = await window.launcherAPI.getInstalledMods();
@@ -1502,6 +2184,7 @@
   }
 
   async function searchModrinthMods() {
+    const cur = activeProfileId && profiles[activeProfileId] ? profiles[activeProfileId] : { version: '1.20.4', loader: 'Fabric' };
     const grid = document.getElementById('modsGrid');
     const query = document.getElementById('modsSearchInput').value.trim();
     grid.innerHTML = `<div style="font-size:12px; color:var(--text-muted); grid-column:span 2; text-align:center; padding:20px;">Searching Modrinth...</div>`;
@@ -1511,11 +2194,11 @@
       return;
     }
 
-    const mods = await window.launcherAPI.searchMods({ query, version: clientConfig.version, loader: clientConfig.loader });
+    const mods = await window.launcherAPI.searchMods({ query, version: cur.version, loader: cur.loader });
     grid.innerHTML = '';
 
     if (!mods || mods.length === 0) {
-      grid.innerHTML = `<div style="font-size:12px; color:var(--text-muted); grid-column:span 2; text-align:center; padding:20px;">No compatible mods found for ${clientConfig.loader} ${clientConfig.version}.</div>`;
+      grid.innerHTML = `<div style="font-size:12px; color:var(--text-muted); grid-column:span 2; text-align:center; padding:20px;">No compatible mods found for ${cur.loader} ${cur.version}.</div>`;
       return;
     }
 
@@ -1536,12 +2219,13 @@
   }
 
   async function installSingleMod(projectId) {
+    const cur = activeProfileId && profiles[activeProfileId] ? profiles[activeProfileId] : { version: '1.20.4', loader: 'Fabric' };
     if (!window.launcherAPI) return;
     const btn = document.getElementById(`modBtn-${projectId}`);
     btn.disabled = true;
     btn.textContent = '...';
 
-    const res = await window.launcherAPI.installMod({ projectId, version: clientConfig.version, loader: clientConfig.loader });
+    const res = await window.launcherAPI.installMod({ projectId, version: cur.version, loader: cur.loader });
     if (res.success) {
       btn.textContent = 'Installed';
       btn.className = 'mod-btn installed';
@@ -1556,6 +2240,7 @@
   document.getElementById('refreshModsBtn').addEventListener('click', searchModrinthMods);
   document.getElementById('modsSearchInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') searchModrinthMods(); });
 
+  // Skin Management
   document.getElementById('skinFileInput').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -1564,6 +2249,7 @@
     reader.onload = function(event) {
       clientConfig.customSkin = event.target.result;
       if (skinViewer) skinViewer.loadSkin(clientConfig.customSkin);
+      saveAll();
     };
     reader.readAsDataURL(file);
   });
@@ -1571,39 +2257,12 @@
   document.getElementById('resetSkinBtn').addEventListener('click', function() {
     clientConfig.customSkin = null;
     loadActiveSkin();
+    saveAll();
   });
 
-  document.getElementById('saveHubBtn').addEventListener('click', () => {
-    if (clientConfig.authType === 'offline') {
-      const nameVal = document.getElementById('cfgPlayerName').value.trim();
-      if (nameVal && /^[A-Za-z0-9_]{3,16}$/.test(nameVal)) {
-        clientConfig.username = nameVal;
-      } else if (!clientConfig.username) {
-        clientConfig.username = 'Player';
-      }
-    }
-
-    const versionSelect = document.getElementById('cfgVersionSelect');
-    if (versionSelect && versionSelect.value) {
-      clientConfig.version = versionSelect.value;
-    }
-
-    clientConfig.fpsBoost = document.getElementById('cfgFpsToggle').classList.contains('on');
-    saveConfig();
-    switchView('viewHome');
-  });
-
-  function openDiscordServer() {
-    if (window.launcherAPI && window.launcherAPI.openExternal) {
-      window.launcherAPI.openExternal(DISCORD_INVITE_URL);
-    } else {
-      window.open(DISCORD_INVITE_URL, '_blank');
-    }
-  }
-
-  document.getElementById('discordTopBtn').addEventListener('click', openDiscordServer);
-  document.getElementById('discordBannerBtn').addEventListener('click', openDiscordServer);
-
+  // Window Controls
+  document.getElementById('discordTopBtn').addEventListener('click', () => window.launcherAPI?.openExternal(DISCORD_INVITE_URL));
+  document.getElementById('discordBannerBtn').addEventListener('click', () => window.launcherAPI?.openExternal(DISCORD_INVITE_URL));
   document.getElementById('minBtn').addEventListener('click', () => window.launcherAPI?.minimize());
   document.getElementById('maxBtn').addEventListener('click', () => window.launcherAPI?.maximize());
   document.getElementById('closeBtn').addEventListener('click', () => window.launcherAPI?.close());
@@ -1639,8 +2298,8 @@
 
   function loadActiveSkin() {
     if (!skinViewer) return;
-    const isMS = clientConfig.authType === 'microsoft' && clientConfig.msAccount;
-    const activeName = isMS ? clientConfig.msAccount.name : clientConfig.username;
+    const activeAcc = accounts.find(a => a.id === activeAccountId);
+    const activeName = activeAcc ? activeAcc.name : null;
 
     if (clientConfig.customSkin) {
       skinViewer.loadSkin(clientConfig.customSkin);
@@ -1651,12 +2310,29 @@
     }
   }
 
+  async function loadAllMinecraftVersions() {
+    try {
+      const res = await fetch('https://piston-meta.mojang.com/mc/game/version_manifest_v2.json');
+      const data = await res.json();
+      allReleases = data.versions.filter(v => v.type === 'release');
+    } catch (e) {
+      allReleases = [
+        { id: '1.21.4' }, { id: '1.21.1' }, { id: '1.20.4' }, { id: '1.20.1' }, 
+        { id: '1.19.4' }, { id: '1.18.2' }, { id: '1.16.5' }, 
+        { id: '1.12.2' }, { id: '1.8.9' }
+      ];
+    }
+  }
+
   window.addEventListener('load', () => {
     const bootProgress = document.getElementById('bootProgress');
     const bootScreen = document.getElementById('bootScreen');
     const appShell = document.getElementById('appShell');
 
-    loadAllMinecraftVersions().then(() => syncHUD());
+    loadAllMinecraftVersions().then(() => {
+      saveAll();
+      checkAccountGate();
+    });
 
     setTimeout(() => { bootProgress.style.width = '45%'; }, 200);
     setTimeout(() => { bootProgress.style.width = '100%'; }, 600);
@@ -1665,16 +2341,13 @@
       bootScreen.classList.add('fade-out');
       appShell.classList.add('ready');
       try { init3DStage(); } catch(e){}
-
-      if (isFirstLaunch || (!clientConfig.username && clientConfig.authType === 'offline')) {
-        switchView('viewConfig');
-      }
     }, 1000);
   });
 
-  // UI Launch Hooks & Dynamic Progress Pipeline
+  // Launch Engine & Dynamic Stop Pill
   const launchBtn = document.getElementById('launchBtn');
   const launchBtnText = document.getElementById('launchBtnText');
+  const stopGameBtn = document.getElementById('stopGameBtn');
   const statusPill = document.getElementById('statusPill');
   const consoleLogs = document.getElementById('consoleLogs');
 
@@ -1684,15 +2357,22 @@
   const percentLabel = document.getElementById('launchPercentText');
 
   function triggerLaunch(serverIp = null) {
-    const isMS = clientConfig.authType === 'microsoft' && clientConfig.msAccount;
-    if (!isMS && !clientConfig.username) {
-      switchView('viewConfig');
-      alert('Please set your player username or sign in with Microsoft!');
+    if (accounts.length === 0 || !activeAccountId) {
+      document.getElementById('authGate').classList.add('active');
       return;
     }
 
+    if (!activeProfileId || !profiles[activeProfileId]) {
+      switchView('viewProfiles');
+      alert('Please create or select a profile first!');
+      return;
+    }
+
+    const cur = profiles[activeProfileId];
+    const activeAcc = accounts.find(a => a.id === activeAccountId);
+
     if (!window.launcherAPI) {
-      alert('Preview mode: Game launching runs inside the packaged Electron app.');
+      alert('Preview mode: Game launch runs inside the packaged Electron app.');
       return;
     }
 
@@ -1707,17 +2387,23 @@
     progressBar.style.width = '5%';
 
     window.launcherAPI.launchGame({
-      username: isMS ? clientConfig.msAccount.name : clientConfig.username,
-      authType: clientConfig.authType,
-      version: clientConfig.version,
-      loaderType: clientConfig.loader,
-      memoryMax: clientConfig.ram,
-      fpsBoost: clientConfig.fpsBoost,
+      username: activeAcc.name,
+      authType: activeAcc.type,
+      version: cur.version,
+      loaderType: cur.loader,
+      memoryMax: cur.ram,
+      fpsBoost: cur.g1gc,
       serverIp: serverIp
     });
   }
 
   launchBtn.addEventListener('click', () => triggerLaunch());
+
+  stopGameBtn.addEventListener('click', () => {
+    if (window.launcherAPI && window.launcherAPI.stopGame) {
+      window.launcherAPI.stopGame();
+    }
+  });
 
   if (window.launcherAPI) {
     document.getElementById('openFolderBtn').addEventListener('click', () => window.launcherAPI.openGameFolder());
@@ -1734,12 +2420,12 @@
         if (status.stage === 'loading' || status.stage === 'downloading') {
           launchBtn.disabled = true;
           launchBtnText.textContent = 'LAUNCHING...';
+          stopGameBtn.style.display = 'none';
           statusPill.textContent = 'LOADING';
           statusPill.style.color = 'var(--accent)';
         } else if (status.stage === 'launched') {
-          launchBtn.disabled = false;
-          launchBtn.classList.add('playing');
-          launchBtnText.textContent = 'PLAYING';
+          launchBtn.style.display = 'none';
+          stopGameBtn.style.display = 'flex';
           statusPill.textContent = 'RUNNING';
           statusPill.style.color = 'var(--emerald)';
           progressBar.style.width = '100%';
@@ -1747,9 +2433,10 @@
         } else if (status.stage === 'closed') {
           progressWrap.style.display = 'none';
           progressBar.style.width = '0%';
+          launchBtn.style.display = 'flex';
           launchBtn.disabled = false;
-          launchBtn.classList.remove('playing');
           launchBtnText.textContent = 'LAUNCH';
+          stopGameBtn.style.display = 'none';
           statusPill.textContent = 'ACTIVE';
           statusPill.style.color = 'var(--text-secondary)';
         }
