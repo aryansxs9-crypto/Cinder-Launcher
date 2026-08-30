@@ -8,6 +8,10 @@ contextBridge.exposeInMainWorld('launcherAPI', {
   openExternal: (url) => ipcRenderer.send('open-external', url),
   openGameFolder: () => ipcRenderer.send('open-game-folder'),
 
+  // Microsoft Authentication
+  loginMicrosoft: () => ipcRenderer.invoke('login-microsoft'),
+  logoutAccount: () => ipcRenderer.invoke('logout-account'),
+
   // Game Engine & Progress Listeners
   launchGame: (config) => ipcRenderer.send('launch-game', config),
   onGameLog: (callback) => ipcRenderer.on('game-log', (event, data) => callback(data)),
