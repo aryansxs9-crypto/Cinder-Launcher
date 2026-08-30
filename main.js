@@ -137,7 +137,63 @@ ipcMain.handle('logout-account', async () => {
   }
 });
 
-// Modrinth API IPC Handlers
+// Helper for Modrinth File Installation
+function fetchAndSaveMod(projectId, version, loader) {
+  return new Promise((resolve) => {
+    const url = `https://api.modrinth.com/v2/project/${projectId}/version?loaders=["${loader.toLowerCase()}"]&game_versions=["${version}"]`;
+
+    https.get(url, { headers: { 'User-Agent': 'CinderClient/1.1.3' } }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const versions = JSON.parse(data);
+          if (!versions || versions.length === 0) {
+            return resolve({ success: false, mod: projectId, error: 'No compatible release' });
+          }
+          const primaryFile = versions[0].files.find(f => f.primary) || versions[0].files[0];
+          const destPath = path.join(modsDir, primaryFile.filename);
+          const fileStream = fs.createWriteStream(destPath);
+
+          https.get(primaryFile.url, (fileRes) => {
+            fileRes.pipe(fileStream);
+            fileStream.on('finish', () => {
+              fileStream.close();
+              resolve({ success: true, filename: primaryFile.filename });
+            });
+          }).on('error', (err) => resolve({ success: false, mod: projectId, error: err.message }));
+        } catch (e) {
+          resolve({ success: false, mod: projectId, error: e.message });
+        }
+      });
+    }).on('error', (e) => resolve({ success: false, mod: projectId, error: e.message }));
+  });
+}
+
+// 1-Click FPS Optimization Bundle Installer
+ipcMain.handle('install-fps-bundle', async (event, { version, loader }) => {
+  if (loader !== 'Fabric') {
+    return { success: false, error: 'FPS Bundles are optimized for Fabric loader.' };
+  }
+
+  // Essential performance mods: Sodium, Lithium, FerriteCore, Entity Culling
+  const fpsProjects = ['AANobbSp', 'gvQqBUqZ', 'uXXizFIs', 'NNAgCjsB'];
+  const results = [];
+
+  for (const proj of fpsProjects) {
+    const res = await fetchAndSaveMod(proj, version, loader);
+    results.push(res);
+  }
+
+  const installedCount = results.filter(r => r.success).length;
+  return {
+    success: installedCount > 0,
+    count: installedCount,
+    total: fpsProjects.length
+  };
+});
+
+// Modrinth API Handlers
 ipcMain.handle('get-installed-mods', async () => {
   try {
     if (!fs.existsSync(modsDir)) return [];
@@ -166,7 +222,7 @@ ipcMain.handle('search-mods', async (event, { query, version, loader }) => {
     ]);
     const url = `https://api.modrinth.com/v2/search?query=${encodeURIComponent(query || '')}&facets=${encodeURIComponent(facets)}&limit=12`;
 
-    https.get(url, { headers: { 'User-Agent': 'CinderClient/1.0.0' } }, (res) => {
+    https.get(url, { headers: { 'User-Agent': 'CinderClient/1.1.3' } }, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
@@ -182,38 +238,10 @@ ipcMain.handle('search-mods', async (event, { query, version, loader }) => {
 });
 
 ipcMain.handle('install-mod', async (event, { projectId, version, loader }) => {
-  return new Promise((resolve) => {
-    const url = `https://api.modrinth.com/v2/project/${projectId}/version?loaders=["${loader.toLowerCase()}"]&game_versions=["${version}"]`;
-
-    https.get(url, { headers: { 'User-Agent': 'CinderClient/1.0.0' } }, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        try {
-          const versions = JSON.parse(data);
-          if (!versions || versions.length === 0) {
-            return resolve({ success: false, error: 'No compatible build found' });
-          }
-          const primaryFile = versions[0].files.find(f => f.primary) || versions[0].files[0];
-          const destPath = path.join(modsDir, primaryFile.filename);
-          const fileStream = fs.createWriteStream(destPath);
-
-          https.get(primaryFile.url, (fileRes) => {
-            fileRes.pipe(fileStream);
-            fileStream.on('finish', () => {
-              fileStream.close();
-              resolve({ success: true });
-            });
-          }).on('error', (err) => resolve({ success: false, error: err.message }));
-        } catch (e) {
-          resolve({ success: false, error: e.message });
-        }
-      });
-    }).on('error', (e) => resolve({ success: false, error: e.message }));
-  });
+  return fetchAndSaveMod(projectId, version, loader);
 });
 
-// ZIP & Library Integrity Sanitizer
+// ZIP Integrity Sanitizer
 function cleanCorruptedJars(dir) {
   if (!fs.existsSync(dir)) return;
   const files = fs.readdirSync(dir);
@@ -251,7 +279,7 @@ function getRequiredJavaVersion(mcVersion) {
 
 function downloadFile(url, dest) {
   return new Promise((resolve, reject) => {
-    https.get(url, { headers: { 'User-Agent': 'CinderClient/1.0.0' } }, (res) => {
+    https.get(url, { headers: { 'User-Agent': 'CinderClient/1.1.3' } }, (res) => {
       if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
         return downloadFile(res.headers.location, dest).then(resolve).catch(reject);
       }
@@ -324,7 +352,16 @@ async function ensureJavaRuntime(targetJavaMajor) {
   return cleanExe;
 }
 
-// Game Launch Engine
+// Game Process Stopper
+ipcMain.on('stop-game', () => {
+  if (launcher && launcher.client) {
+    launcher.client.kill();
+    mainWindow?.webContents.send('game-status', { stage: 'closed', text: 'Launch Minecraft', percent: 0 });
+    mainWindow?.webContents.send('game-log', { text: '[Cinder] Game process explicitly terminated by user.' });
+  }
+});
+
+// Game Launch Handler
 ipcMain.on('launch-game', async (event, config) => {
   const { username, authType, version, loaderType, memoryMax, fpsBoost, serverIp } = config;
 
@@ -357,7 +394,6 @@ ipcMain.on('launch-game', async (event, config) => {
     mainWindow?.webContents.send('game-status', { stage: 'loading', text: 'Verifying Library Integrity...', percent: 25 });
     cleanCorruptedJars(path.join(cinderRoot, 'libraries'));
 
-    // Resolve Authorization Mode (Microsoft vs Offline)
     let authPayload;
     if (authType === 'microsoft' && fs.existsSync(authFile)) {
       authPayload = JSON.parse(fs.readFileSync(authFile, 'utf-8'));
@@ -383,7 +419,7 @@ ipcMain.on('launch-game', async (event, config) => {
         mainWindow?.webContents.send('game-log', { text: `[Fabric] Resolving Fabric Loader for Minecraft ${version}...` });
 
         const loadersData = await new Promise((resolve, reject) => {
-          https.get(`https://meta.fabricmc.net/v2/versions/loader/${version}`, { headers: { 'User-Agent': 'CinderClient/1.0.0' } }, (res) => {
+          https.get(`https://meta.fabricmc.net/v2/versions/loader/${version}`, { headers: { 'User-Agent': 'CinderClient/1.1.3' } }, (res) => {
             let data = '';
             res.on('data', chunk => data += chunk);
             res.on('end', () => {
@@ -405,7 +441,7 @@ ipcMain.on('launch-game', async (event, config) => {
           fs.mkdirSync(versionDir, { recursive: true });
 
           const profileJson = await new Promise((resolve, reject) => {
-            https.get(`https://meta.fabricmc.net/v2/versions/loader/${version}/${loaderVer}/profile/json`, { headers: { 'User-Agent': 'CinderClient/1.0.0' } }, (res) => {
+            https.get(`https://meta.fabricmc.net/v2/versions/loader/${version}/${loaderVer}/profile/json`, { headers: { 'User-Agent': 'CinderClient/1.1.3' } }, (res) => {
               let data = '';
               res.on('data', chunk => data += chunk);
               res.on('end', () => resolve(data));
