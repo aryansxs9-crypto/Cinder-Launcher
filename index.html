@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cinder V3 Monolith</title>
+<title>Cinder V3</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -22,28 +22,20 @@
 
   * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
   
-  body {
-    background-color: var(--bg);
-    color: var(--text-main);
-    font-family: 'Inter', sans-serif;
-    height: 100vh;
-    overflow: hidden;
-    display: flex;
-    position: relative;
-  }
+  body { background-color: var(--bg); color: var(--text-main); font-family: 'Inter', sans-serif; height: 100vh; overflow: hidden; display: flex; position: relative; }
 
-  /* Window Dragging */
-  .drag-zone { position: absolute; top: 0; left: 0; right: 0; height: 40px; -webkit-app-region: drag; z-index: 99; }
-  .window-controls { position: absolute; top: 16px; right: 24px; display: flex; gap: 16px; z-index: 100; -webkit-app-region: no-drag; }
+  /* Window Controls */
+  .drag-zone { position: absolute; top: 0; left: 0; right: 0; height: 40px; -webkit-app-region: drag; z-index: 900; }
+  .window-controls { position: absolute; top: 16px; right: 24px; display: flex; gap: 16px; z-index: 999; -webkit-app-region: no-drag; }
   .win-btn { background: transparent; border: none; color: var(--text-dim); font-size: 16px; cursor: pointer; transition: 0.2s; font-family: 'Inter'; }
   .win-btn:hover { color: var(--text-main); }
   .win-btn.close:hover { color: #ff4444; }
 
-  /* Effects */
+  /* Visual Effects */
   .noise { position: fixed; inset: -50%; width: 200%; height: 200%; pointer-events: none; z-index: 9999; opacity: 0.04; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); animation: noise 8s steps(10) infinite; }
   @keyframes noise { 0%, 100% { transform: translate(0, 0); } 10% { transform: translate(-5%, -5%); } 20% { transform: translate(-10%, 5%); } 30% { transform: translate(5%, -10%); } 40% { transform: translate(-5%, 15%); } 50% { transform: translate(-10%, 5%); } 60% { transform: translate(15%, 0); } 70% { transform: translate(0, 15%); } 80% { transform: translate(3%, 35%); } 90% { transform: translate(-10%, 10%); } }
 
-  #ambient-glow { position: absolute; width: 600px; height: 600px; border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); z-index: 0; filter: blur(40px); background: radial-gradient(circle, rgba(255, 85, 0, 0.15) 0%, transparent 60%); }
+  #ambient-glow { position: absolute; width: 600px; height: 600px; border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); z-index: 0; filter: blur(50px); background: radial-gradient(circle, rgba(255, 85, 0, 0.12) 0%, transparent 60%); }
 
   .app-layout { display: flex; width: 100%; height: 100%; padding: 24px; gap: 24px; z-index: 1; margin-top: 20px; }
 
@@ -61,56 +53,79 @@
   .nav-item.active::before { content: ''; position: absolute; left: 16px; width: 4px; height: 16px; background: var(--cinder); border-radius: 4px; box-shadow: 0 0 10px var(--cinder); }
 
   /* Main View Container */
-  .main-content { flex: 1; position: relative; -webkit-app-region: no-drag; }
-  .view-layer { position: absolute; inset: 0; display: none; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(3, 1fr); gap: 20px; opacity: 0; transform: scale(0.98); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-  .view-layer.active { display: grid; opacity: 1; transform: scale(1); z-index: 2; }
-  .view-layer.scrollable { display: flex; flex-direction: column; overflow-y: auto; padding-right: 8px; padding-bottom: 40px; }
+  .main-content { flex: 1; position: relative; -webkit-app-region: no-drag; overflow: hidden; }
+  .view-layer { position: absolute; inset: 0; display: none; opacity: 0; transform: scale(0.98); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+  .view-layer.active { opacity: 1; transform: scale(1); z-index: 2; }
+  
+  .view-layer.grid-view { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(3, 1fr); gap: 20px; }
+  .view-layer.scrollable { display: flex; flex-direction: column; overflow-y: auto; padding-right: 12px; padding-bottom: 60px; height: 100%; }
 
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
 
-  /* Bento Styling */
+  /* Cards */
   .bento-card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; display: flex; flex-direction: column; position: relative; overflow: hidden; transition: 0.3s ease; flex-shrink: 0; }
   .bento-card:hover { border-color: #3f3f46; transform: translateY(-2px); }
-  .glow-card::before { content: ""; position: absolute; inset: -1px; background: conic-gradient(from var(--angle), transparent 70%, var(--cinder) 100%); z-index: -1; animation: rotateGlow 3s linear infinite; opacity: 0; transition: opacity 0.3s ease; border-radius: calc(var(--radius) + 1px); }
-  .glow-card:hover::before { opacity: 1; }
-  @property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
-  @keyframes rotateGlow { to { --angle: 360deg; } }
-  .glow-card-inner { background: var(--panel); position: absolute; inset: 1px; border-radius: calc(var(--radius) - 1px); z-index: 0; }
-  .glow-card > * { position: relative; z-index: 1; }
-
   h3.card-title { font-family: 'Space Grotesk'; font-size: 16px; color: var(--text-dim); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
-
-  /* Specific Home Elements */
+  
+  /* Specific Grid Cells */
   .cell-profile { grid-column: span 1; grid-row: span 3; display: flex; flex-direction: column; justify-content: space-between; }
-  .cell-launch { grid-column: span 3; grid-row: span 2; justify-content: flex-end; padding: 40px; background: linear-gradient(to top right, #09090b, rgba(255,85,0,0.05)); }
+  
+  .cell-launch { 
+    grid-column: span 3; 
+    grid-row: span 2; 
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end; 
+    padding: 40px; 
+    /* FIXED: High-quality Minecraft landscape with a strong dark gradient overlay so text stays readable */
+    background: linear-gradient(to right, #09090b 20%, transparent 80%), 
+                linear-gradient(to top, #09090b 10%, transparent 60%), 
+                url('https://images.unsplash.com/photo-1607513837947-fcc33a35a67a?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat;
+    border: 1px solid var(--border);
+  }
+  
   .cell-stats { grid-column: span 1; grid-row: span 1; }
   .cell-servers { grid-column: span 2; grid-row: span 1; }
   
-  .btn-launch { background: var(--text-main); color: var(--bg); border: none; padding: 20px 40px; border-radius: 12px; font-family: 'Space Grotesk'; font-size: 20px; font-weight: 800; cursor: pointer; display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 400px; transition: 0.2s ease; position: relative; overflow: hidden; }
-  .btn-launch:hover { transform: scale(1.02); box-shadow: 0 0 40px rgba(255,255,255,0.2); }
-  .btn-launch:disabled { opacity: 0.7; cursor: not-allowed; transform: none; box-shadow: none; }
-  
+  .btn-launch { background: var(--text-main); color: var(--bg); border: none; padding: 20px 40px; border-radius: 12px; font-family: 'Space Grotesk'; font-size: 20px; font-weight: 800; cursor: pointer; display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 400px; transition: 0.2s ease; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+  .btn-launch:hover:not(:disabled) { transform: scale(1.02); box-shadow: 0 0 40px rgba(255,255,255,0.2); }
+  .btn-launch:disabled { opacity: 0.7; cursor: not-allowed; }
   .launch-progress-bar { position: absolute; bottom: 0; left: 0; height: 4px; background: var(--cinder); width: 0%; transition: width 0.3s ease; }
   
-  /* Shared UI Elements */
+  /* Inputs & Buttons */
+  .setting-input { background: var(--bg); border: 1px solid var(--border); color: var(--text-main); padding: 12px 16px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 13px; outline: none; width: 100%; transition: 0.2s; }
+  .setting-input:focus { border-color: var(--cinder); }
+  
+  .btn-primary { background: var(--text-main); color: var(--bg); border: none; padding: 10px 20px; border-radius: 8px; font-family: 'Space Grotesk'; font-weight: 700; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn-primary:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .pill-badge { font-family: 'JetBrains Mono'; font-size: 11px; padding: 4px 8px; border-radius: 6px; background: var(--border); color: var(--text-main); font-weight: 600; text-transform: uppercase; }
+  .pill-badge.active { background: var(--cinder-dim); color: var(--cinder); border: 1px solid rgba(255,85,0,0.3); }
+  
+  /* Switches & Sliders */
   .switch { position: relative; width: 44px; height: 24px; background: var(--border); border-radius: 12px; cursor: pointer; transition: 0.3s; flex-shrink: 0; }
   .switch.on { background: var(--cinder); box-shadow: 0 0 15px rgba(255,85,0,0.4); }
-  .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+  .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: 0.3s; }
   .switch.on::after { transform: translateX(20px); }
   
   .slider { -webkit-appearance: none; width: 100%; height: 4px; background: var(--border); border-radius: 2px; outline: none; }
   .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--cinder); border-radius: 50%; cursor: pointer; transition: 0.2s; }
-  
-  .setting-input { background: var(--bg); border: 1px solid var(--border); color: var(--text-main); padding: 12px 16px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 13px; outline: none; width: 100%; }
-  .setting-input:focus { border-color: var(--cinder); }
-  
-  .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  .pill-badge { font-family: 'JetBrains Mono'; font-size: 11px; padding: 4px 8px; border-radius: 6px; background: var(--border); color: var(--text-main); font-weight: 600; }
-  .pill-badge.active { background: var(--cinder-dim); color: var(--cinder); border: 1px solid rgba(255,85,0,0.3); }
 
-  .status-text { font-family: 'JetBrains Mono'; font-size: 12px; color: var(--text-dim); margin-top: 8px; }
+  .server-pill { flex:1; background:var(--bg); border:1px solid var(--border); height:100%; border-radius:12px; display:flex; align-items:center; justify-content:center; gap: 8px; font-weight:600; font-size:13px; cursor:pointer; transition: 0.2s; }
+  .server-pill:hover { border-color: var(--cinder); background: rgba(255,85,0,0.05); }
+  
+  .select-dropdown { background: var(--bg); border: 1px solid var(--border); color: var(--text-main); padding: 12px 16px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 13px; outline: none; width: 100%; cursor: pointer; }
+  .settings-row { display:flex; justify-content:space-between; align-items:center; padding: 16px 0; border-bottom: 1px dashed var(--border); }
+  .settings-row:last-child { border-bottom: none; }
+
+  /* Modals */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 2000; display: none; align-items: center; justify-content: center; }
+  .modal-overlay.active { display: flex; }
+  .modal-card { background: var(--panel); border: 1px solid var(--border); border-radius: 24px; padding: 40px; width: 100%; max-width: 480px; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
 </style>
 </head>
 <body>
@@ -124,6 +139,28 @@
   <button class="win-btn" id="btn-min">—</button>
   <button class="win-btn" id="btn-max">□</button>
   <button class="win-btn close" id="btn-close">✕</button>
+</div>
+
+<!-- 1. FIRST TIME ONBOARDING (Fixed Logic) -->
+<div class="modal-overlay" id="onboarding-overlay">
+  <div class="modal-card">
+    <div style="font-size:40px; margin-bottom:16px;">🔥</div>
+    <h2 style="font-family:'Space Grotesk'; font-size:28px; margin-bottom:8px;">Welcome to Cinder</h2>
+    <p style="color:var(--text-dim); font-size:14px; margin-bottom:32px;">Please authenticate an account to get started.</p>
+    
+    <div id="ob-step-1" style="width:100%; display:flex; flex-direction:column; gap:12px;">
+      <button class="btn-primary" style="background:#00a4ef; color:#fff; width:100%; padding:16px;" id="ob-btn-ms">🔑 Login with Microsoft</button>
+      <button class="btn-primary" style="background:var(--bg); border:1px solid var(--border); color:var(--text-main); width:100%; padding:16px;" onclick="document.getElementById('ob-step-1').style.display='none'; document.getElementById('ob-step-2').style.display='flex';">Add Offline Account</button>
+    </div>
+
+    <div id="ob-step-2" style="width:100%; display:none; flex-direction:column; gap:16px;">
+      <input type="text" id="ob-username" class="setting-input" placeholder="Enter your Username..." style="text-align:center; font-size:16px; padding:16px;">
+      <div style="display:flex; gap:12px;">
+        <button class="btn-primary" style="background:var(--bg); border:1px solid var(--border); color:var(--text-main); flex:1;" onclick="document.getElementById('ob-step-2').style.display='none'; document.getElementById('ob-step-1').style.display='flex';">Back</button>
+        <button class="btn-primary" style="flex:2;" onclick="saveOnboardingOffline()">Continue →</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="app-layout">
@@ -140,6 +177,7 @@
     
     <div class="nav-group">
       <div class="nav-item active" data-target="view-home">⌂ Home</div>
+      <div class="nav-item" data-target="view-accounts">👥 Accounts</div>
       <div class="nav-item" data-target="view-profiles">⌘ Profiles</div>
       <div class="nav-item" data-target="view-mods">⎍ Mods Hub</div>
       <div class="nav-item" data-target="view-settings">⚙ Settings</div>
@@ -148,32 +186,29 @@
 
   <div class="main-content">
     
-    <!-- 1. HOME TAB -->
-    <div class="view-layer active" id="view-home" style="display: grid;">
-      <div class="bento-card cell-profile glow-card">
-        <div class="glow-card-inner"></div>
+    <!-- HOME TAB -->
+    <div class="view-layer grid-view active" id="view-home">
+      <div class="bento-card cell-profile">
         <h3 class="card-title">Identity</h3>
         <div style="flex:1; width:100%; display:flex; justify-content:center; align-items:center;" id="stage3d">
           <canvas id="skinCanvas"></canvas>
         </div>
         <div style="display:flex; align-items:center; justify-content:space-between; margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
-          <div style="font-weight:700; font-size:15px;" id="player-name-display">Developer</div>
-          <button id="btn-auth" style="background:var(--text-main); color:var(--bg); border:none; font-size:10px; font-weight:800; padding:4px 8px; border-radius:4px; font-family:'JetBrains Mono'; cursor:pointer;">LOGIN MS</button>
+          <div style="font-weight:700; font-size:15px; overflow:hidden; text-overflow:ellipsis;" id="player-name-display">Guest</div>
+          <div id="account-type-badge" style="background:var(--text-main); color:var(--bg); font-size:10px; font-weight:800; padding:4px 8px; border-radius:4px; font-family:'JetBrains Mono';">OFFLINE</div>
         </div>
       </div>
 
-      <div class="bento-card cell-launch glow-card">
-        <div class="glow-card-inner"></div>
+      <div class="bento-card cell-launch">
         <div style="z-index: 1;">
-          <div style="font-family:'Space Grotesk'; font-size:48px; font-weight:800; letter-spacing:-2px; margin-bottom:8px;">Minecraft 1.21.4</div>
-          <div style="font-family:'JetBrains Mono'; color:var(--cinder); font-size:14px; font-weight:700; margin-bottom:32px;">FABRIC LOADER · PERFORMANCE+</div>
+          <div style="font-family:'Space Grotesk'; font-size:48px; font-weight:800; letter-spacing:-2px; margin-bottom:8px; text-shadow: 0 2px 10px rgba(0,0,0,0.8);" id="launch-version-disp">Minecraft 1.21.4</div>
+          <div style="font-family:'JetBrains Mono'; color:var(--cinder); font-size:14px; font-weight:700; margin-bottom:32px; text-shadow: 0 1px 5px rgba(0,0,0,1);" id="launch-type-disp">FABRIC LOADER · PERFORMANCE+</div>
           
           <button class="btn-launch" id="btn-launch-game">
             <span id="launch-text">INITIALIZE ENGINE</span>
             <span class="arrow" id="launch-arrow">→</span>
             <div class="launch-progress-bar" id="launch-progress"></div>
           </button>
-          <div class="status-text" id="launch-status-sub">Ready to launch.</div>
         </div>
       </div>
 
@@ -187,55 +222,110 @@
       <div class="bento-card cell-servers">
         <h3 class="card-title">1-Click Network</h3>
         <div style="display:flex; gap:12px; height:100%; align-items:center;">
-          <div style="flex:1; background:var(--bg); border:1px solid var(--border); height:100%; border-radius:12px; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:13px; cursor:pointer;" onclick="launchWithServer('play.pika-network.net')">PikaNetwork</div>
-          <div style="flex:1; background:var(--bg); border:1px solid var(--border); height:100%; border-radius:12px; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:13px; cursor:pointer;" onclick="launchWithServer('play.hypixel.net')">Hypixel</div>
+          <div class="server-pill" onclick="launchWithServer('play.pika-network.net')">
+            <img src="https://eu.mc-api.net/v3/server/favicon/play.pika-network.net" style="width:24px; border-radius:4px;" onerror="this.style.display='none'">
+            PikaNetwork
+          </div>
+          <div class="server-pill" onclick="launchWithServer('play.hypixel.net')">
+            <img src="https://eu.mc-api.net/v3/server/favicon/play.hypixel.net" style="width:24px; border-radius:4px;" onerror="this.style.display='none'">
+            Hypixel
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- 2. PROFILES TAB -->
+    <!-- PROFILE EDITOR/CREATOR (FIXED) -->
+    <div class="view-layer scrollable" id="view-profile-creator">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-shrink: 0;">
+        <h2 style="font-family:'Space Grotesk'; font-size:32px;" id="pc-title">Create Instance</h2>
+        <button class="btn-primary" style="background:var(--bg); border:1px solid var(--border); color:var(--text-main);" onclick="switchTab('view-profiles')">Cancel</button>
+      </div>
+
+      <div class="bento-card" style="margin-bottom:20px;">
+        <h3 class="card-title">Core Configuration</h3>
+        
+        <div style="margin-bottom: 20px;">
+          <div style="font-weight:700; font-size:14px; margin-bottom:8px;">Profile Name</div>
+          <input type="text" id="pc-name" class="setting-input" placeholder="e.g. Modded Survival">
+        </div>
+
+        <div class="grid-2col">
+          <div>
+            <div style="font-weight:700; font-size:14px; margin-bottom:8px;">Minecraft Version</div>
+            <input type="text" id="pc-version" class="setting-input" value="1.21.4">
+          </div>
+          <div>
+            <div style="font-weight:700; font-size:14px; margin-bottom:8px;">Mod Loader</div>
+            <select id="pc-loader" class="select-dropdown">
+              <option value="Fabric">Fabric</option>
+              <option value="Forge">Forge</option>
+              <option value="Vanilla">Vanilla</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="bento-card" style="margin-bottom:20px;">
+        <h3 class="card-title">Performance & Tweaks</h3>
+        
+        <div class="settings-row">
+          <div><div style="font-weight:700; font-size:15px;">Performance+ Pack</div><div style="color:var(--text-dim); font-size:13px; margin-top:4px;">Auto-installs Sodium, Lithium, and optimizations.</div></div>
+          <div class="switch on" id="pc-fps" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="settings-row">
+          <div><div style="font-weight:700; font-size:15px;">Custom Crosshair</div><div style="color:var(--text-dim); font-size:13px; margin-top:4px;">Inject custom PvP reticles.</div></div>
+          <div class="switch" id="pc-cross" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="settings-row">
+          <div><div style="font-weight:700; font-size:15px;">Auto Run</div><div style="color:var(--text-dim); font-size:13px; margin-top:4px;">Launch this profile automatically on startup.</div></div>
+          <div class="switch" id="pc-autorun" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+      
+      <button class="btn-primary" id="pc-save-btn" style="width:100%; padding:16px; font-size:16px;" onclick="saveProfile()">Create Profile</button>
+    </div>
+
+    <!-- PROFILES TAB -->
     <div class="view-layer scrollable" id="view-profiles">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-shrink: 0;">
         <h2 style="font-family:'Space Grotesk'; font-size:32px;">Game Profiles</h2>
-        <button style="background:var(--text-main); color:var(--bg); border:none; padding:10px 20px; border-radius:8px; font-family:'Space Grotesk'; font-weight:700; cursor:pointer;">+ NEW PROFILE</button>
+        <button class="btn-primary" onclick="openProfileEditor()">+ NEW PROFILE</button>
       </div>
-
-      <div class="grid-2col">
-        <div class="bento-card glow-card">
-          <div class="glow-card-inner"></div>
-          <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
-            <div style="font-size:20px; font-weight:700;">Performance Main</div>
-            <div class="pill-badge active">SELECTED</div>
-          </div>
-          <div style="display:flex; gap:8px; margin-bottom:24px;">
-            <span class="pill-badge">Fabric 1.21.4</span>
-            <span class="pill-badge" style="color:var(--cinder); border-color:var(--cinder);">Performance+</span>
-          </div>
-          <div style="display:flex; gap:12px;">
-            <button style="flex:1; padding:10px; background:var(--bg); color:var(--text-main); border:1px solid var(--border); border-radius:8px; font-weight:600; cursor:pointer;" id="btn-folder">Folder</button>
-          </div>
-        </div>
-      </div>
+      <div class="grid-2col" id="profiles-list-container"></div>
     </div>
 
-    <!-- 3. MODS HUB TAB -->
+    <!-- ACCOUNTS TAB -->
+    <div class="view-layer scrollable" id="view-accounts">
+      <h2 style="font-family:'Space Grotesk'; font-size:32px; margin-bottom:24px; flex-shrink: 0;">Accounts</h2>
+      
+      <div class="grid-2col" style="margin-bottom: 24px;">
+        <div class="bento-card">
+          <h3 class="card-title">Add Offline</h3>
+          <input type="text" id="offline-name-input" class="setting-input" placeholder="Username..." style="margin-bottom:12px;">
+          <button class="btn-primary" id="btn-add-offline">Save Account</button>
+        </div>
+        <div class="bento-card">
+          <h3 class="card-title">Add Premium</h3>
+          <button class="btn-primary" id="btn-add-microsoft" style="background:#00a4ef; color:#fff; width:100%;">🔑 Login with Microsoft</button>
+        </div>
+      </div>
+
+      <div id="accounts-list-container"></div>
+    </div>
+
+    <!-- MODS TAB -->
     <div class="view-layer scrollable" id="view-mods">
       <h2 style="font-family:'Space Grotesk'; font-size:32px; margin-bottom:24px; flex-shrink: 0;">Modrinth Hub</h2>
-      <input type="text" placeholder="Search for mods..." style="width:100%; background:var(--panel); border:1px solid var(--border); padding:16px 20px; border-radius:12px; color:var(--text-main); font-size:16px; outline:none; margin-bottom:24px; flex-shrink: 0;">
-      
-      <div style="display:flex; align-items:center; justify-content:space-between; padding:16px; background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:12px; margin-bottom:12px;">
-        <div>
-          <div style="font-weight:700; font-size:16px; margin-bottom:4px;">Sodium</div>
-          <div style="color:var(--text-dim); font-size:13px;">Modern rendering engine that greatly improves frame rates.</div>
-        </div>
-        <button style="background:var(--text-main); color:var(--bg); border:none; padding:8px 16px; border-radius:8px; font-weight:800; font-family:'JetBrains Mono'; cursor:pointer;">INSTALL</button>
+      <div style="display:flex; gap:12px; margin-bottom:24px; flex-shrink: 0;">
+        <input type="text" id="mods-search-input" placeholder="Search for mods..." class="setting-input">
+        <button class="btn-primary" id="btn-search-mods">Search</button>
       </div>
+      <div id="mods-list-container"><div style="color:var(--text-dim); text-align:center; padding:40px;">Press search to load mods...</div></div>
     </div>
 
-    <!-- 4. SETTINGS TAB -->
+    <!-- SETTINGS TAB -->
     <div class="view-layer scrollable" id="view-settings">
       <h2 style="font-family:'Space Grotesk'; font-size:32px; margin-bottom:24px; flex-shrink: 0;">Global Settings</h2>
-      
       <div class="bento-card" style="margin-bottom: 20px;">
         <h3 class="card-title">Java & Execution</h3>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
@@ -243,11 +333,6 @@
           <div style="font-family:'JetBrains Mono'; font-weight:700; font-size:16px; color:var(--cinder);" id="ram-display">6144 MB</div>
         </div>
         <input type="range" min="2048" max="16384" step="1024" value="6144" class="slider" id="ram-slider" style="margin-bottom: 32px;">
-
-        <div>
-          <div style="font-weight:700; font-size:14px; margin-bottom:8px;">Custom JVM Arguments</div>
-          <input type="text" value="-XX:+UseG1GC -XX:MaxGCPauseMillis=50" class="setting-input">
-        </div>
       </div>
     </div>
 
@@ -256,149 +341,432 @@
 
 <script src="https://unpkg.com/skinview3d@3.0.1/bundles/skinview3d.bundle.js"></script>
 <script>
-  // Mouse Ambient Glow
+  // Dynamic Background Glow
   const glow = document.getElementById('ambient-glow');
-  document.addEventListener('mousemove', (e) => {
-    requestAnimationFrame(() => {
-      glow.style.left = `${e.clientX}px`;
-      glow.style.top = `${e.clientY}px`;
-    });
+  document.addEventListener('mousemove', (e) => { requestAnimationFrame(() => { glow.style.left = `${e.clientX}px`; glow.style.top = `${e.clientY}px`; }); });
+
+  // -------------------------
+  // STATE MANAGEMENT
+  // -------------------------
+  let accounts = JSON.parse(localStorage.getItem('cinder_accounts') || '[]');
+  let profiles = JSON.parse(localStorage.getItem('cinder_profiles') || '[{"id":"prof_default","name":"Performance Main","version":"1.21.4","loader":"Fabric","fpsPack":true,"crosshair":false,"autoRun":false}]');
+  let activeAccountId = localStorage.getItem('cinder_active_account') || (accounts[0] ? accounts[0].id : null);
+  let activeProfileId = localStorage.getItem('cinder_active_profile') || profiles[0].id;
+  
+  let skinViewer;
+  let editingProfileId = null;
+
+  // -------------------------
+  // INITIALIZATION
+  // -------------------------
+  window.addEventListener('load', () => {
+    if (accounts.length === 0) {
+      document.getElementById('onboarding-overlay').classList.add('active');
+    } else {
+      initApp();
+    }
   });
 
-  // Tab Switching
-  const navItems = document.querySelectorAll('.nav-item');
-  const viewLayers = document.querySelectorAll('.view-layer');
-
-  navItems.forEach(item => {
-    item.addEventListener('click', () => {
-      if (item.classList.contains('active')) return;
-      navItems.forEach(nav => nav.classList.remove('active'));
-      item.classList.add('active');
-
-      const targetId = item.getAttribute('data-target');
-      viewLayers.forEach(layer => {
-        if (layer.id === targetId) {
-          layer.style.display = layer.classList.contains('scrollable') ? 'flex' : 'grid';
-          setTimeout(() => layer.classList.add('active'), 10);
-        } else {
-          layer.classList.remove('active');
-          setTimeout(() => { if(!layer.classList.contains('active')) layer.style.display = 'none'; }, 300);
-        }
+  function initApp() {
+    document.getElementById('onboarding-overlay').classList.remove('active');
+    
+    const canvas = document.getElementById('skinCanvas');
+    const container = document.getElementById('stage3d');
+    if(!skinViewer && canvas) {
+      skinViewer = new skinview3d.SkinViewer({
+        canvas: canvas, width: container.clientWidth, height: container.clientHeight,
+        skin: 'https://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f0f6fa9d20477b6cf346141d83dd4cb1947b4'
       });
+      skinViewer.camera.position.set(0, 0, 50);
+      skinViewer.animation = new skinview3d.WalkingAnimation();
+      skinViewer.animation.speed = 0.5;
+      skinViewer.autoRotate = true;
+    }
+    
+    refreshUI();
+  }
+
+  function refreshUI() {
+    updateIdentityAndLaunchPanel();
+    renderProfiles();
+    renderAccountsList();
+  }
+
+  // -------------------------
+  // IDENTITY & HOME UPDATES
+  // -------------------------
+  function updateIdentityAndLaunchPanel() {
+    const activeAcc = accounts.find(a => a.id === activeAccountId);
+    const activeProf = profiles.find(p => p.id === activeProfileId) || profiles[0];
+    
+    if (activeAcc) {
+      document.getElementById('player-name-display').innerText = activeAcc.name;
+      document.getElementById('account-type-badge').innerText = activeAcc.type.toUpperCase();
+      document.getElementById('account-type-badge').style.background = activeAcc.type === 'microsoft' ? '#00a4ef' : 'var(--text-main)';
+      document.getElementById('account-type-badge').style.color = activeAcc.type === 'microsoft' ? '#fff' : 'var(--bg)';
+      if (skinViewer) skinViewer.loadSkin(`https://minotar.net/skin/${activeAcc.name}`);
+    }
+
+    if (activeProf) {
+      document.getElementById('launch-version-disp').innerText = `Minecraft ${activeProf.version}`;
+      let text = `${activeProf.loader.toUpperCase()} LOADER`;
+      if(activeProf.fpsPack) text += ' · PERFORMANCE+';
+      if(activeProf.crosshair) text += ' · CROSSHAIR';
+      document.getElementById('launch-type-disp').innerText = text;
+    }
+  }
+
+  // -------------------------
+  // ONBOARDING (FIXED)
+  // -------------------------
+  function saveOnboardingOffline() {
+    const name = document.getElementById('ob-username').value.trim();
+    if(!name) return alert("Enter a name");
+    accounts.push({ id: 'off_' + Date.now(), name: name, type: 'offline' });
+    activeAccountId = accounts[0].id;
+    localStorage.setItem('cinder_accounts', JSON.stringify(accounts));
+    localStorage.setItem('cinder_active_account', activeAccountId);
+    initApp();
+  }
+
+  if (window.launcherAPI) {
+    document.getElementById('ob-btn-ms').onclick = async () => {
+      document.getElementById('ob-btn-ms').innerText = 'Logging in...';
+      const res = await window.launcherAPI.loginMicrosoft();
+      if (res.success) {
+        accounts.push({ id: 'ms_' + Date.now(), name: res.profile.name, type: 'microsoft' });
+        activeAccountId = accounts[0].id;
+        localStorage.setItem('cinder_accounts', JSON.stringify(accounts));
+        localStorage.setItem('cinder_active_account', activeAccountId);
+        initApp();
+      } else {
+        alert("Microsoft Login failed: " + res.error);
+        document.getElementById('ob-btn-ms').innerText = '🔑 Login with Microsoft';
+      }
+    };
+  }
+
+  // -------------------------
+  // PROFILE EDIT/CREATE LOGIC
+  // -------------------------
+  window.openProfileEditor = function(id = null) {
+    editingProfileId = id;
+    if (id) {
+      const p = profiles.find(p => p.id === id);
+      document.getElementById('pc-title').innerText = "Edit Instance";
+      document.getElementById('pc-save-btn').innerText = "Save Changes";
+      document.getElementById('pc-name').value = p.name;
+      document.getElementById('pc-version').value = p.version;
+      document.getElementById('pc-loader').value = p.loader;
+      document.getElementById('pc-fps').classList.toggle('on', p.fpsPack);
+      document.getElementById('pc-cross').classList.toggle('on', p.crosshair);
+      document.getElementById('pc-autorun').classList.toggle('on', p.autoRun);
+    } else {
+      document.getElementById('pc-title').innerText = "Create Instance";
+      document.getElementById('pc-save-btn').innerText = "Create Profile";
+      document.getElementById('pc-name').value = "";
+      document.getElementById('pc-version').value = "1.21.4";
+      document.getElementById('pc-loader').value = "Fabric";
+      document.getElementById('pc-fps').classList.add('on');
+      document.getElementById('pc-cross').classList.remove('on');
+      document.getElementById('pc-autorun').classList.remove('on');
+    }
+    switchTab('view-profile-creator');
+  };
+
+  window.saveProfile = function() {
+    const name = document.getElementById('pc-name').value.trim();
+    const version = document.getElementById('pc-version').value.trim();
+    if(!name || !version) return alert("Fill out required fields");
+
+    const profData = {
+      name: name,
+      version: version,
+      loader: document.getElementById('pc-loader').value,
+      fpsPack: document.getElementById('pc-fps').classList.contains('on'),
+      crosshair: document.getElementById('pc-cross').classList.contains('on'),
+      autoRun: document.getElementById('pc-autorun').classList.contains('on')
+    };
+
+    if (editingProfileId) {
+      const idx = profiles.findIndex(p => p.id === editingProfileId);
+      profiles[idx] = { id: editingProfileId, ...profData };
+    } else {
+      const newId = 'prof_' + Date.now();
+      profiles.push({ id: newId, ...profData });
+      activeProfileId = newId; 
+    }
+    
+    localStorage.setItem('cinder_profiles', JSON.stringify(profiles));
+    localStorage.setItem('cinder_active_profile', activeProfileId);
+    
+    refreshUI();
+    switchTab('view-profiles');
+  };
+
+  window.selectProfile = function(id) {
+    activeProfileId = id;
+    localStorage.setItem('cinder_active_profile', activeProfileId);
+    refreshUI();
+  };
+
+  window.deleteProfile = function(id) {
+    if(profiles.length <= 1) return alert("Cannot delete your last profile.");
+    profiles = profiles.filter(p => p.id !== id);
+    if (activeProfileId === id) activeProfileId = profiles[0].id;
+    localStorage.setItem('cinder_profiles', JSON.stringify(profiles));
+    localStorage.setItem('cinder_active_profile', activeProfileId);
+    refreshUI();
+  };
+
+  function renderProfiles() {
+    const container = document.getElementById('profiles-list-container');
+    if(!container) return;
+    container.innerHTML = '';
+    
+    profiles.forEach((p) => {
+      const isSelected = p.id === activeProfileId;
+      container.innerHTML += `
+        <div class="bento-card ${isSelected ? 'glow-card' : ''}">
+          ${isSelected ? '<div class="glow-card-inner"></div>' : ''}
+          <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
+            <div style="font-size:20px; font-weight:700;">${p.name}</div>
+            ${isSelected ? '<div class="pill-badge active">ACTIVE</div>' : ''}
+          </div>
+          <div style="display:flex; gap:8px; margin-bottom:24px;">
+            <span class="pill-badge">${p.loader} ${p.version}</span>
+            ${p.fpsPack ? '<span class="pill-badge" style="color:var(--cinder); border-color:var(--cinder);">FPS+</span>' : ''}
+          </div>
+          <div style="display:flex; gap:8px;">
+            ${!isSelected ? `<button class="btn-primary" style="flex:1;" onclick="selectProfile('${p.id}')">Select</button>` : `<button class="btn-primary" style="flex:1; opacity:0.5; background:var(--bg); border:1px solid var(--border); color:var(--text-main);" disabled>Active</button>`}
+            <button class="btn-primary" style="background:var(--bg); border:1px solid var(--border); color:var(--text-main);" onclick="openProfileEditor('${p.id}')">Edit</button>
+            <button class="btn-primary" style="background:rgba(255,0,0,0.1); color:#ff4444;" onclick="deleteProfile('${p.id}')">✕</button>
+          </div>
+        </div>
+      `;
     });
+  }
+
+  // -------------------------
+  // ACCOUNTS LOGIC
+  // -------------------------
+  document.getElementById('btn-add-offline').onclick = () => {
+    const name = document.getElementById('offline-name-input').value.trim();
+    if(!name) return;
+    accounts.push({ id: 'off_' + Date.now(), name: name, type: 'offline' });
+    activeAccountId = accounts[accounts.length-1].id;
+    localStorage.setItem('cinder_accounts', JSON.stringify(accounts));
+    localStorage.setItem('cinder_active_account', activeAccountId);
+    document.getElementById('offline-name-input').value = '';
+    refreshUI();
+  };
+
+  if(window.launcherAPI) {
+    document.getElementById('btn-add-microsoft').onclick = async () => {
+      document.getElementById('btn-add-microsoft').innerText = 'Logging in...';
+      const res = await window.launcherAPI.loginMicrosoft();
+      if (res.success) {
+        accounts.push({ id: 'ms_' + Date.now(), name: res.profile.name, type: 'microsoft' });
+        activeAccountId = accounts[accounts.length-1].id;
+        localStorage.setItem('cinder_accounts', JSON.stringify(accounts));
+        localStorage.setItem('cinder_active_account', activeAccountId);
+        refreshUI();
+      } else {
+        alert("Microsoft Login failed: " + res.error);
+      }
+      document.getElementById('btn-add-microsoft').innerText = '🔑 Login with Microsoft';
+    };
+  }
+
+  window.selectAccount = (id) => {
+    activeAccountId = id;
+    localStorage.setItem('cinder_active_account', activeAccountId);
+    refreshUI();
+  };
+  
+  window.deleteAccount = (id) => {
+    accounts = accounts.filter(a => a.id !== id);
+    if(activeAccountId === id) activeAccountId = accounts[0] ? accounts[0].id : null;
+    localStorage.setItem('cinder_accounts', JSON.stringify(accounts));
+    localStorage.setItem('cinder_active_account', activeAccountId);
+    if(accounts.length === 0) document.getElementById('onboarding-overlay').classList.add('active');
+    refreshUI();
+  };
+
+  function renderAccountsList() {
+    const container = document.getElementById('accounts-list-container');
+    container.innerHTML = '';
+    accounts.forEach(acc => {
+      const isActive = acc.id === activeAccountId;
+      container.innerHTML += `
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px; background:rgba(255,255,255,0.02); border:1px solid ${isActive ? 'var(--cinder)' : 'var(--border)'}; border-radius:12px; margin-bottom:12px;">
+          <div style="display:flex; align-items:center;">
+            <img src="https://minotar.net/avatar/${acc.name}/40" style="border-radius:8px; margin-right:16px;">
+            <div>
+              <div style="font-weight:700; font-size:16px;">${acc.name}</div>
+              <div style="font-family:'JetBrains Mono'; font-size:11px; color:var(--text-dim); text-transform:uppercase;">${acc.type}</div>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px;">
+            ${!isActive ? `<button class="btn-primary" style="padding:6px 12px; font-size:12px;" onclick="selectAccount('${acc.id}')">Select</button>` : `<div style="font-family:'JetBrains Mono'; font-size:12px; font-weight:700; color:var(--cinder); margin-right:12px;">ACTIVE</div>`}
+            <button class="btn-primary" style="padding:6px 12px; font-size:12px; background:rgba(255,0,0,0.1); color:#ff4444;" onclick="deleteAccount('${acc.id}')">✕</button>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  // -------------------------
+  // NAVIGATION & MISC
+  // -------------------------
+  window.switchTab = function(targetId) {
+    document.querySelectorAll('.nav-item').forEach(nav => {
+      nav.classList.toggle('active', nav.getAttribute('data-target') === targetId);
+    });
+    document.querySelectorAll('.view-layer').forEach(layer => {
+      if (layer.id === targetId) {
+        layer.style.display = layer.classList.contains('scrollable') ? 'flex' : (layer.classList.contains('grid-view') ? 'grid' : 'block');
+        setTimeout(() => layer.classList.add('active'), 10);
+      } else {
+        layer.classList.remove('active');
+        setTimeout(() => { if(!layer.classList.contains('active')) layer.style.display = 'none'; }, 300);
+      }
+    });
+
+    // Auto-load Mods if opening mods tab
+    if(targetId === 'view-mods' && document.getElementById('mods-list-container').innerHTML.includes('Press search') && window.launcherAPI) {
+        searchModrinth('');
+    }
+  };
+
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => switchTab(item.getAttribute('data-target')));
   });
 
-  // Settings Slider Link
   const ramSlider = document.getElementById('ram-slider');
   const ramDisplay = document.getElementById('ram-display');
   const statRam = document.getElementById('stat-ram');
-  ramSlider.addEventListener('input', () => {
-    const val = ramSlider.value + ' MB';
-    ramDisplay.innerText = val;
-    statRam.innerText = val;
-  });
-
-  // Skinview 3D Initialization
-  window.addEventListener('load', () => {
-    const canvas = document.getElementById('skinCanvas');
-    const container = document.getElementById('stage3d');
-    let skinViewer = new skinview3d.SkinViewer({
-      canvas: canvas, width: container.clientWidth, height: container.clientHeight,
-      skin: 'https://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f0f6fa9d20477b6cf346141d83dd4cb1947b4'
+  if(ramSlider) {
+    ramSlider.addEventListener('input', () => {
+      const val = ramSlider.value + ' MB';
+      ramDisplay.innerText = val;
+      if(statRam) statRam.innerText = val;
     });
-    skinViewer.camera.position.set(0, 0, 50);
-    skinViewer.zoom = 0.9;
-    skinViewer.animation = new skinview3d.WalkingAnimation();
-    skinViewer.animation.speed = 0.5;
-    skinViewer.autoRotate = true;
-  });
+  }
 
-  // ----- ELECTRON API BINDINGS -----
+  // -------------------------
+  // ELECTRON SPECIFIC (MODS & LAUNCHING)
+  // -------------------------
   if (window.launcherAPI) {
-    // Window Controls
     document.getElementById('btn-min').onclick = () => window.launcherAPI.minimize();
     document.getElementById('btn-max').onclick = () => window.launcherAPI.maximize();
     document.getElementById('btn-close').onclick = () => window.launcherAPI.close();
-    
-    // Quick Actions
-    document.getElementById('btn-folder').onclick = () => window.launcherAPI.openGameFolder();
 
-    // Microsoft Auth
-    const authBtn = document.getElementById('btn-auth');
-    authBtn.onclick = async () => {
-      authBtn.innerText = 'WAIT...';
-      const res = await window.launcherAPI.loginMicrosoft();
-      if (res.success) {
-        document.getElementById('player-name-display').innerText = res.profile.name;
-        authBtn.innerText = 'LOGGED IN';
-        authBtn.style.background = 'var(--cinder)';
-      } else {
-        authBtn.innerText = 'FAILED';
-      }
+    // MODS
+    window.searchModrinth = async (query = '') => {
+        const container = document.getElementById('mods-list-container');
+        container.innerHTML = '<div style="color:var(--text-dim); text-align:center; padding:40px;">Searching Modrinth...</div>';
+        
+        const activeProf = profiles.find(p => p.id === activeProfileId) || profiles[0];
+        const mods = await window.launcherAPI.searchMods({ query: query, version: activeProf.version, loader: activeProf.loader });
+        container.innerHTML = '';
+        
+        if (!mods || mods.length === 0) {
+            container.innerHTML = `<div style="color:var(--text-dim); text-align:center; padding:40px;">No mods found for ${activeProf.loader} ${activeProf.version}.</div>`;
+            return;
+        }
+
+        mods.forEach(mod => {
+            const icon = mod.icon_url || 'https://raw.githubusercontent.com/modrinth/art/master/brand/badge.svg';
+            container.innerHTML += `
+              <div style="display:flex; align-items:center; justify-content:space-between; padding:16px; background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:12px; margin-bottom:12px;">
+                <div style="display:flex; align-items:center;">
+                  <img src="${icon}" style="width:40px; height:40px; border-radius:8px; margin-right:16px; object-fit:cover;">
+                  <div>
+                    <div style="font-weight:700; font-size:16px; margin-bottom:4px;">${mod.title}</div>
+                    <div style="color:var(--text-dim); font-size:13px; max-width:400px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${mod.description}</div>
+                  </div>
+                </div>
+                <button class="btn-primary" onclick="installMod('${mod.project_id}')" id="mod-btn-${mod.project_id}">INSTALL</button>
+              </div>
+            `;
+        });
+    }
+
+    document.getElementById('btn-search-mods').onclick = () => searchModrinth(document.getElementById('mods-search-input').value);
+    document.getElementById('mods-search-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') searchModrinth(e.target.value); });
+
+    window.installMod = async (projectId) => {
+        const btn = document.getElementById(`mod-btn-${projectId}`);
+        btn.innerText = "WAIT...";
+        btn.disabled = true;
+        const activeProf = profiles.find(p => p.id === activeProfileId) || profiles[0];
+        const res = await window.launcherAPI.installMod({ projectId: projectId, version: activeProf.version, loader: activeProf.loader });
+        if(res.success) {
+            btn.innerText = "INSTALLED";
+            btn.style.background = "var(--border)";
+            btn.style.color = "var(--text-dim)";
+        } else {
+            btn.innerText = "FAILED";
+        }
     };
 
-    // Game Launch 
+    // LAUNCHING
     const launchBtn = document.getElementById('btn-launch-game');
     const launchText = document.getElementById('launch-text');
     const launchArrow = document.getElementById('launch-arrow');
-    const launchSub = document.getElementById('launch-status-sub');
     const launchProg = document.getElementById('launch-progress');
-    
     let isRunning = false;
 
-    window.launchWithServer = (ip) => {
-        if(!isRunning) triggerLaunch(ip);
-    }
+    window.launchWithServer = (ip) => { if(!isRunning) triggerLaunch(ip); }
 
     const triggerLaunch = (serverIp = null) => {
-      if (isRunning) {
-        window.launcherAPI.stopGame();
-        return;
-      }
+      if (isRunning) { window.launcherAPI.stopGame(); return; }
       
+      const activeAcc = accounts.find(a => a.id === activeAccountId);
+      const activeProf = profiles.find(p => p.id === activeProfileId) || profiles[0];
+      
+      if(!activeAcc) return alert("Please create an account first!");
+
       launchBtn.disabled = true;
       launchText.innerText = "INITIALIZING...";
       launchArrow.style.display = 'none';
       
-      const config = {
-        username: document.getElementById('player-name-display').innerText,
-        authType: document.getElementById('player-name-display').innerText === 'Developer' ? 'offline' : 'microsoft',
-        version: "1.21.4",
-        loaderType: "Fabric",
-        memoryMax: ramSlider.value,
-        fpsBoost: true,
-        serverIp: serverIp
-      };
-
-      window.launcherAPI.launchGame(config);
+      window.launcherAPI.launchGame({
+        username: activeAcc.name,
+        authType: activeAcc.type,
+        version: activeProf.version,
+        loaderType: activeProf.loader,
+        memoryMax: ramSlider ? ramSlider.value : 6144,
+        fpsBoost: activeProf.fpsPack,
+        serverIp: serverIp,
+        inGameHud: {
+           customCrosshair: activeProf.crosshair
+        }
+      });
     };
 
     launchBtn.addEventListener('click', () => triggerLaunch());
 
-    // Backend Event Listeners
     window.launcherAPI.onGameStatus((status) => {
       if (status.stage === 'loading' || status.stage === 'downloading') {
-        launchSub.innerText = status.text;
+        // Just log text internally or to a dev console if desired.
       } else if (status.stage === 'launched') {
         isRunning = true;
         launchBtn.disabled = false;
         launchText.innerText = "STOP ENGINE";
         launchArrow.style.display = 'none';
         launchProg.style.width = '100%';
-        launchSub.innerText = "Game is running.";
       } else if (status.stage === 'closed') {
         isRunning = false;
         launchBtn.disabled = false;
         launchText.innerText = "INITIALIZE ENGINE";
         launchArrow.style.display = 'block';
         launchProg.style.width = '0%';
-        launchSub.innerText = "Ready to launch.";
       }
     });
 
-    window.launcherAPI.onDownloadProgress((prog) => {
-      launchProg.style.width = `${prog.percent}%`;
-    });
+    window.launcherAPI.onDownloadProgress((prog) => { launchProg.style.width = `${prog.percent}%`; });
   }
 </script>
 
