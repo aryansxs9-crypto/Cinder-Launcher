@@ -3,2461 +3,404 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cinder Client</title>
+<title>Cinder V3 Monolith</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
 <style>
   :root {
-    --bg-dark: #050608;
-    --accent: #ff6a00;
-    --accent-glow: rgba(255, 106, 0, 0.45);
-    --accent-dim: rgba(255, 106, 0, 0.12);
-    --glass-base: rgba(13, 14, 20, 0.72);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-border-hi: rgba(255, 255, 255, 0.18);
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --text-muted: #475569;
-    --emerald: #10b981;
-    --rose: #f43f5e;
-    --discord: #5865F2;
-    --ms: #00a4ef;
-    --radius-xl: 22px;
-    --radius-md: 14px;
+    --bg: #000000;
+    --panel: #09090b;
+    --border: #27272a;
+    --text-main: #ededed;
+    --text-dim: #a1a1aa;
+    --cinder: #ff5500;
+    --cinder-dim: rgba(255, 85, 0, 0.15);
+    --radius: 16px;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  
   body {
+    background-color: var(--bg);
+    color: var(--text-main);
+    font-family: 'Inter', sans-serif;
     height: 100vh;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    background: var(--bg-dark);
-    color: var(--text-primary);
     overflow: hidden;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  /* Boot Splash Screen */
-  .boot-screen {
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    background: #040507;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s ease;
-    pointer-events: all;
-  }
-  .boot-screen.fade-out {
-    opacity: 0;
-    transform: scale(1.04);
-    pointer-events: none;
-  }
-  .boot-gem {
-    width: 64px;
-    height: 64px;
-    border-radius: 18px;
-    background: linear-gradient(135deg, #ff8c00, #e52e71);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 30px;
-    box-shadow: 0 0 45px var(--accent-glow);
-    animation: pulseGem 2s infinite ease-in-out;
-  }
-  @keyframes pulseGem {
-    0%, 100% { transform: scale(1); box-shadow: 0 0 35px var(--accent-glow); }
-    50% { transform: scale(1.05); box-shadow: 0 0 65px rgba(255, 106, 0, 0.7); }
-  }
-  .boot-title {
-    margin-top: 18px;
-    font-size: 19px;
-    font-weight: 800;
-    letter-spacing: 4px;
-    background: linear-gradient(180deg, #fff 40%, #cbd5e1 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  .boot-bar {
-    width: 170px;
-    height: 3px;
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 99px;
-    margin-top: 22px;
-    overflow: hidden;
     position: relative;
   }
-  .boot-progress {
-    position: absolute;
-    inset: 0;
-    width: 0%;
-    background: linear-gradient(90deg, #ff6a00, #ffaa40);
-    box-shadow: 0 0 12px var(--accent);
-    transition: width 0.4s ease;
-  }
 
-  /* Ambient Background */
-  .bg-art {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    background: 
-      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255, 106, 0, 0.2), transparent 70%),
-      radial-gradient(circle at 15% 85%, rgba(16, 185, 129, 0.08), transparent 50%),
-      linear-gradient(180deg, rgba(5, 6, 8, 0.45) 0%, rgba(5, 6, 8, 0.92) 100%),
-      url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop') center/cover no-repeat;
-    filter: saturate(1.15);
-  }
+  /* Window Dragging */
+  .drag-zone { position: absolute; top: 0; left: 0; right: 0; height: 40px; -webkit-app-region: drag; z-index: 99; }
+  .window-controls { position: absolute; top: 16px; right: 24px; display: flex; gap: 16px; z-index: 100; -webkit-app-region: no-drag; }
+  .win-btn { background: transparent; border: none; color: var(--text-dim); font-size: 16px; cursor: pointer; transition: 0.2s; font-family: 'Inter'; }
+  .win-btn:hover { color: var(--text-main); }
+  .win-btn.close:hover { color: #ff4444; }
 
-  .app-shell {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    height: 100vh;
-    padding: 14px 28px 18px;
-    opacity: 0;
-    transform: translateY(10px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
-  }
-  .app-shell.ready {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  /* Effects */
+  .noise { position: fixed; inset: -50%; width: 200%; height: 200%; pointer-events: none; z-index: 9999; opacity: 0.04; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); animation: noise 8s steps(10) infinite; }
+  @keyframes noise { 0%, 100% { transform: translate(0, 0); } 10% { transform: translate(-5%, -5%); } 20% { transform: translate(-10%, 5%); } 30% { transform: translate(5%, -10%); } 40% { transform: translate(-5%, 15%); } 50% { transform: translate(-10%, 5%); } 60% { transform: translate(15%, 0); } 70% { transform: translate(0, 15%); } 80% { transform: translate(3%, 35%); } 90% { transform: translate(-10%, 10%); } }
 
-  /* Top Navigation */
-  .topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 42px;
-  }
-  .brand-chip {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--glass-base);
-    border: 1px solid var(--glass-border);
-    padding: 5px 14px 5px 8px;
-    border-radius: 999px;
-    backdrop-filter: blur(24px);
-    -webkit-app-region: drag;
-  }
-  .brand-gem {
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #ff8c00, #e52e71);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    box-shadow: 0 0 16px var(--accent-glow);
-  }
-  .brand-title {
-    font-size: 13px;
-    font-weight: 800;
-    letter-spacing: 0.8px;
-    background: linear-gradient(180deg, #fff 30%, #cbd5e1 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  .brand-ver {
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--accent);
-    background: var(--accent-dim);
-    border: 1px solid rgba(255, 106, 0, 0.25);
-    padding: 2px 6px;
-    border-radius: 999px;
-    font-family: 'JetBrains Mono', monospace;
-  }
+  #ambient-glow { position: absolute; width: 600px; height: 600px; border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); z-index: 0; filter: blur(40px); background: radial-gradient(circle, rgba(255, 85, 0, 0.15) 0%, transparent 60%); }
 
-  .top-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    -webkit-app-region: no-drag;
-  }
-  .glass-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 10px;
-    background: var(--glass-base);
-    border: 1px solid var(--glass-border);
-    color: var(--text-secondary);
-    font-size: 11.5px;
-    font-weight: 600;
-    cursor: pointer;
-    backdrop-filter: blur(20px);
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .glass-btn:hover {
-    border-color: var(--glass-border-hi);
-    color: #fff;
-    background: rgba(255, 255, 255, 0.08);
-    transform: translateY(-1px);
-  }
-  .glass-btn.discord {
-    color: #a5b4fc;
-    background: rgba(88, 101, 242, 0.15);
-    border-color: rgba(88, 101, 242, 0.3);
-  }
-  .glass-btn.discord:hover {
-    background: rgba(88, 101, 242, 0.3);
-    border-color: var(--discord);
-    color: #fff;
-    box-shadow: 0 0 14px rgba(88, 101, 242, 0.3);
-  }
+  .app-layout { display: flex; width: 100%; height: 100%; padding: 24px; gap: 24px; z-index: 1; margin-top: 20px; }
 
-  .win-group {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-left: 8px;
-    background: var(--glass-base);
-    border: 1px solid var(--glass-border);
-    padding: 4px 6px;
-    border-radius: 10px;
-  }
-  .win-dot {
-    width: 22px;
-    height: 22px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-muted);
-    font-size: 10px;
-    cursor: pointer;
-    transition: 0.15s;
-  }
-  .win-dot:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+  /* Sidebar */
+  .sidebar { width: 240px; display: flex; flex-direction: column; gap: 32px; -webkit-app-region: no-drag; }
+  .brand { display: flex; align-items: center; gap: 12px; padding: 0 12px; }
+  .brand-logo { width: 32px; height: 32px; background: var(--text-main); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--bg); font-family: 'Space Grotesk'; font-weight: 800; font-size: 18px; }
+  .brand-text h1 { font-family: 'Space Grotesk'; font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
+  .brand-text span { font-size: 11px; color: var(--cinder); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
 
-  /* View Panels */
-  .view-panel {
-    display: none;
-    flex: 1;
-    margin: 8px 0;
-    overflow-y: auto;
-    animation: fadeInView 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .view-panel.active { display: flex; }
-  @keyframes fadeInView {
-    from { opacity: 0; transform: scale(0.985); }
-    to { opacity: 1; transform: scale(1); }
-  }
+  .nav-group { display: flex; flex-direction: column; gap: 4px; }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; color: var(--text-dim); font-weight: 500; font-size: 14px; cursor: pointer; transition: 0.2s ease; border: 1px solid transparent; }
+  .nav-item:hover { color: var(--text-main); background: var(--panel); border-color: var(--border); }
+  .nav-item.active { background: var(--panel); color: var(--text-main); border-color: var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.5); position: relative; }
+  .nav-item.active::before { content: ''; position: absolute; left: 16px; width: 4px; height: 16px; background: var(--cinder); border-radius: 4px; box-shadow: 0 0 10px var(--cinder); }
 
-  .glass-panel {
-    background: var(--glass-base);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-xl);
-    backdrop-filter: blur(32px);
-    box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-    overflow: hidden;
-  }
+  /* Main View Container */
+  .main-content { flex: 1; position: relative; -webkit-app-region: no-drag; }
+  .view-layer { position: absolute; inset: 0; display: none; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(3, 1fr); gap: 20px; opacity: 0; transform: scale(0.98); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+  .view-layer.active { display: grid; opacity: 1; transform: scale(1); z-index: 2; }
+  .view-layer.scrollable { display: flex; flex-direction: column; overflow-y: auto; padding-right: 8px; padding-bottom: 40px; }
 
-  /* HOME VIEW */
-  .home-3col-grid {
-    display: grid;
-    grid-template-columns: 270px 1fr 280px;
-    gap: 16px;
-    width: 100%;
-    align-items: stretch;
-  }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
 
-  .stage-panel {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 16px;
-    height: 480px;
-  }
-  .stage-badge {
-    align-self: flex-start;
-    font-size: 9.5px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: var(--emerald);
-    background: rgba(16, 185, 129, 0.12);
-    border: 1px solid rgba(16, 185, 129, 0.25);
-    padding: 3px 8px;
-    border-radius: 999px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-  .stage-badge::before {
-    content: '';
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--emerald);
-    box-shadow: 0 0 8px var(--emerald);
-  }
-  .skin-container {
-    flex: 1;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: grab;
-    background: radial-gradient(circle at 50% 80%, rgba(255, 106, 0, 0.15) 0%, transparent 65%);
-  }
-  .skin-container:active { cursor: grabbing; }
-  .skin-container canvas { max-width: 100%; max-height: 100%; outline: none; }
+  /* Bento Styling */
+  .bento-card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; display: flex; flex-direction: column; position: relative; overflow: hidden; transition: 0.3s ease; flex-shrink: 0; }
+  .bento-card:hover { border-color: #3f3f46; transform: translateY(-2px); }
+  .glow-card::before { content: ""; position: absolute; inset: -1px; background: conic-gradient(from var(--angle), transparent 70%, var(--cinder) 100%); z-index: -1; animation: rotateGlow 3s linear infinite; opacity: 0; transition: opacity 0.3s ease; border-radius: calc(var(--radius) + 1px); }
+  .glow-card:hover::before { opacity: 1; }
+  @property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+  @keyframes rotateGlow { to { --angle: 360deg; } }
+  .glow-card-inner { background: var(--panel); position: absolute; inset: 1px; border-radius: calc(var(--radius) - 1px); z-index: 0; }
+  .glow-card > * { position: relative; z-index: 1; }
 
-  .identity-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid var(--glass-border);
-    padding: 6px 12px;
-    border-radius: 12px;
-  }
-  .identity-name { font-size: 13px; font-weight: 700; }
-  .identity-type-badge {
-    font-size: 9.5px;
-    font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: rgba(255, 255, 255, 0.08);
-    color: var(--text-secondary);
-  }
-  .identity-type-badge.ms {
-    background: rgba(0, 164, 239, 0.15);
-    color: var(--ms);
-    border: 1px solid rgba(0, 164, 239, 0.3);
-  }
+  h3.card-title { font-family: 'Space Grotesk'; font-size: 16px; color: var(--text-dim); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
 
-  .center-column {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    height: 480px;
-  }
+  /* Specific Home Elements */
+  .cell-profile { grid-column: span 1; grid-row: span 3; display: flex; flex-direction: column; justify-content: space-between; }
+  .cell-launch { grid-column: span 3; grid-row: span 2; justify-content: flex-end; padding: 40px; background: linear-gradient(to top right, #09090b, rgba(255,85,0,0.05)); }
+  .cell-stats { grid-column: span 1; grid-row: span 1; }
+  .cell-servers { grid-column: span 2; grid-row: span 1; }
+  
+  .btn-launch { background: var(--text-main); color: var(--bg); border: none; padding: 20px 40px; border-radius: 12px; font-family: 'Space Grotesk'; font-size: 20px; font-weight: 800; cursor: pointer; display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 400px; transition: 0.2s ease; position: relative; overflow: hidden; }
+  .btn-launch:hover { transform: scale(1.02); box-shadow: 0 0 40px rgba(255,255,255,0.2); }
+  .btn-launch:disabled { opacity: 0.7; cursor: not-allowed; transform: none; box-shadow: none; }
+  
+  .launch-progress-bar { position: absolute; bottom: 0; left: 0; height: 4px; background: var(--cinder); width: 0%; transition: width 0.3s ease; }
+  
+  /* Shared UI Elements */
+  .switch { position: relative; width: 44px; height: 24px; background: var(--border); border-radius: 12px; cursor: pointer; transition: 0.3s; flex-shrink: 0; }
+  .switch.on { background: var(--cinder); box-shadow: 0 0 15px rgba(255,85,0,0.4); }
+  .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+  .switch.on::after { transform: translateX(20px); }
+  
+  .slider { -webkit-appearance: none; width: 100%; height: 4px; background: var(--border); border-radius: 2px; outline: none; }
+  .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--cinder); border-radius: 50%; cursor: pointer; transition: 0.2s; }
+  
+  .setting-input { background: var(--bg); border: 1px solid var(--border); color: var(--text-main); padding: 12px 16px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 13px; outline: none; width: 100%; }
+  .setting-input:focus { border-color: var(--cinder); }
+  
+  .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .pill-badge { font-family: 'JetBrains Mono'; font-size: 11px; padding: 4px 8px; border-radius: 6px; background: var(--border); color: var(--text-main); font-weight: 600; }
+  .pill-badge.active { background: var(--cinder-dim); color: var(--cinder); border: 1px solid rgba(255,85,0,0.3); }
 
-  .dashboard-panel {
-    padding: 18px 22px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .panel-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--glass-border);
-  }
-  .panel-tag {
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 1.2px;
-    text-transform: uppercase;
-    color: var(--text-muted);
-  }
-  .status-tag {
-    font-size: 10px;
-    font-weight: 700;
-    padding: 2px 7px;
-    border-radius: 5px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--glass-border);
-    color: var(--text-secondary);
-  }
-
-  .hud-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  .hud-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: rgba(0, 0, 0, 0.25);
-    border: 1px solid var(--glass-border);
-    padding: 9px 12px;
-    border-radius: 10px;
-  }
-  .hud-label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-secondary);
-  }
-  .hud-val {
-    font-size: 11.5px;
-    font-weight: 700;
-    color: #fff;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--glass-border);
-    padding: 2px 6px;
-    border-radius: 6px;
-    font-family: 'JetBrains Mono', monospace;
-  }
-
-  .patch-notes-panel {
-    flex: 1;
-    padding: 16px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .patch-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-bottom: 6px;
-    border-bottom: 1px solid var(--glass-border);
-  }
-  .patch-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12.5px;
-    font-weight: 800;
-  }
-  .patch-badge {
-    font-size: 9.5px;
-    font-weight: 700;
-    color: var(--accent);
-    background: var(--accent-dim);
-    border: 1px solid rgba(255, 106, 0, 0.25);
-    padding: 2px 6px;
-    border-radius: 999px;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .patch-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    overflow-y: auto;
-  }
-  .patch-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    font-size: 11.5px;
-    color: var(--text-secondary);
-    line-height: 1.4;
-  }
-  .patch-dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--accent);
-    margin-top: 5px;
-    flex-shrink: 0;
-    box-shadow: 0 0 6px var(--accent-glow);
-  }
-
-  .servers-panel {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 18px;
-    height: 480px;
-  }
-  .servers-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 8px;
-  }
-  .server-card {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: rgba(0, 0, 0, 0.28);
-    border: 1px solid var(--glass-border);
-    padding: 10px 12px;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  .server-card:hover {
-    border-color: var(--accent);
-    background: var(--accent-dim);
-    transform: translateY(-1px);
-  }
-  .srv-rank {
-    font-size: 11px;
-    font-weight: 800;
-    color: var(--accent);
-    width: 20px;
-  }
-  .srv-info h4 { font-size: 12px; font-weight: 700; }
-  .srv-info span { font-size: 10.5px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
-  .srv-badge {
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--emerald);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .srv-dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--emerald);
-    box-shadow: 0 0 6px var(--emerald);
-  }
-
-  .discord-server-banner {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background: rgba(88, 101, 242, 0.12);
-    border: 1px solid rgba(88, 101, 242, 0.25);
-    padding: 10px;
-    border-radius: 12px;
-    font-size: 11.5px;
-    font-weight: 700;
-    color: #c7d2fe;
-    cursor: pointer;
-    transition: 0.2s;
-    margin-top: 10px;
-  }
-  .discord-server-banner:hover {
-    background: rgba(88, 101, 242, 0.25);
-    border-color: var(--discord);
-    color: #fff;
-    box-shadow: 0 0 16px rgba(88, 101, 242, 0.35);
-  }
-
-  /* PROFILES VIEW */
-  .profiles-view-wrap {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 480px;
-    gap: 16px;
-  }
-  .profiles-head-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .profiles-title-area {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .profiles-icon-badge {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #ff8c00, #ff4500);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    box-shadow: 0 0 20px var(--accent-glow);
-  }
-  .profiles-title-meta h2 {
-    font-size: 18px;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-  }
-  .profiles-title-meta p {
-    font-size: 12px;
-    color: var(--text-muted);
-  }
-
-  .new-profile-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: linear-gradient(135deg, #ff8c00, #ff4500);
-    border: none;
-    color: #0b0c10;
-    font-weight: 800;
-    font-size: 12.5px;
-    padding: 10px 18px;
-    border-radius: 12px;
-    cursor: pointer;
-    box-shadow: 0 0 16px var(--accent-glow);
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-  .new-profile-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 0 24px rgba(255, 106, 0, 0.7);
-  }
-
-  .profiles-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-    gap: 16px;
-    overflow-y: auto;
-    padding-right: 4px;
-    align-content: flex-start;
-    flex: 1;
-  }
-
-  /* Empty State */
-  .empty-state-box {
-    grid-column: 1 / -1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 20px;
-    background: rgba(0, 0, 0, 0.25);
-    border: 1px dashed var(--glass-border-hi);
-    border-radius: 18px;
-    text-align: center;
-    gap: 12px;
-  }
-  .empty-state-box h3 { font-size: 15px; font-weight: 700; color: #fff; }
-  .empty-state-box p { font-size: 12px; color: var(--text-muted); max-width: 320px; }
-
-  /* Profile Card Design */
-  .profile-card {
-    background: rgba(13, 14, 20, 0.65);
-    border: 1px solid var(--glass-border);
-    border-radius: 16px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 16px;
-    transition: all 0.2s ease;
-    backdrop-filter: blur(20px);
-  }
-  .profile-card:hover {
-    border-color: var(--glass-border-hi);
-    background: rgba(255, 255, 255, 0.03);
-    transform: translateY(-2px);
-  }
-  .profile-card.active-card {
-    border-color: var(--accent);
-    box-shadow: 0 0 25px rgba(255, 106, 0, 0.2), inset 0 0 0 1px var(--accent);
-  }
-
-  .profile-card-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--glass-border);
-  }
-  .profile-card-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .profile-avatar-box {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    background: #1e293b;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    border: 1px solid var(--glass-border);
-  }
-  .profile-card-name {
-    font-size: 14px;
-    font-weight: 800;
-  }
-  .profile-status-badge {
-    font-size: 9px;
-    font-weight: 800;
-    padding: 2px 6px;
-    border-radius: 6px;
-    color: var(--accent);
-    background: var(--accent-dim);
-    border: 1px solid rgba(255, 106, 0, 0.3);
-    font-family: 'JetBrains Mono', monospace;
-    text-transform: uppercase;
-    margin-left: 6px;
-  }
-
-  .profile-check-circle {
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid var(--glass-border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 12px;
-    color: transparent;
-    transition: 0.2s;
-  }
-  .profile-card.active-card .profile-check-circle {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #000;
-    box-shadow: 0 0 10px var(--accent-glow);
-  }
-
-  .profile-pills-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin: 14px 0;
-  }
-  .meta-pill {
-    font-size: 10.5px;
-    font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
-    padding: 4px 8px;
-    border-radius: 6px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--glass-border);
-    color: var(--text-secondary);
-  }
-  .meta-pill.accent-pill {
-    color: #fff;
-    background: rgba(255, 106, 0, 0.12);
-    border-color: rgba(255, 106, 0, 0.3);
-  }
-  .meta-pill.perf-pill {
-    color: var(--emerald);
-    background: rgba(16, 185, 129, 0.12);
-    border-color: rgba(16, 185, 129, 0.3);
-  }
-
-  .profile-card-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-top: 10px;
-    border-top: 1px solid var(--glass-border);
-  }
-  .card-footer-btn {
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    font-size: 11.5px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 4px 6px;
-    border-radius: 6px;
-    transition: color 0.2s, background 0.2s;
-  }
-  .card-footer-btn:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.06);
-  }
-  .card-footer-btn.delete-btn:hover {
-    color: var(--rose);
-    background: rgba(244, 63, 94, 0.1);
-  }
-
-  /* ACCOUNTS TAB */
-  .accounts-view-wrap {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 480px;
-    gap: 16px;
-  }
-  .accounts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 14px;
-    overflow-y: auto;
-    flex: 1;
-  }
-  .account-card {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: rgba(13, 14, 20, 0.65);
-    border: 1px solid var(--glass-border);
-    padding: 14px 16px;
-    border-radius: 16px;
-    backdrop-filter: blur(20px);
-    transition: 0.2s;
-  }
-  .account-card.active-acc {
-    border-color: var(--accent);
-    box-shadow: 0 0 20px rgba(255, 106, 0, 0.2);
-  }
-  .acc-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .acc-head {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    background: #1e293b;
-    object-fit: cover;
-  }
-  .acc-name {
-    font-size: 13.5px;
-    font-weight: 800;
-  }
-
-  /* DEDICATED PROFILE WORKSPACE */
-  .workspace-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 22px 26px;
-    width: 100%;
-    max-height: 480px;
-    overflow-y: auto;
-  }
-  .workspace-section-title {
-    font-size: 11px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    color: var(--accent);
-    margin-bottom: 8px;
-  }
-  .workspace-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  .config-card {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: rgba(0, 0, 0, 0.35);
-    border: 1px solid var(--glass-border);
-    padding: 12px 16px;
-    border-radius: 12px;
-  }
-  .config-label {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-  .config-label-title { font-size: 13px; font-weight: 700; }
-  .config-label-sub { font-size: 11px; color: var(--text-muted); }
-
-  .config-input, .config-select {
-    background: rgba(0, 0, 0, 0.5);
-    border: 1px solid var(--glass-border-hi);
-    color: #fff;
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 600;
-    outline: none;
-    min-width: 170px;
-  }
-  .config-select option { background: #0f1016; color: #fff; }
-
-  .chip-group { display: flex; gap: 6px; }
-  .chip {
-    padding: 5px 12px;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--glass-border);
-    color: var(--text-secondary);
-    font-size: 11.5px;
-    font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
-    cursor: pointer;
-    transition: 0.15s;
-  }
-  .chip:hover { color: #fff; border-color: var(--glass-border-hi); }
-  .chip.active {
-    color: #fff;
-    background: rgba(255, 106, 0, 0.18);
-    border-color: var(--accent);
-    box-shadow: 0 0 14px rgba(255, 106, 0, 0.3);
-  }
-
-  .micro-switch {
-    width: 36px;
-    height: 20px;
-    border-radius: 99px;
-    background: rgba(255, 255, 255, 0.1);
-    position: relative;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-  .micro-switch.on { background: var(--accent); box-shadow: 0 0 12px var(--accent-glow); }
-  .switch-dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: #fff;
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .micro-switch.on .switch-dot { left: 19px; }
-
-  /* MODS HUB VIEW */
-  .mods-container {
-    display: grid;
-    grid-template-columns: 1fr 300px;
-    gap: 16px;
-    width: 100%;
-    height: 480px;
-  }
-  .mods-explore-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 18px 22px;
-    overflow-y: hidden;
-  }
-  .mods-search-bar { display: flex; gap: 10px; align-items: center; }
-  .mods-input {
-    flex: 1;
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid var(--glass-border-hi);
-    color: #fff;
-    padding: 8px 14px;
-    border-radius: 10px;
-    font-family: inherit;
-    font-size: 13px;
-    outline: none;
-  }
-  .mods-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    overflow-y: auto;
-    padding-right: 4px;
-  }
-  .mod-card {
-    display: flex;
-    gap: 12px;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--glass-border);
-    padding: 12px;
-    border-radius: 14px;
-    align-items: center;
-    justify-content: space-between;
-    transition: 0.2s;
-  }
-  .mod-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
-    background: #1e293b;
-    object-fit: cover;
-  }
-  .mod-details { flex: 1; overflow: hidden; margin-right: 8px; }
-  .mod-title { font-size: 12.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .mod-desc { font-size: 10.5px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
-  .mod-btn {
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 11px;
-    font-weight: 700;
-    border: none;
-    cursor: pointer;
-    transition: 0.15s;
-  }
-  .mod-btn.install { background: var(--accent); color: #0b0c10; }
-  .mod-btn.installed { background: rgba(16, 185, 129, 0.15); color: var(--emerald); border: 1px solid var(--emerald); cursor: default; }
-
-  .installed-panel {
-    display: flex;
-    flex-direction: column;
-    padding: 18px;
-    gap: 12px;
-    overflow-y: hidden;
-  }
-  .installed-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; flex: 1; }
-  .installed-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: rgba(0, 0, 0, 0.35);
-    border: 1px solid var(--glass-border);
-    padding: 8px 12px;
-    border-radius: 10px;
-    font-size: 11.5px;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .del-btn {
-    color: var(--rose);
-    background: rgba(244, 63, 94, 0.1);
-    border: 1px solid rgba(244, 63, 94, 0.3);
-    padding: 3px 6px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 10px;
-  }
-
-  /* SETTINGS VIEW */
-  .config-view-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-  }
-  .settings-panel {
-    width: 680px;
-    padding: 24px 30px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    max-height: 520px;
-    overflow-y: auto;
-  }
-
-  /* ONBOARDING / LOGIN GATE */
-  .auth-gate-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(4, 5, 7, 0.94);
-    backdrop-filter: blur(30px);
-    z-index: 900;
-    display: none;
-    align-items: center;
-    justify-content: center;
-  }
-  .auth-gate-overlay.active { display: flex; }
-  .auth-card-panel {
-    width: 440px;
-    background: #090a0f;
-    border: 1px solid var(--glass-border-hi);
-    border-radius: 24px;
-    padding: 32px 30px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.95);
-  }
-  .auth-gem-hero {
-    width: 54px;
-    height: 54px;
-    border-radius: 16px;
-    background: linear-gradient(135deg, #ff8c00, #ff4500);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 26px;
-    box-shadow: 0 0 25px var(--accent-glow);
-    margin-bottom: 14px;
-  }
-  .auth-tabs-row {
-    display: flex;
-    gap: 8px;
-    width: 100%;
-    margin: 20px 0 16px;
-    background: rgba(255, 255, 255, 0.04);
-    padding: 4px;
-    border-radius: 12px;
-  }
-  .auth-tab-btn {
-    flex: 1;
-    padding: 8px;
-    border: none;
-    background: transparent;
-    color: var(--text-secondary);
-    font-weight: 700;
-    font-size: 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-  .auth-tab-btn.active {
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
-  }
-  .auth-submit-btn {
-    width: 100%;
-    padding: 12px;
-    border-radius: 12px;
-    border: none;
-    background: linear-gradient(135deg, #ff8c00, #ff4500);
-    color: #0b0c10;
-    font-weight: 800;
-    font-size: 13px;
-    letter-spacing: 0.5px;
-    cursor: pointer;
-    box-shadow: 0 6px 20px var(--accent-glow);
-    margin-top: 14px;
-    transition: 0.2s;
-  }
-  .auth-submit-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(255, 106, 0, 0.6); }
-
-  /* BOTTOM LAUNCH & DYNAMIC STOP DOCK */
-  .bottom-dock {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-  }
-  .launch-progress-wrap {
-    width: 320px;
-    display: none;
-    flex-direction: column;
-    gap: 4px;
-    margin-bottom: 2px;
-  }
-  .progress-meta-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--text-secondary);
-  }
-  .progress-track-bg {
-    width: 100%;
-    height: 4px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 99px;
-    overflow: hidden;
-  }
-  .progress-bar-inner {
-    width: 0%;
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent), #ffaa40);
-    box-shadow: 0 0 10px var(--accent-glow);
-    transition: width 0.2s ease;
-  }
-
-  .launch-controls-cluster {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .launch-pill {
-    position: relative;
-    display: flex;
-    align-items: center;
-    background: #fff;
-    border-radius: 999px;
-    padding: 6px 8px 6px 26px;
-    gap: 18px;
-    cursor: pointer;
-    border: none;
-    box-shadow: 0 0 40px rgba(255, 255, 255, 0.35), 0 10px 30px rgba(0,0,0,0.6);
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .launch-pill:hover:not(:disabled) {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 0 60px rgba(255, 255, 255, 0.55), 0 14px 40px rgba(0,0,0,0.8);
-  }
-  .launch-pill:disabled { opacity: 0.7; cursor: not-allowed; }
-  .launch-title { font-size: 14px; font-weight: 800; letter-spacing: 1.5px; color: #050608; text-transform: uppercase; }
-  .launch-meta-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: #0d0e14;
-    color: #fff;
-    padding: 6px 14px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .launch-meta-badge::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--emerald);
-    box-shadow: 0 0 8px var(--emerald);
-  }
-
-  /* Stop Button */
-  .stop-game-btn {
-    display: none;
-    align-items: center;
-    gap: 6px;
-    background: rgba(244, 63, 94, 0.15);
-    border: 1px solid var(--rose);
-    color: #fff;
-    padding: 10px 18px;
-    border-radius: 999px;
-    font-size: 12.5px;
-    font-weight: 800;
-    cursor: pointer;
-    box-shadow: 0 0 20px rgba(244, 63, 94, 0.3);
-    transition: 0.2s;
-  }
-  .stop-game-btn:hover {
-    background: var(--rose);
-    color: #0b0c10;
-    box-shadow: 0 0 30px rgba(244, 63, 94, 0.7);
-  }
-
-  .nav-dock {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--glass-base);
-    border: 1px solid var(--glass-border);
-    padding: 3px;
-    border-radius: 999px;
-    backdrop-filter: blur(24px);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.5);
-  }
-  .nav-tab {
-    padding: 6px 16px;
-    border-radius: 999px;
-    border: none;
-    background: transparent;
-    color: var(--text-secondary);
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  .nav-tab.active {
-    background: rgba(255, 255, 255, 0.08);
-    color: #fff;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
-  }
-
-  /* Modals */
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(16px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 999;
-  }
-  .modal-overlay.open { display: flex; }
-  .console-panel {
-    width: 680px;
-    height: 440px;
-    background: #08090d;
-    border: 1px solid var(--glass-border-hi);
-    border-radius: 20px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  .console-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 20px;
-    border-bottom: 1px solid var(--glass-border);
-    font-size: 13px;
-    font-weight: 700;
-  }
-  .console-logs {
-    flex: 1;
-    padding: 16px 20px;
-    overflow-y: auto;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11.5px;
-    line-height: 1.6;
-    color: #cbd5e1;
-  }
+  .status-text { font-family: 'JetBrains Mono'; font-size: 12px; color: var(--text-dim); margin-top: 8px; }
 </style>
 </head>
 <body>
 
-<div class="boot-screen" id="bootScreen">
-  <div class="boot-gem">🔥</div>
-  <div class="boot-title">CINDER CLIENT</div>
-  <div class="boot-bar">
-    <div class="boot-progress" id="bootProgress"></div>
-  </div>
+<div class="noise"></div>
+<div id="ambient-glow"></div>
+
+<!-- Electron Drag Zone and Window Controls -->
+<div class="drag-zone"></div>
+<div class="window-controls">
+  <button class="win-btn" id="btn-min">—</button>
+  <button class="win-btn" id="btn-max">□</button>
+  <button class="win-btn close" id="btn-close">✕</button>
 </div>
 
-<div class="bg-art"></div>
-
-<!-- Console Modal -->
-<div class="modal-overlay" id="consoleModal">
-  <div class="console-panel">
-    <div class="console-head">
-      <span>Console Output</span>
-      <div class="win-dot" id="consoleCloseBtn">✕</div>
-    </div>
-    <div class="console-logs" id="consoleLogs"></div>
-  </div>
-</div>
-
-<!-- Onboarding / Account Login Gate -->
-<div class="auth-gate-overlay" id="authGate">
-  <div class="auth-card-panel">
-    <div class="auth-gem-hero">🔥</div>
-    <h2 style="font-size: 18px; font-weight: 800;">Welcome to Cinder</h2>
-    <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Sign in or create an identity to get started.</p>
-
-    <div class="auth-tabs-row">
-      <button class="auth-tab-btn active" id="authTabOffline">Offline Mode</button>
-      <button class="auth-tab-btn" id="authTabMicrosoft">Microsoft</button>
-    </div>
-
-    <!-- Offline Form -->
-    <div id="authFormOffline" style="width: 100%;">
-      <input type="text" class="config-input" id="gateOfflineName" placeholder="Enter Username (e.g. Alex)" style="width: 100%; text-align: center; padding: 10px;" maxlength="16">
-      <button class="auth-submit-btn" id="gateOfflineSubmit">Continue with Identity →</button>
-    </div>
-
-    <!-- Microsoft Form -->
-    <div id="authFormMicrosoft" style="width: 100%; display: none;">
-      <p style="font-size: 12px; color: var(--text-secondary); margin: 10px 0 16px;">Sign in with your official Microsoft account to access premium servers & skins.</p>
-      <button class="auth-submit-btn" id="gateMicrosoftSubmit" style="background: #00a4ef; color: #fff;">🔑 Sign in with Microsoft</button>
-    </div>
-  </div>
-</div>
-
-<div class="app-shell" id="appShell">
-
-  <div class="topbar">
-    <div class="brand-chip">
-      <div class="brand-gem">🔥</div>
-      <span class="brand-title">CINDER</span>
-      <span class="brand-ver">v1.1.3</span>
-    </div>
-
-    <div class="top-actions">
-      <button class="glass-btn discord" id="discordTopBtn">💬 Discord</button>
-      <button class="glass-btn" id="openFolderBtn">📁 Game Root</button>
-      <button class="glass-btn" id="openConsoleBtn">⌘ Logs</button>
-      <div class="win-group">
-        <div class="win-dot" id="minBtn">—</div>
-        <div class="win-dot" id="maxBtn">▢</div>
-        <div class="win-dot" id="closeBtn">✕</div>
+<div class="app-layout">
+  
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">C</div>
+      <div class="brand-text">
+        <h1>CINDER</h1>
+        <span>V3 Monolith</span>
       </div>
     </div>
+    
+    <div class="nav-group">
+      <div class="nav-item active" data-target="view-home">⌂ Home</div>
+      <div class="nav-item" data-target="view-profiles">⌘ Profiles</div>
+      <div class="nav-item" data-target="view-mods">⎍ Mods Hub</div>
+      <div class="nav-item" data-target="view-settings">⚙ Settings</div>
+    </div>
   </div>
 
-  <!-- HOME VIEW -->
-  <div class="view-panel active" id="viewHome">
-    <div class="home-3col-grid">
-      
-      <div class="glass-panel stage-panel">
-        <div class="stage-badge">READY TO PLAY</div>
-        <div class="skin-container" id="stage3d">
+  <div class="main-content">
+    
+    <!-- 1. HOME TAB -->
+    <div class="view-layer active" id="view-home" style="display: grid;">
+      <div class="bento-card cell-profile glow-card">
+        <div class="glow-card-inner"></div>
+        <h3 class="card-title">Identity</h3>
+        <div style="flex:1; width:100%; display:flex; justify-content:center; align-items:center;" id="stage3d">
           <canvas id="skinCanvas"></canvas>
         </div>
-        <div class="identity-bar">
-          <div>
-            <div style="font-size:9.5px; color:var(--text-muted); font-weight:700; text-transform:uppercase;">PROFILE</div>
-            <div class="identity-name" id="displayPlayerName">Player</div>
-          </div>
-          <span class="identity-type-badge" id="displayAuthBadge">OFFLINE</span>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
+          <div style="font-weight:700; font-size:15px;" id="player-name-display">Developer</div>
+          <button id="btn-auth" style="background:var(--text-main); color:var(--bg); border:none; font-size:10px; font-weight:800; padding:4px 8px; border-radius:4px; font-family:'JetBrains Mono'; cursor:pointer;">LOGIN MS</button>
         </div>
       </div>
 
-      <div class="center-column">
-        <div class="glass-panel dashboard-panel">
-          <div class="panel-header">
-            <span class="panel-tag">ENGINE HUD</span>
-            <span class="status-tag" id="statusPill">ACTIVE</span>
-          </div>
-          <div class="hud-grid">
-            <div class="hud-row">
-              <span class="hud-label">📦 Version</span>
-              <span class="hud-val" id="hudVersion">None</span>
-            </div>
-            <div class="hud-row">
-              <span class="hud-label">⚙️ Loader</span>
-              <span class="hud-val" id="hudLoader">None</span>
-            </div>
-            <div class="hud-row">
-              <span class="hud-label">🧠 Memory</span>
-              <span class="hud-val" id="hudRam">4.0 GB</span>
-            </div>
-            <div class="hud-row">
-              <span class="hud-label">🚀 Optimizations</span>
-              <span class="hud-val" id="hudFps">G1GC</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="glass-panel patch-notes-panel">
-          <div class="patch-header">
-            <div class="patch-title">
-              <span>📢 Patch Notes</span>
-              <span class="patch-badge">v1.1.3</span>
-            </div>
-            <span style="font-size:10.5px; color:var(--text-muted);">Release</span>
-          </div>
-          <div class="patch-list">
-            <div class="patch-item">
-              <div class="patch-dot"></div>
-              <span><strong>Custom Profiles Workspace:</strong> Full custom profile creator with modular feature toggles.</span>
-            </div>
-            <div class="patch-item">
-              <div class="patch-dot"></div>
-              <span><strong>Dedicated Accounts Hub:</strong> Switch effortlessly between Offline and Microsoft profiles.</span>
-            </div>
-            <div class="patch-item">
-              <div class="patch-dot"></div>
-              <span><strong>Interactive Stop Control:</strong> Kill running Minecraft instances instantly directly from Home.</span>
-            </div>
-          </div>
+      <div class="bento-card cell-launch glow-card">
+        <div class="glow-card-inner"></div>
+        <div style="z-index: 1;">
+          <div style="font-family:'Space Grotesk'; font-size:48px; font-weight:800; letter-spacing:-2px; margin-bottom:8px;">Minecraft 1.21.4</div>
+          <div style="font-family:'JetBrains Mono'; color:var(--cinder); font-size:14px; font-weight:700; margin-bottom:32px;">FABRIC LOADER · PERFORMANCE+</div>
+          
+          <button class="btn-launch" id="btn-launch-game">
+            <span id="launch-text">INITIALIZE ENGINE</span>
+            <span class="arrow" id="launch-arrow">→</span>
+            <div class="launch-progress-bar" id="launch-progress"></div>
+          </button>
+          <div class="status-text" id="launch-status-sub">Ready to launch.</div>
         </div>
       </div>
 
-      <div class="glass-panel servers-panel">
-        <div>
-          <div class="panel-header">
-            <span class="panel-tag">SERVERS</span>
-            <span class="status-tag">1-CLICK JOIN</span>
-          </div>
-
-          <div class="servers-list">
-            <div class="server-card" onclick="triggerLaunch('play.pika-network.net')">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span class="srv-rank">#1</span>
-                <div class="srv-info">
-                  <h4>PikaNetwork</h4>
-                  <span>play.pika-network.net</span>
-                </div>
-              </div>
-              <div class="srv-badge"><div class="srv-dot"></div>Online</div>
-            </div>
-
-            <div class="server-card" onclick="triggerLaunch('top.jartex.fun')">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span class="srv-rank">#2</span>
-                <div class="srv-info">
-                  <h4>JartexNetwork</h4>
-                  <span>top.jartex.fun</span>
-                </div>
-              </div>
-              <div class="srv-badge"><div class="srv-dot"></div>Online</div>
-            </div>
-
-            <div class="server-card" onclick="triggerLaunch('play.blocksmc.com')">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span class="srv-rank">#3</span>
-                <div class="srv-info">
-                  <h4>BlocksMC</h4>
-                  <span>play.blocksmc.com</span>
-                </div>
-              </div>
-              <div class="srv-badge"><div class="srv-dot"></div>Online</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="discord-server-banner" id="discordBannerBtn">
-          💬 Join Official Discord Community →
-        </div>
+      <div class="bento-card cell-stats">
+        <h3 class="card-title">Telemetry</h3>
+        <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px dashed var(--border);"><span style="color:var(--text-dim); font-size:13px;">Memory Limit</span><span style="font-family:'JetBrains Mono'; font-weight:700; font-size:13px;" id="stat-ram">6144 MB</span></div>
+        <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px dashed var(--border);"><span style="color:var(--text-dim); font-size:13px;">Java Runtime</span><span style="font-family:'JetBrains Mono'; font-weight:700; font-size:13px;">Auto</span></div>
+        <div style="display:flex; justify-content:space-between; padding:12px 0;"><span style="color:var(--text-dim); font-size:13px;">Engine Flags</span><span style="font-family:'JetBrains Mono'; font-weight:700; font-size:13px; color:var(--cinder);">G1GC</span></div>
       </div>
 
+      <div class="bento-card cell-servers">
+        <h3 class="card-title">1-Click Network</h3>
+        <div style="display:flex; gap:12px; height:100%; align-items:center;">
+          <div style="flex:1; background:var(--bg); border:1px solid var(--border); height:100%; border-radius:12px; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:13px; cursor:pointer;" onclick="launchWithServer('play.pika-network.net')">PikaNetwork</div>
+          <div style="flex:1; background:var(--bg); border:1px solid var(--border); height:100%; border-radius:12px; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:13px; cursor:pointer;" onclick="launchWithServer('play.hypixel.net')">Hypixel</div>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <!-- PROFILES VIEW -->
-  <div class="view-panel" id="viewProfiles">
-    <div class="profiles-view-wrap">
-      <div class="profiles-head-bar">
-        <div class="profiles-title-area">
-          <div class="profiles-icon-badge">📁</div>
-          <div class="profiles-title-meta">
-            <h2>Profiles</h2>
-            <p>Manage your custom Minecraft configurations</p>
-          </div>
-        </div>
-        <button class="new-profile-btn" id="openCreateProfileWorkspaceBtn">＋ New Profile</button>
+    <!-- 2. PROFILES TAB -->
+    <div class="view-layer scrollable" id="view-profiles">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-shrink: 0;">
+        <h2 style="font-family:'Space Grotesk'; font-size:32px;">Game Profiles</h2>
+        <button style="background:var(--text-main); color:var(--bg); border:none; padding:10px 20px; border-radius:8px; font-family:'Space Grotesk'; font-weight:700; cursor:pointer;">+ NEW PROFILE</button>
       </div>
 
-      <div class="profiles-grid" id="profilesCardsContainer"></div>
+      <div class="grid-2col">
+        <div class="bento-card glow-card">
+          <div class="glow-card-inner"></div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
+            <div style="font-size:20px; font-weight:700;">Performance Main</div>
+            <div class="pill-badge active">SELECTED</div>
+          </div>
+          <div style="display:flex; gap:8px; margin-bottom:24px;">
+            <span class="pill-badge">Fabric 1.21.4</span>
+            <span class="pill-badge" style="color:var(--cinder); border-color:var(--cinder);">Performance+</span>
+          </div>
+          <div style="display:flex; gap:12px;">
+            <button style="flex:1; padding:10px; background:var(--bg); color:var(--text-main); border:1px solid var(--border); border-radius:8px; font-weight:600; cursor:pointer;" id="btn-folder">Folder</button>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <!-- DEDICATED PROFILE EDITOR / CREATOR WORKSPACE -->
-  <div class="view-panel" id="viewProfileEditor">
-    <div class="glass-panel workspace-panel">
-      <div class="panel-header">
-        <div>
-          <span class="panel-tag" id="workspaceHeaderTag">PROFILE CREATOR</span>
-          <h2 style="font-size: 16px; font-weight: 800; margin-top: 2px;" id="workspaceTitle">Configure New Game Instance</h2>
-        </div>
-        <div style="display: flex; gap: 8px;">
-          <button class="glass-btn" onclick="switchView('viewProfiles')">Cancel</button>
-          <button class="new-profile-btn" id="saveWorkspaceProfileBtn" style="padding: 6px 18px;">Save Profile →</button>
-        </div>
-      </div>
-
-      <div class="workspace-section-title">1. Core Instance Parameters</div>
-      <div class="workspace-grid">
-        <div class="config-card">
-          <div class="config-label">
-            <span class="config-label-title">Profile Name</span>
-            <span class="config-label-sub">Unique label for this configuration</span>
-          </div>
-          <input type="text" class="config-input" id="wsProfName" placeholder="e.g. 1.21 Survival Modded">
-        </div>
-
-        <div class="config-card">
-          <div class="config-label">
-            <span class="config-label-title">Minecraft Version</span>
-            <span class="config-label-sub">Search and select official release</span>
-          </div>
-          <div style="display:flex; flex-direction:column; gap:4px; width: 170px;">
-            <input type="text" class="config-input" id="wsVersionSearch" placeholder="🔍 Search..." style="width: 100%; font-size: 11.5px; padding: 4px 8px;">
-            <select class="config-select" id="wsVersionSelect" style="width: 100%;"></select>
-          </div>
-        </div>
-
-        <div class="config-card">
-          <div class="config-label">
-            <span class="config-label-title">Mod Loader</span>
-            <span class="config-label-sub">Injection framework</span>
-          </div>
-          <div class="chip-group" id="wsLoaderChips">
-            <span class="chip" data-val="Vanilla">Vanilla</span>
-            <span class="chip active" data-val="Fabric">Fabric</span>
-            <span class="chip" data-val="Forge">Forge</span>
-          </div>
-        </div>
-
-        <div class="config-card">
-          <div class="config-label">
-            <span class="config-label-title">RAM Allocation</span>
-            <span class="config-label-sub">JVM maximum heap limit</span>
-          </div>
-          <div class="chip-group" id="wsRamChips">
-            <span class="chip" data-val="2048">2 GB</span>
-            <span class="chip active" data-val="4096">4 GB</span>
-            <span class="chip" data-val="6144">6 GB</span>
-            <span class="chip" data-val="8192">8 GB</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="workspace-section-title" style="margin-top: 10px;">2. Performance & In-Game Feature Toggles</div>
-      <div class="workspace-grid">
-        <div class="config-card">
-          <div class="config-label">
-            <span class="config-label-title">⚡ Performance+ Modpack</span>
-            <span class="config-label-sub">Auto-bundle Sodium, Lithium & FerriteCore</span>
-          </div>
-          <div class="micro-switch on" id="wsTogglePerfPack" onclick="this.classList.toggle('on')"><div class="switch-dot"></div></div>
-        </div>
-
-        <div class="config-card">
-          <div class="config-label">
-            <span class="config-label-title">🚀 Low-Latency JVM Flags</span>
-            <span class="config-label-sub">High throughput G1GC garbage collection</span>
-          </div>
-          <div class="micro-switch on" id="wsToggleG1GC" onclick="this.classList.toggle('on')"><div class="switch-dot"></div></div>
-        </div>
-
-        <div class="config-card">
-          <div class="config-label">
-            <span class="config-label-title">📊 In-Game FPS & TPS Counter</span>
-            <span class="config-label-sub">Minimal real-time framerate HUD overlay</span>
-          </div>
-          <div class="micro-switch on" id="wsToggleFpsCounter" onclick="this.classList.toggle('on')"><div class="switch-dot"></div></div>
-        </div>
-
-        <div class="config-card">
-          <div class="config-label">
-            <span class="config-label-title">🎯 Custom Crosshair & Aim</span>
-            <span class="config-label-sub">Unlock custom reticle styling</span>
-          </div>
-          <div class="micro-switch" id="wsToggleCrosshair" onclick="this.classList.toggle('on')"><div class="switch-dot"></div></div>
-        </div>
-
-        <div class="config-card">
-          <div class="config-label">
-            <span class="config-label-title">⌨️ Keystrokes & Armor Status</span>
-            <span class="config-label-sub">PvP on-screen HUD status elements</span>
-          </div>
-          <div class="micro-switch" id="wsToggleKeystrokes" onclick="this.classList.toggle('on')"><div class="switch-dot"></div></div>
-        </div>
-
-        <div class="config-card">
-          <div class="config-label">
-            <span class="config-label-title">💡 Fullbright / Gamma Boost</span>
-            <span class="config-label-sub">Maximum cave & night brightness</span>
-          </div>
-          <div class="micro-switch on" id="wsToggleFullbright" onclick="this.classList.toggle('on')"><div class="switch-dot"></div></div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ACCOUNTS VIEW -->
-  <div class="view-panel" id="viewAccounts">
-    <div class="accounts-view-wrap">
-      <div class="profiles-head-bar">
-        <div class="profiles-title-area">
-          <div class="profiles-icon-badge" style="background: linear-gradient(135deg, #00a4ef, #5865F2);">👥</div>
-          <div class="profiles-title-meta">
-            <h2>Accounts</h2>
-            <p>Manage your signed-in offline and premium profiles</p>
-          </div>
-        </div>
-        <button class="new-profile-btn" id="openAddAccountGateBtn">＋ Add Account</button>
-      </div>
-
-      <div class="accounts-grid" id="accountsListContainer"></div>
-    </div>
-  </div>
-
-  <!-- MODS HUB VIEW -->
-  <div class="view-panel" id="viewMods">
-    <div class="mods-container">
+    <!-- 3. MODS HUB TAB -->
+    <div class="view-layer scrollable" id="view-mods">
+      <h2 style="font-family:'Space Grotesk'; font-size:32px; margin-bottom:24px; flex-shrink: 0;">Modrinth Hub</h2>
+      <input type="text" placeholder="Search for mods..." style="width:100%; background:var(--panel); border:1px solid var(--border); padding:16px 20px; border-radius:12px; color:var(--text-main); font-size:16px; outline:none; margin-bottom:24px; flex-shrink: 0;">
       
-      <div class="glass-panel mods-explore-panel">
-        <div class="panel-header">
-          <span class="panel-tag">EXPLORE MODRINTH</span>
-          <span class="status-tag" id="modsFilterTag">FABRIC</span>
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:16px; background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:12px; margin-bottom:12px;">
+        <div>
+          <div style="font-weight:700; font-size:16px; margin-bottom:4px;">Sodium</div>
+          <div style="color:var(--text-dim); font-size:13px;">Modern rendering engine that greatly improves frame rates.</div>
         </div>
-
-        <div class="mods-search-bar">
-          <input type="text" class="mods-input" id="modsSearchInput" placeholder="🔍 Search mods (e.g. Sodium, Iris, Lithium)...">
-          <button class="glass-btn" id="refreshModsBtn">Search</button>
-        </div>
-
-        <div class="mods-grid" id="modsGrid"></div>
+        <button style="background:var(--text-main); color:var(--bg); border:none; padding:8px 16px; border-radius:8px; font-weight:800; font-family:'JetBrains Mono'; cursor:pointer;">INSTALL</button>
       </div>
-
-      <div class="glass-panel installed-panel">
-        <div class="panel-header">
-          <span class="panel-tag">ACTIVE MODS</span>
-          <span class="status-tag" id="installedCountBadge">0 MODS</span>
-        </div>
-        <div class="installed-list" id="installedModsList"></div>
-      </div>
-
     </div>
+
+    <!-- 4. SETTINGS TAB -->
+    <div class="view-layer scrollable" id="view-settings">
+      <h2 style="font-family:'Space Grotesk'; font-size:32px; margin-bottom:24px; flex-shrink: 0;">Global Settings</h2>
+      
+      <div class="bento-card" style="margin-bottom: 20px;">
+        <h3 class="card-title">Java & Execution</h3>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+          <div><div style="font-weight:700; font-size:16px;">Memory Allocation</div><div style="color:var(--text-dim); font-size:13px; margin-top:4px;">Adjust maximum RAM given to the JVM.</div></div>
+          <div style="font-family:'JetBrains Mono'; font-weight:700; font-size:16px; color:var(--cinder);" id="ram-display">6144 MB</div>
+        </div>
+        <input type="range" min="2048" max="16384" step="1024" value="6144" class="slider" id="ram-slider" style="margin-bottom: 32px;">
+
+        <div>
+          <div style="font-weight:700; font-size:14px; margin-bottom:8px;">Custom JVM Arguments</div>
+          <input type="text" value="-XX:+UseG1GC -XX:MaxGCPauseMillis=50" class="setting-input">
+        </div>
+      </div>
+    </div>
+
   </div>
-
-  <!-- SETTINGS VIEW -->
-  <div class="view-panel" id="viewConfig">
-    <div class="config-view-container">
-      <div class="glass-panel settings-panel">
-        <div class="panel-header">
-          <span class="panel-tag">CLIENT SETTINGS</span>
-          <span class="status-tag">GLOBAL</span>
-        </div>
-
-        <div style="display:flex; flex-direction:column; gap:12px;">
-          <div class="config-card">
-            <div class="config-label">
-              <span class="config-label-title">Custom Avatar Skin</span>
-              <span class="config-label-sub">Upload your own .png skin file</span>
-            </div>
-            <div style="display: flex; gap: 8px;">
-              <label class="glass-btn" style="cursor: pointer;">
-                📁 Browse .PNG
-                <input type="file" id="skinFileInput" accept="image/png" style="display: none;">
-              </label>
-              <button class="glass-btn" id="resetSkinBtn">Reset</button>
-            </div>
-          </div>
-
-          <div class="config-card">
-            <div class="config-label">
-              <span class="config-label-title">Discord Rich Presence</span>
-              <span class="config-label-sub">Display playing status on your Discord profile</span>
-            </div>
-            <div class="micro-switch on" id="cfgDiscordRpcToggle" onclick="this.classList.toggle('on')"><div class="switch-dot"></div></div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <!-- BOTTOM LAUNCH DOCK & STOP PILL -->
-  <div class="bottom-dock">
-    
-    <div class="launch-progress-wrap" id="launchProgressContainer">
-      <div class="progress-meta-row">
-        <span id="launchStatusText">Preparing Engine...</span>
-        <span id="launchPercentText">0%</span>
-      </div>
-      <div class="progress-track-bg">
-        <div class="progress-bar-inner" id="launchProgressBar"></div>
-      </div>
-    </div>
-
-    <div class="launch-controls-cluster">
-      <button class="launch-pill" id="launchBtn">
-        <span class="launch-title" id="launchBtnText">LAUNCH</span>
-        <div class="launch-meta-badge" id="launchMetaBadge">No Profile Selected</div>
-      </button>
-
-      <button class="stop-game-btn" id="stopGameBtn">
-        <span>🛑</span> STOP GAME
-      </button>
-    </div>
-
-    <div class="nav-dock">
-      <button class="nav-tab active" data-target="viewHome">Home</button>
-      <button class="nav-tab" data-target="viewProfiles">Profiles</button>
-      <button class="nav-tab" data-target="viewAccounts">Accounts</button>
-      <button class="nav-tab" data-target="viewMods">Mods</button>
-      <button class="nav-tab" data-target="viewConfig">Settings</button>
-    </div>
-  </div>
-
 </div>
 
-<!-- 3D Skin Render Engine -->
 <script src="https://unpkg.com/skinview3d@3.0.1/bundles/skinview3d.bundle.js"></script>
-
 <script>
-  // Paste your real Discord Invite URL here:
-  const DISCORD_INVITE_URL = 'https://discord.gg/YOUR_INVITE_CODE';
-  const STORAGE_KEY = 'cinder_client_config';
-  const PROFILES_KEY = 'cinder_client_profiles';
-  const ACCOUNTS_KEY = 'cinder_client_accounts';
-  const ACTIVE_PROFILE_KEY = 'cinder_active_profile';
-  const ACTIVE_ACCOUNT_KEY = 'cinder_active_account';
-  
-  let allReleases = [];
-  let installedMods = [];
-
-  // Zero hardcoded profiles: cleanly wipe legacy dummies if present
-  let profiles = {};
-  const savedProfiles = localStorage.getItem(PROFILES_KEY);
-  if (savedProfiles) {
-    try { 
-      const parsed = JSON.parse(savedProfiles);
-      delete parsed['26-1'];
-      delete parsed['PvP 1.8.9'];
-      delete parsed['Default'];
-      profiles = parsed;
-    } catch(e) {
-      profiles = {};
-    }
-  }
-
-  // Multi-Account System
-  let accounts = [];
-  const savedAccounts = localStorage.getItem(ACCOUNTS_KEY);
-  if (savedAccounts) {
-    try { accounts = JSON.parse(savedAccounts); } catch(e){}
-  }
-
-  let activeProfileId = localStorage.getItem(ACTIVE_PROFILE_KEY);
-  if (!activeProfileId || !profiles[activeProfileId]) {
-    activeProfileId = Object.keys(profiles)[0] || null;
-  }
-
-  let activeAccountId = localStorage.getItem(ACTIVE_ACCOUNT_KEY) || (accounts[0] ? accounts[0].id : null);
-
-  let clientConfig = { customSkin: null };
-  const savedConfig = localStorage.getItem(STORAGE_KEY);
-  if (savedConfig) {
-    try { clientConfig = Object.assign(clientConfig, JSON.parse(savedConfig)); } catch(e){}
-  }
-
-  function getRequiredJavaPill(version) {
-    const parts = (version || '').split('.').map(n => parseInt(n, 10));
-    if (parts[0] === 1) {
-      if (parts[1] > 20 || (parts[1] === 20 && (parts[2] || 0) >= 5)) return 'Java 21+';
-      if (parts[1] >= 17) return 'Java 17+';
-      return 'Java 8+';
-    }
-    return 'Java 21+';
-  }
-
-  function saveAll() {
-    localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
-    localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(clientConfig));
-    if (activeProfileId) localStorage.setItem(ACTIVE_PROFILE_KEY, activeProfileId);
-    else localStorage.removeItem(ACTIVE_PROFILE_KEY);
-    if (activeAccountId) localStorage.setItem(ACTIVE_ACCOUNT_KEY, activeAccountId);
-    else localStorage.removeItem(ACTIVE_ACCOUNT_KEY);
-
-    syncHUD();
-    renderProfileCards();
-    renderAccounts();
-    loadActiveSkin();
-  }
-
-  // Account Gate & Switcher Logic
-  function checkAccountGate() {
-    const gate = document.getElementById('authGate');
-    if (accounts.length === 0) {
-      gate.classList.add('active');
-    } else {
-      gate.classList.remove('active');
-    }
-  }
-
-  document.getElementById('authTabOffline').addEventListener('click', () => {
-    document.getElementById('authTabOffline').classList.add('active');
-    document.getElementById('authTabMicrosoft').classList.remove('active');
-    document.getElementById('authFormOffline').style.display = 'block';
-    document.getElementById('authFormMicrosoft').style.display = 'none';
-  });
-
-  document.getElementById('authTabMicrosoft').addEventListener('click', () => {
-    document.getElementById('authTabMicrosoft').classList.add('active');
-    document.getElementById('authTabOffline').classList.remove('active');
-    document.getElementById('authFormOffline').style.display = 'none';
-    document.getElementById('authFormMicrosoft').style.display = 'block';
-  });
-
-  document.getElementById('gateOfflineSubmit').addEventListener('click', () => {
-    const name = document.getElementById('gateOfflineName').value.trim();
-    if (!name || !/^[A-Za-z0-9_]{3,16}$/.test(name)) {
-      return alert('Please enter a valid Minecraft username (3-16 letters, numbers, or underscores).');
-    }
-
-    const newAcc = { id: 'off_' + Date.now(), name: name, type: 'offline' };
-    accounts.push(newAcc);
-    activeAccountId = newAcc.id;
-    saveAll();
-    checkAccountGate();
-    switchView('viewProfiles');
-  });
-
-  document.getElementById('gateMicrosoftSubmit').addEventListener('click', async () => {
-    if (!window.launcherAPI) return alert('Microsoft Auth runs inside the Desktop App.');
-    const btn = document.getElementById('gateMicrosoftSubmit');
-    btn.disabled = true;
-    btn.textContent = 'Signing in...';
-
-    const res = await window.launcherAPI.loginMicrosoft();
-    btn.disabled = false;
-    btn.textContent = '🔑 Sign in with Microsoft';
-
-    if (res.success) {
-      const newAcc = { id: 'ms_' + Date.now(), name: res.profile.name, type: 'microsoft' };
-      accounts.push(newAcc);
-      activeAccountId = newAcc.id;
-      saveAll();
-      checkAccountGate();
-      switchView('viewProfiles');
-    } else {
-      alert(`Microsoft Login Failed: ${res.error}`);
-    }
-  });
-
-  document.getElementById('openAddAccountGateBtn').addEventListener('click', () => {
-    document.getElementById('authGate').classList.add('active');
-  });
-
-  // Render Accounts View
-  function renderAccounts() {
-    const list = document.getElementById('accountsListContainer');
-    list.innerHTML = '';
-
-    accounts.forEach(acc => {
-      const isActive = acc.id === activeAccountId;
-      const card = document.createElement('div');
-      card.className = `account-card ${isActive ? 'active-acc' : ''}`;
-
-      card.innerHTML = `
-        <div class="acc-left">
-          <img class="acc-head" src="https://minotar.net/avatar/${acc.name}/64" onerror="this.src='https://minotar.net/avatar/char/64'">
-          <div>
-            <div class="acc-name">${acc.name}</div>
-            <span class="identity-type-badge ${acc.type === 'microsoft' ? 'ms' : ''}">${acc.type.toUpperCase()}</span>
-          </div>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          ${!isActive ? `<button class="glass-btn" onclick="selectAccount('${acc.id}')">Select</button>` : '<span style="font-size:11px; color:var(--accent); font-weight:800;">ACTIVE</span>'}
-          <button class="del-btn" onclick="removeAccount('${acc.id}')">✕</button>
-        </div>
-      `;
-      list.appendChild(card);
-    });
-  }
-
-  window.selectAccount = function(id) {
-    activeAccountId = id;
-    saveAll();
-  };
-
-  window.removeAccount = function(id) {
-    if (confirm('Remove this account?')) {
-      accounts = accounts.filter(a => a.id !== id);
-      if (activeAccountId === id) {
-        activeAccountId = accounts[0] ? accounts[0].id : null;
-      }
-      saveAll();
-      checkAccountGate();
-    }
-  };
-
-  // Render Profile Cards
-  function renderProfileCards() {
-    const container = document.getElementById('profilesCardsContainer');
-    container.innerHTML = '';
-
-    const keys = Object.keys(profiles);
-    if (keys.length === 0) {
-      container.innerHTML = `
-        <div class="empty-state-box">
-          <div style="font-size:36px;">📁</div>
-          <h3>No Profiles Configured</h3>
-          <p>Create your custom Minecraft instance to pick your version, mod loader, and in-game performance pack.</p>
-          <button class="new-profile-btn" onclick="openProfileWorkspace(null)">＋ Create First Profile</button>
-        </div>
-      `;
-      return;
-    }
-
-    keys.forEach(key => {
-      const p = profiles[key];
-      const isActive = key === activeProfileId;
-
-      const card = document.createElement('div');
-      card.className = `profile-card ${isActive ? 'active-card' : ''}`;
-
-      card.innerHTML = `
-        <div>
-          <div class="profile-card-top">
-            <div class="profile-card-info">
-              <div class="profile-avatar-box">🎮</div>
-              <div style="display:flex; align-items:center;">
-                <span class="profile-card-name">${p.name}</span>
-                ${isActive ? '<span class="profile-status-badge">ACTIVE</span>' : ''}
-              </div>
-            </div>
-            <div class="profile-check-circle" onclick="setActiveProfile('${key}')" title="Select as Active Profile">
-              ✓
-            </div>
-          </div>
-
-          <div class="profile-pills-row">
-            <span class="meta-pill accent-pill">${p.version}</span>
-            <span class="meta-pill">${p.loader}</span>
-            <span class="meta-pill">☕ ${getRequiredJavaPill(p.version)}</span>
-            <span class="meta-pill">🧠 ${(p.ram / 1024).toFixed(1)}GB</span>
-            ${p.perfPack ? '<span class="meta-pill perf-pill">⚡ Performance+</span>' : ''}
-            ${p.fullbright ? '<span class="meta-pill">💡 Fullbright</span>' : ''}
-          </div>
-        </div>
-
-        <div class="profile-card-footer">
-          <button class="card-footer-btn" onclick="openProfileWorkspace('${key}')">✏️ Edit</button>
-          <button class="card-footer-btn" onclick="switchView('viewMods')">📦 Content</button>
-          <button class="card-footer-btn" onclick="window.launcherAPI && window.launcherAPI.openGameFolder()">📁 Folder</button>
-          <button class="card-footer-btn delete-btn" onclick="deleteProfile('${key}')">🗑️</button>
-        </div>
-      `;
-
-      container.appendChild(card);
-    });
-  }
-
-  window.setActiveProfile = function(key) {
-    activeProfileId = key;
-    saveAll();
-  };
-
-  window.deleteProfile = function(key) {
-    if (confirm(`Delete profile "${profiles[key].name}"?`)) {
-      delete profiles[key];
-      if (activeProfileId === key) {
-        const remaining = Object.keys(profiles);
-        activeProfileId = remaining.length > 0 ? remaining[0] : null;
-      }
-      saveAll();
-    }
-  };
-
-  // Full Workspace Profile Editor Logic
-  let editingWorkspaceKey = null;
-  let wsLoaderVal = 'Fabric';
-  let wsRamVal = 4096;
-
-  function renderWsVersionDropdown(filterText = '') {
-    const select = document.getElementById('wsVersionSelect');
-    select.innerHTML = '';
-    const query = filterText.toLowerCase().trim();
-    const filtered = allReleases.filter(v => v.id.toLowerCase().includes(query));
-
-    filtered.forEach(v => {
-      const opt = document.createElement('option');
-      opt.value = v.id;
-      opt.textContent = `Minecraft ${v.id}`;
-      select.appendChild(opt);
-    });
-  }
-
-  document.getElementById('wsVersionSearch').addEventListener('input', (e) => renderWsVersionDropdown(e.target.value));
-
-  function openProfileWorkspace(key = null) {
-    editingWorkspaceKey = key;
-    renderWsVersionDropdown();
-
-    const headerTag = document.getElementById('workspaceHeaderTag');
-    const title = document.getElementById('workspaceTitle');
-    const nameInput = document.getElementById('wsProfName');
-    const versionSelect = document.getElementById('wsVersionSelect');
-
-    if (key && profiles[key]) {
-      const p = profiles[key];
-      headerTag.textContent = 'PROFILE EDITOR';
-      title.textContent = `Customize: ${p.name}`;
-      nameInput.value = p.name;
-      versionSelect.value = p.version;
-      wsLoaderVal = p.loader;
-      wsRamVal = p.ram;
-
-      document.getElementById('wsTogglePerfPack').classList.toggle('on', !!p.perfPack);
-      document.getElementById('wsToggleG1GC').classList.toggle('on', !!p.g1gc);
-      document.getElementById('wsToggleFpsCounter').classList.toggle('on', !!p.fpsCounter);
-      document.getElementById('wsToggleCrosshair').classList.toggle('on', !!p.crosshair);
-      document.getElementById('wsToggleKeystrokes').classList.toggle('on', !!p.keystrokes);
-      document.getElementById('wsToggleFullbright').classList.toggle('on', !!p.fullbright);
-    } else {
-      headerTag.textContent = 'PROFILE CREATOR';
-      title.textContent = 'Configure New Game Instance';
-      nameInput.value = '';
-      if (allReleases[0]) versionSelect.value = allReleases[0].id;
-      wsLoaderVal = 'Fabric';
-      wsRamVal = 4096;
-
-      document.getElementById('wsTogglePerfPack').classList.add('on');
-      document.getElementById('wsToggleG1GC').classList.add('on');
-      document.getElementById('wsToggleFpsCounter').classList.add('on');
-      document.getElementById('wsToggleCrosshair').classList.remove('on');
-      document.getElementById('wsToggleKeystrokes').classList.remove('on');
-      document.getElementById('wsToggleFullbright').classList.add('on');
-    }
-
-    updateChipGroup('wsLoaderChips', wsLoaderVal);
-    updateChipGroup('wsRamChips', wsRamVal.toString());
-
-    switchView('viewProfileEditor');
-  }
-
-  document.getElementById('openCreateProfileWorkspaceBtn').addEventListener('click', () => openProfileWorkspace(null));
-
-  // Workspace Chips
-  document.querySelectorAll('#wsLoaderChips .chip').forEach(c => {
-    c.addEventListener('click', () => {
-      document.querySelectorAll('#wsLoaderChips .chip').forEach(el => el.classList.remove('active'));
-      c.classList.add('active');
-      wsLoaderVal = c.dataset.val;
+  // Mouse Ambient Glow
+  const glow = document.getElementById('ambient-glow');
+  document.addEventListener('mousemove', (e) => {
+    requestAnimationFrame(() => {
+      glow.style.left = `${e.clientX}px`;
+      glow.style.top = `${e.clientY}px`;
     });
   });
 
-  document.querySelectorAll('#wsRamChips .chip').forEach(c => {
-    c.addEventListener('click', () => {
-      document.querySelectorAll('#wsRamChips .chip').forEach(el => el.classList.remove('active'));
-      c.classList.add('active');
-      wsRamVal = parseInt(c.dataset.val, 10);
+  // Tab Switching
+  const navItems = document.querySelectorAll('.nav-item');
+  const viewLayers = document.querySelectorAll('.view-layer');
+
+  navItems.forEach(item => {
+    item.addEventListener('click', () => {
+      if (item.classList.contains('active')) return;
+      navItems.forEach(nav => nav.classList.remove('active'));
+      item.classList.add('active');
+
+      const targetId = item.getAttribute('data-target');
+      viewLayers.forEach(layer => {
+        if (layer.id === targetId) {
+          layer.style.display = layer.classList.contains('scrollable') ? 'flex' : 'grid';
+          setTimeout(() => layer.classList.add('active'), 10);
+        } else {
+          layer.classList.remove('active');
+          setTimeout(() => { if(!layer.classList.contains('active')) layer.style.display = 'none'; }, 300);
+        }
+      });
     });
   });
 
-  document.getElementById('saveWorkspaceProfileBtn').addEventListener('click', () => {
-    const name = document.getElementById('wsProfName').value.trim();
-    const version = document.getElementById('wsVersionSelect').value;
-
-    if (!name) return alert('Please enter a profile name.');
-
-    const targetKey = editingWorkspaceKey || name;
-    const perfPack = document.getElementById('wsTogglePerfPack').classList.contains('on');
-
-    profiles[targetKey] = {
-      name: name,
-      version: version,
-      loader: wsLoaderVal,
-      ram: wsRamVal,
-      perfPack: perfPack,
-      g1gc: document.getElementById('wsToggleG1GC').classList.contains('on'),
-      fpsCounter: document.getElementById('wsToggleFpsCounter').classList.contains('on'),
-      crosshair: document.getElementById('wsToggleCrosshair').classList.contains('on'),
-      keystrokes: document.getElementById('wsToggleKeystrokes').classList.contains('on'),
-      fullbright: document.getElementById('wsToggleFullbright').classList.contains('on')
-    };
-
-    activeProfileId = targetKey;
-    saveAll();
-
-    if (perfPack && wsLoaderVal === 'Fabric' && window.launcherAPI) {
-      window.launcherAPI.installFpsBundle({ version, loader: wsLoaderVal });
-    }
-
-    switchView('viewProfiles');
+  // Settings Slider Link
+  const ramSlider = document.getElementById('ram-slider');
+  const ramDisplay = document.getElementById('ram-display');
+  const statRam = document.getElementById('stat-ram');
+  ramSlider.addEventListener('input', () => {
+    const val = ramSlider.value + ' MB';
+    ramDisplay.innerText = val;
+    statRam.innerText = val;
   });
 
-  // Switch View Tab Helper
-  function switchView(viewId) {
-    document.querySelectorAll('.view-panel').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.target === viewId));
-    const target = document.getElementById(viewId);
-    if (target) target.classList.add('active');
-
-    if (viewId === 'viewMods') {
-      loadInstalledMods();
-      searchModrinthMods();
-    } else if (viewId === 'viewProfiles') {
-      renderProfileCards();
-    } else if (viewId === 'viewAccounts') {
-      renderAccounts();
-    }
-  }
-
-  document.querySelectorAll('.nav-tab').forEach(tab => {
-    tab.addEventListener('click', () => switchView(tab.dataset.target));
-  });
-
-  function updateChipGroup(groupId, val) {
-    const group = document.getElementById(groupId);
-    if (!group) return;
-    group.querySelectorAll('.chip').forEach(c => {
-      c.classList.toggle('active', c.dataset.val === val);
-    });
-  }
-
-  function syncHUD() {
-    const curProfile = activeProfileId && profiles[activeProfileId] ? profiles[activeProfileId] : null;
-    const activeAcc = accounts.find(a => a.id === activeAccountId);
-    const activeName = activeAcc ? activeAcc.name : 'Player';
-    const isMS = activeAcc && activeAcc.type === 'microsoft';
-
-    document.getElementById('displayPlayerName').textContent = activeName;
-    const authBadge = document.getElementById('displayAuthBadge');
-    authBadge.textContent = isMS ? 'PREMIUM' : 'OFFLINE';
-    authBadge.classList.toggle('ms', isMS);
-
-    if (curProfile) {
-      document.getElementById('hudVersion').textContent = curProfile.version;
-      document.getElementById('hudLoader').textContent = curProfile.loader;
-      document.getElementById('hudRam').textContent = (curProfile.ram / 1024).toFixed(1) + ' GB';
-      document.getElementById('launchMetaBadge').textContent = `${curProfile.name} · ${curProfile.version}`;
-      document.getElementById('modsFilterTag').textContent = `${curProfile.loader.toUpperCase()} ${curProfile.version}`;
-      document.getElementById('hudFps').textContent = curProfile.g1gc ? 'G1GC' : 'Off';
-    } else {
-      document.getElementById('hudVersion').textContent = 'None';
-      document.getElementById('hudLoader').textContent = 'None';
-      document.getElementById('hudRam').textContent = '4.0 GB';
-      document.getElementById('launchMetaBadge').textContent = 'No Profile Selected';
-      document.getElementById('modsFilterTag').textContent = 'FABRIC';
-      document.getElementById('hudFps').textContent = 'Off';
-    }
-  }
-
-  // Modrinth Hub
-  async function loadInstalledMods() {
-    if (!window.launcherAPI) return;
-    installedMods = await window.launcherAPI.getInstalledMods();
-    const list = document.getElementById('installedModsList');
-    const badge = document.getElementById('installedCountBadge');
-    badge.textContent = `${installedMods.length} MODS`;
-    list.innerHTML = '';
-
-    if (installedMods.length === 0) {
-      list.innerHTML = `<div style="font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 20px;">No mods installed yet.</div>`;
-      return;
-    }
-
-    installedMods.forEach(file => {
-      const row = document.createElement('div');
-      row.className = 'installed-item';
-      row.innerHTML = `
-        <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:180px;">${file}</span>
-        <button class="del-btn" onclick="removeMod('${file}')">✕</button>
-      `;
-      list.appendChild(row);
-    });
-  }
-
-  async function removeMod(filename) {
-    if (!window.launcherAPI) return;
-    await window.launcherAPI.deleteMod(filename);
-    loadInstalledMods();
-    searchModrinthMods();
-  }
-
-  async function searchModrinthMods() {
-    const cur = activeProfileId && profiles[activeProfileId] ? profiles[activeProfileId] : { version: '1.20.4', loader: 'Fabric' };
-    const grid = document.getElementById('modsGrid');
-    const query = document.getElementById('modsSearchInput').value.trim();
-    grid.innerHTML = `<div style="font-size:12px; color:var(--text-muted); grid-column:span 2; text-align:center; padding:20px;">Searching Modrinth...</div>`;
-
-    if (!window.launcherAPI) {
-      grid.innerHTML = `<div style="font-size:12px; color:var(--text-muted); grid-column:span 2; text-align:center; padding:20px;">Mods Hub active in Desktop Client.</div>`;
-      return;
-    }
-
-    const mods = await window.launcherAPI.searchMods({ query, version: cur.version, loader: cur.loader });
-    grid.innerHTML = '';
-
-    if (!mods || mods.length === 0) {
-      grid.innerHTML = `<div style="font-size:12px; color:var(--text-muted); grid-column:span 2; text-align:center; padding:20px;">No compatible mods found for ${cur.loader} ${cur.version}.</div>`;
-      return;
-    }
-
-    mods.forEach(mod => {
-      const card = document.createElement('div');
-      card.className = 'mod-card';
-      const icon = mod.icon_url || 'https://raw.githubusercontent.com/modrinth/art/master/brand/badge.svg';
-      card.innerHTML = `
-        <img class="mod-icon" src="${icon}" onerror="this.src='https://raw.githubusercontent.com/modrinth/art/master/brand/badge.svg'">
-        <div class="mod-details">
-          <div class="mod-title">${mod.title}</div>
-          <div class="mod-desc">${mod.description || ''}</div>
-        </div>
-        <button class="mod-btn install" id="modBtn-${mod.project_id}" onclick="installSingleMod('${mod.project_id}')">Install</button>
-      `;
-      grid.appendChild(card);
-    });
-  }
-
-  async function installSingleMod(projectId) {
-    const cur = activeProfileId && profiles[activeProfileId] ? profiles[activeProfileId] : { version: '1.20.4', loader: 'Fabric' };
-    if (!window.launcherAPI) return;
-    const btn = document.getElementById(`modBtn-${projectId}`);
-    btn.disabled = true;
-    btn.textContent = '...';
-
-    const res = await window.launcherAPI.installMod({ projectId, version: cur.version, loader: cur.loader });
-    if (res.success) {
-      btn.textContent = 'Installed';
-      btn.className = 'mod-btn installed';
-      loadInstalledMods();
-    } else {
-      btn.disabled = false;
-      btn.textContent = 'Failed';
-      alert(`Installation failed: ${res.error}`);
-    }
-  }
-
-  document.getElementById('refreshModsBtn').addEventListener('click', searchModrinthMods);
-  document.getElementById('modsSearchInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') searchModrinthMods(); });
-
-  // Skin Management
-  document.getElementById('skinFileInput').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(event) {
-      clientConfig.customSkin = event.target.result;
-      if (skinViewer) skinViewer.loadSkin(clientConfig.customSkin);
-      saveAll();
-    };
-    reader.readAsDataURL(file);
-  });
-
-  document.getElementById('resetSkinBtn').addEventListener('click', function() {
-    clientConfig.customSkin = null;
-    loadActiveSkin();
-    saveAll();
-  });
-
-  // Window Controls
-  document.getElementById('discordTopBtn').addEventListener('click', () => window.launcherAPI?.openExternal(DISCORD_INVITE_URL));
-  document.getElementById('discordBannerBtn').addEventListener('click', () => window.launcherAPI?.openExternal(DISCORD_INVITE_URL));
-  document.getElementById('minBtn').addEventListener('click', () => window.launcherAPI?.minimize());
-  document.getElementById('maxBtn').addEventListener('click', () => window.launcherAPI?.maximize());
-  document.getElementById('closeBtn').addEventListener('click', () => window.launcherAPI?.close());
-
-  const modal = document.getElementById('consoleModal');
-  document.getElementById('openConsoleBtn').addEventListener('click', () => modal.classList.add('open'));
-  document.getElementById('consoleCloseBtn').addEventListener('click', () => modal.classList.remove('open'));
-  modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
-
-  // 3D Skin Engine
-  let skinViewer = null;
-
-  function init3DStage() {
+  // Skinview 3D Initialization
+  window.addEventListener('load', () => {
     const canvas = document.getElementById('skinCanvas');
     const container = document.getElementById('stage3d');
-
-    skinViewer = new skinview3d.SkinViewer({
-      canvas: canvas,
-      width: container.clientWidth || 240,
-      height: container.clientHeight || 340,
+    let skinViewer = new skinview3d.SkinViewer({
+      canvas: canvas, width: container.clientWidth, height: container.clientHeight,
       skin: 'https://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f0f6fa9d20477b6cf346141d83dd4cb1947b4'
     });
-
-    skinViewer.camera.position.set(0, 0, 60);
+    skinViewer.camera.position.set(0, 0, 50);
     skinViewer.zoom = 0.9;
     skinViewer.animation = new skinview3d.WalkingAnimation();
-    skinViewer.animation.speed = 0.6;
+    skinViewer.animation.speed = 0.5;
     skinViewer.autoRotate = true;
-    skinViewer.autoRotateSpeed = 0.8;
-
-    loadActiveSkin();
-  }
-
-  function loadActiveSkin() {
-    if (!skinViewer) return;
-    const activeAcc = accounts.find(a => a.id === activeAccountId);
-    const activeName = activeAcc ? activeAcc.name : null;
-
-    if (clientConfig.customSkin) {
-      skinViewer.loadSkin(clientConfig.customSkin);
-    } else if (activeName && activeName !== 'Player') {
-      skinViewer.loadSkin(`https://minotar.net/skin/${activeName}`);
-    } else {
-      skinViewer.loadSkin('https://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f0f6fa9d20477b6cf346141d83dd4cb1947b4');
-    }
-  }
-
-  async function loadAllMinecraftVersions() {
-    try {
-      const res = await fetch('https://piston-meta.mojang.com/mc/game/version_manifest_v2.json');
-      const data = await res.json();
-      allReleases = data.versions.filter(v => v.type === 'release');
-    } catch (e) {
-      allReleases = [
-        { id: '1.21.4' }, { id: '1.21.1' }, { id: '1.20.4' }, { id: '1.20.1' }, 
-        { id: '1.19.4' }, { id: '1.18.2' }, { id: '1.16.5' }, 
-        { id: '1.12.2' }, { id: '1.8.9' }
-      ];
-    }
-  }
-
-  window.addEventListener('load', () => {
-    const bootProgress = document.getElementById('bootProgress');
-    const bootScreen = document.getElementById('bootScreen');
-    const appShell = document.getElementById('appShell');
-
-    loadAllMinecraftVersions().then(() => {
-      saveAll();
-      checkAccountGate();
-    });
-
-    setTimeout(() => { bootProgress.style.width = '45%'; }, 200);
-    setTimeout(() => { bootProgress.style.width = '100%'; }, 600);
-
-    setTimeout(() => {
-      bootScreen.classList.add('fade-out');
-      appShell.classList.add('ready');
-      try { init3DStage(); } catch(e){}
-    }, 1000);
   });
 
-  // Launch Engine & Dynamic Stop Pill
-  const launchBtn = document.getElementById('launchBtn');
-  const launchBtnText = document.getElementById('launchBtnText');
-  const stopGameBtn = document.getElementById('stopGameBtn');
-  const statusPill = document.getElementById('statusPill');
-  const consoleLogs = document.getElementById('consoleLogs');
-
-  const progressWrap = document.getElementById('launchProgressContainer');
-  const progressBar = document.getElementById('launchProgressBar');
-  const statusLabel = document.getElementById('launchStatusText');
-  const percentLabel = document.getElementById('launchPercentText');
-
-  function triggerLaunch(serverIp = null) {
-    if (accounts.length === 0 || !activeAccountId) {
-      document.getElementById('authGate').classList.add('active');
-      return;
-    }
-
-    if (!activeProfileId || !profiles[activeProfileId]) {
-      switchView('viewProfiles');
-      alert('Please create or select a profile first!');
-      return;
-    }
-
-    const cur = profiles[activeProfileId];
-    const activeAcc = accounts.find(a => a.id === activeAccountId);
-
-    if (!window.launcherAPI) {
-      alert('Preview mode: Game launch runs inside the packaged Electron app.');
-      return;
-    }
-
-    launchBtn.disabled = true;
-    launchBtnText.textContent = 'PREPARING...';
-    statusPill.textContent = 'LAUNCHING';
-    statusPill.style.color = 'var(--accent)';
-
-    progressWrap.style.display = 'flex';
-    statusLabel.textContent = 'Initializing Engine...';
-    percentLabel.textContent = '0%';
-    progressBar.style.width = '5%';
-
-    window.launcherAPI.launchGame({
-      username: activeAcc.name,
-      authType: activeAcc.type,
-      version: cur.version,
-      loaderType: cur.loader,
-      memoryMax: cur.ram,
-      fpsBoost: cur.g1gc,
-      serverIp: serverIp
-    });
-  }
-
-  launchBtn.addEventListener('click', () => triggerLaunch());
-
-  stopGameBtn.addEventListener('click', () => {
-    if (window.launcherAPI && window.launcherAPI.stopGame) {
-      window.launcherAPI.stopGame();
-    }
-  });
-
+  // ----- ELECTRON API BINDINGS -----
   if (window.launcherAPI) {
-    document.getElementById('openFolderBtn').addEventListener('click', () => window.launcherAPI.openGameFolder());
+    // Window Controls
+    document.getElementById('btn-min').onclick = () => window.launcherAPI.minimize();
+    document.getElementById('btn-max').onclick = () => window.launcherAPI.maximize();
+    document.getElementById('btn-close').onclick = () => window.launcherAPI.close();
+    
+    // Quick Actions
+    document.getElementById('btn-folder').onclick = () => window.launcherAPI.openGameFolder();
 
+    // Microsoft Auth
+    const authBtn = document.getElementById('btn-auth');
+    authBtn.onclick = async () => {
+      authBtn.innerText = 'WAIT...';
+      const res = await window.launcherAPI.loginMicrosoft();
+      if (res.success) {
+        document.getElementById('player-name-display').innerText = res.profile.name;
+        authBtn.innerText = 'LOGGED IN';
+        authBtn.style.background = 'var(--cinder)';
+      } else {
+        authBtn.innerText = 'FAILED';
+      }
+    };
+
+    // Game Launch 
+    const launchBtn = document.getElementById('btn-launch-game');
+    const launchText = document.getElementById('launch-text');
+    const launchArrow = document.getElementById('launch-arrow');
+    const launchSub = document.getElementById('launch-status-sub');
+    const launchProg = document.getElementById('launch-progress');
+    
+    let isRunning = false;
+
+    window.launchWithServer = (ip) => {
+        if(!isRunning) triggerLaunch(ip);
+    }
+
+    const triggerLaunch = (serverIp = null) => {
+      if (isRunning) {
+        window.launcherAPI.stopGame();
+        return;
+      }
+      
+      launchBtn.disabled = true;
+      launchText.innerText = "INITIALIZING...";
+      launchArrow.style.display = 'none';
+      
+      const config = {
+        username: document.getElementById('player-name-display').innerText,
+        authType: document.getElementById('player-name-display').innerText === 'Developer' ? 'offline' : 'microsoft',
+        version: "1.21.4",
+        loaderType: "Fabric",
+        memoryMax: ramSlider.value,
+        fpsBoost: true,
+        serverIp: serverIp
+      };
+
+      window.launcherAPI.launchGame(config);
+    };
+
+    launchBtn.addEventListener('click', () => triggerLaunch());
+
+    // Backend Event Listeners
     window.launcherAPI.onGameStatus((status) => {
-      if (typeof status === 'object') {
-        progressWrap.style.display = 'flex';
-        if (status.text) statusLabel.textContent = status.text;
-        if (status.percent !== undefined) {
-          percentLabel.textContent = `${status.percent}%`;
-          progressBar.style.width = `${status.percent}%`;
-        }
-
-        if (status.stage === 'loading' || status.stage === 'downloading') {
-          launchBtn.disabled = true;
-          launchBtnText.textContent = 'LAUNCHING...';
-          stopGameBtn.style.display = 'none';
-          statusPill.textContent = 'LOADING';
-          statusPill.style.color = 'var(--accent)';
-        } else if (status.stage === 'launched') {
-          launchBtn.style.display = 'none';
-          stopGameBtn.style.display = 'flex';
-          statusPill.textContent = 'RUNNING';
-          statusPill.style.color = 'var(--emerald)';
-          progressBar.style.width = '100%';
-          percentLabel.textContent = '100%';
-        } else if (status.stage === 'closed') {
-          progressWrap.style.display = 'none';
-          progressBar.style.width = '0%';
-          launchBtn.style.display = 'flex';
-          launchBtn.disabled = false;
-          launchBtnText.textContent = 'LAUNCH';
-          stopGameBtn.style.display = 'none';
-          statusPill.textContent = 'ACTIVE';
-          statusPill.style.color = 'var(--text-secondary)';
-        }
+      if (status.stage === 'loading' || status.stage === 'downloading') {
+        launchSub.innerText = status.text;
+      } else if (status.stage === 'launched') {
+        isRunning = true;
+        launchBtn.disabled = false;
+        launchText.innerText = "STOP ENGINE";
+        launchArrow.style.display = 'none';
+        launchProg.style.width = '100%';
+        launchSub.innerText = "Game is running.";
+      } else if (status.stage === 'closed') {
+        isRunning = false;
+        launchBtn.disabled = false;
+        launchText.innerText = "INITIALIZE ENGINE";
+        launchArrow.style.display = 'block';
+        launchProg.style.width = '0%';
+        launchSub.innerText = "Ready to launch.";
       }
     });
 
     window.launcherAPI.onDownloadProgress((prog) => {
-      progressWrap.style.display = 'flex';
-      statusLabel.textContent = `Downloading ${prog.type}...`;
-      percentLabel.textContent = `${prog.percent}%`;
-      progressBar.style.width = `${prog.percent}%`;
-    });
-
-    window.launcherAPI.onGameLog((data) => {
-      const line = document.createElement('div');
-      line.textContent = `[${new Date().toLocaleTimeString()}] ${data.text || data}`;
-      consoleLogs.appendChild(line);
-      consoleLogs.scrollTop = consoleLogs.scrollHeight;
+      launchProg.style.width = `${prog.percent}%`;
     });
   }
 </script>
+
 </body>
 </html>
